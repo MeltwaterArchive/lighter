@@ -1,0 +1,30 @@
+{
+    "id": "myservice",
+    "container": {
+        "type": "DOCKER",
+        "docker": {
+            "image": "meltwater/mesos-demo-webapp:latest",
+            "network": "BRIDGE",
+            "portMappings": [
+                { "containerPort": 8080, "servicePort": 1234 }
+            ]
+        }
+    },
+    "instances": 3,
+    "cpus": 0.1,
+    "mem": 200.0,
+    "env": {
+        "rabbit": "amqp://localhost:15672"
+    },
+    "healthChecks": [
+        {
+            "protocol": "HTTP",
+            "path": "/_status",
+            "portIndex": 0,
+            "gracePeriodSeconds": 15,
+            "intervalSeconds": 10,
+            "timeoutSeconds": 5,
+            "maxConsecutiveFailures": 3
+        }
+    ]
+}

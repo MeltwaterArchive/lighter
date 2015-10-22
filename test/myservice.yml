@@ -1,0 +1,9 @@
+maven:
+  repository: file:./test/repository/
+  groupid: com.meltwater
+  artifactid: myservice
+  version: 1.0.0
+override:
+  cpus: 1
+  env:
+    DATABASE: database:3306
