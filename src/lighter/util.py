@@ -21,16 +21,15 @@ def merge(*args):
 def replace(template, variables):
     result = copy(template)
 
-    for key, value in result.items():
-        if isinstance(value, dict):
+    if isinstance(result, dict):
+        for key, value in result.items():
             result[key] = replace(value, variables)
-        elif isinstance(value, list) or isinstance(value, tuple):
-            result[key] = [replace(elem, variables) for elem in value]
-        else:
-            if isinstance(value, str) or isinstance(value, unicode) and '${' in value:
-                for varkey, varval in variables.items():
-                    value = value.replace('${' + varkey + '}', varval)
-            result[key] = value
+    elif isinstance(result, list) or isinstance(result, tuple):
+        result = [replace(elem, variables) for elem in result]
+    else:
+        if isinstance(result, str) or isinstance(result, unicode) and '${' in result:
+            for varkey, varval in variables.items():
+                result = result.replace('${' + varkey + '}', unicode(varval))
 
     return result
 
