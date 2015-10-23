@@ -80,12 +80,3 @@ def rget(root, *args):
     for arg, i in zip(args, range(len(args))):
         node = node.get(arg, i < len(args)-1 and {} or None)
     return node
-
-def rchmod(path, dirmode, filemode=None):
-    os.chmod(path, os.path.isdir(path) and dirmode or (filemode or dirmode))
-
-    for root, dirs, files in os.walk(path):
-        for entry in dirs:
-            os.chmod(os.path.join(root, entry), dirmode)
-        for entry in files:
-            os.chmod(os.path.join(root, entry), filemode or dirmode)

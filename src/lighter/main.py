@@ -139,4 +139,3 @@ if __name__ == '__main__':
             os.makedirs(os.path.dirname(outputfile))
         with open(outputfile, 'w') as fd:
             fd.write(json.dumps(service.config, indent=4))
-        rchmod(basedir, 0777, 0666)
