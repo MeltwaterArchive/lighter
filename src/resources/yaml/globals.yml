@@ -1,0 +1,4 @@
+maven:
+  repository: "file:./src/resources/repository/"
+hipchat:
+  token: "abc123"

@@ -5,8 +5,11 @@ from lighter.util import *
 
 class TestStringMethods(unittest.TestCase):
     def test_parse_file(self):
-        config = lighter.parse_file('src/resources/yaml/staging/myservice.yml').config
+        service = lighter.parse_file('src/resources/yaml/staging/myservice.yml')
+        self.assertEqual(service.document['hipchat']['token'], 'abc123')
+        self.assertEqual(service.document['hipchat']['rooms'][0], '123456')
 
+        config = service.config
         self.assertEqual(config['id'],'/myproduct/myservice')
         self.assertEqual(config['env']['DATABASE'], 'database:3306')
         self.assertEqual(config['env']['rabbitmq'], 'amqp://myserver:15672')

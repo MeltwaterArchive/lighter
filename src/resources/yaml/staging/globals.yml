@@ -1,7 +1,4 @@
-maven:
-  repository: "file:./src/resources/repository/"
 hipchat:
-  token: "abc123"
   rooms:
     - "123456"
 variables:
