@@ -131,3 +131,10 @@ if __name__ == '__main__':
         if modified:
             hipchat = HipChat(rget(service.document,'hipchat','url'), rget(service.document,'hipchat','token')).rooms(["2087542"])
             hipchat.notify("Deployed <b>%s</b> in version <b>%s</b>" % (service.config['id'], service.config['container']['docker']['image']))
+
+        # Write json file to disk for logging purposes
+        outputfile = os.path.join('/tmp/lighter', file + '.json')
+        if not os.path.exists(os.path.dirname(outputfile)):
+            os.makedirs(os.path.dirname(outputfile))
+        with open(outputfile, 'w') as fd:
+            fd.write(json.dumps(service.config, indent=4))
