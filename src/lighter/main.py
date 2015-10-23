@@ -133,8 +133,10 @@ if __name__ == '__main__':
             hipchat.notify("Deployed <b>%s</b> in version <b>%s</b>" % (service.config['id'], service.config['container']['docker']['image']))
 
         # Write json file to disk for logging purposes
-        outputfile = os.path.join('/tmp/lighter', file + '.json')
+        basedir = '/tmp/lighter'
+        outputfile = os.path.join(basedir, file + '.json')
         if not os.path.exists(os.path.dirname(outputfile)):
             os.makedirs(os.path.dirname(outputfile))
         with open(outputfile, 'w') as fd:
             fd.write(json.dumps(service.config, indent=4))
+        rchmod(basedir, 0777, 0666)

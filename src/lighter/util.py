@@ -1,4 +1,4 @@
-import urlparse, base64, json, urllib2
+import os, urlparse, base64, json, urllib2
 from copy import copy
 
 def merge(*args):
@@ -80,3 +80,10 @@ def rget(root, *args):
     for arg, i in zip(args, range(len(args))):
         node = node.get(arg, i < len(args)-1 and {} or None)
     return node
+
+def rchmod(path, dirmode, filemode=None):
+    for root, dirs, files in os.walk(path):  
+      for entry in dirs:
+        os.chmod(os.path.join(root, entry), dirmode)
+      for entry in files:
+        os.chmod(os.path.join(root, entry), filemode or dirmode)
