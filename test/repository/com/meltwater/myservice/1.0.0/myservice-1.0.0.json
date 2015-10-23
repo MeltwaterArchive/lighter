@@ -1,5 +1,5 @@
 {
-    "id": "myservice",
+    "id": "/myproduct/myservice",
     "container": {
         "type": "DOCKER",
         "docker": {

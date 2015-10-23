@@ -38,6 +38,27 @@ def merge_dicts(a, b):
 
     return result
 
+def compare_service_versions(nextVersion, prevVersion, path=''):
+    if isinstance(nextVersion, dict):
+        for key, value in nextVersion.items():
+            keypath = path + '/' + key
+            if key not in prevVersion:
+                logging.debug("New key found %s", keypath)
+                return False
+            if not compare_service_versions(value, prevVersion[key], keypath):
+                return False
+    elif isinstance(nextVersion, list):
+        if len(nextVersion) != len(prevVersion):
+            logging.debug("List have changed at %s", path)
+            return False
+        for nextValue, prevValue in zip(sorted(nextVersion), sorted(prevVersion)):
+            if not compare_service_versions(nextValue, prevValue, path):
+                return False
+    elif nextVersion != prevVersion:
+        logging.debug("Value has changed at %s (%s != %s)", path, nextVersion, prevVersion)
+        return False
+    return True
+
 def urlunparse(data):
     """
     Modified from urlparse.urlunparse to support file://./path/to urls
@@ -84,6 +105,15 @@ def parse_file(file):
 def get_marathon_url(url, id):
     return url.rstrip('/') + '/v2/apps/' + id.strip('/') + '?force=true'
 
+def get_marathon_app(url):
+    try:
+        response = urllib2.urlopen(build_request(url))
+        content = response.read()
+        return json.loads(content)['app']
+    except Exception, e:
+        logging.debug(str(e))
+        return {}
+
 if __name__ == '__main__':
     parser = optparse.OptionParser(
         usage='lighter.py [options]... service.yml service2.yml',
@@ -107,9 +137,18 @@ if __name__ == '__main__':
         sys.exit(1)
 
     for file in args:
-        file_content = parse_file(file)
-        serialized_json = json.dumps(file_content)
+        logging.info("Processing %s", file)
+        nextVersion = parse_file(file)
+        appurl = get_marathon_url(options.marathon, nextVersion['id'])
 
-        request = urllib2.Request(get_marathon_url(options.marathon, file_content['id']), serialized_json, {'Content-Type': 'application/json'})
+        # See if service config has changed
+        prevVersion = get_marathon_app(appurl)
+        if compare_service_versions(nextVersion, prevVersion):
+            logging.debug("Service already deployed with same config: %s", file)
+
+        # Deploy new service config
+        logging.debug("Deploying %s", file)
+        serialized_json = json.dumps(nextVersion)
+        request = urllib2.Request(appurl, serialized_json, {'Content-Type': 'application/json'})
         request.get_method = lambda: 'PUT'
         response = urllib2.urlopen(request)
