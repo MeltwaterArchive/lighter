@@ -51,7 +51,7 @@ The `maven:` section specifies where to fetch *json* template from. For example
 *globals.yml*
 ```
 maven:
-    repository: "http://username:password@maven.example.com/nexus/content/groups/public
+  repository: "http://username:password@maven.example.com/nexus/content/groups/public
 ```
 
 *myservice.yml*

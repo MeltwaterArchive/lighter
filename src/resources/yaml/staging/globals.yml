@@ -1,8 +1,8 @@
 maven:
   repository: "file:./src/resources/repository/"
 hipchat:
-  token: "SFCABT1GxNHnDNn62D6mX4X3z4EvBMZchkgbTbzb"
+  token: "abc123"
   rooms:
-    - "2087542"
+    - "123456"
 variables:
   rabbitmq.url: "amqp://myserver:15672"
