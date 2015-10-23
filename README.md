@@ -38,15 +38,15 @@ marathon-site/
             myservice.yml
 ```
 
-Running `lighter -m http://marathon-host:8080 staging/myservice.yml` will
+Running `lighter -m http://marathon-host:8080 staging/services/myservice.yml` will
 
 * Merge *myservice.yml* with environment defaults from *marathon-site/staging/globals.yml* and *marathon-site/globals.yml*
-* Fetch the template *json* file for this service from a Maven repository
-* Expand the *json* template with values from the *yml* files
+* Fetch the *json* template for this service and version from the Maven repository
+* Expand the *json* template with variables and overrides from the *yml* files
 * Post the resulting *json* configuration into Marathon
 
 ### Maven
-The `maven:` section specifies where to fetch *json* template from. For example
+The `maven:` section specifies where to fetch *json* templates from. For example
 
 *globals.yml*
 ```
@@ -88,7 +88,8 @@ And used from the *json* template like
 ```
 
 ### Overrides
-Yaml files may contain an `overrides:` section that will be merged directly into the Marathon json. The structure contained in the `override:` section must correspond to the [Marathon REST API](https://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps). For example 
+Yaml files may contain an `overrides:` section that will be merged directly into the Marathon json. The 
+structure contained in the `override:` section must correspond to the [Marathon REST API](https://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps). For example 
 
 ```
 overrides:
