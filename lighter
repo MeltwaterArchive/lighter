@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 export PYTHONPATH=".:`dirname $0`/src"
 
 # Run Python script in subprocess to make sure that [defunct] processes are reaped 
