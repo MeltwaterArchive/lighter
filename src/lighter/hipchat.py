@@ -8,7 +8,6 @@ class HipChat(object):
         self_rooms = []
         self._sender = 'Lighter'
         self._message_attribs = {
-            'from': 'Lighter',
             'color': 'green',
             'notify': True,
             'message_format': 'html'
