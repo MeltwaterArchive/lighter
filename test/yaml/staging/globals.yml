@@ -1,0 +1,5 @@
+maven:
+  repository: file:./test/repository/
+variables:
+  env:
+    rabbitmq: amqp://myserver:15672

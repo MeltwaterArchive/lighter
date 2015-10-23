@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os, sys, optparse, logging
 from pprint import pprint
-import yaml, urllib2, json, urlparse, base64
+import yaml, urllib2, json, urlparse, base64,ntpath
 
 def parsebool(value):
     truevals = set(['true', '1'])
@@ -25,14 +25,14 @@ def parseint(value):
 def parselist(value):
     return filter(bool, value.split(','))
 
-def merge_dicts(a, b):
+def merge_two_dicts(a, b):
     result = {}
 
     for key in set(a.keys() + b.keys()):
         aval = a.get(key)
         bval = b.get(key)
         if isinstance(aval, dict) or isinstance(bval, dict):
-            result[key] = merge_dicts(aval or {}, bval or {})
+            result[key] = merge_two_dicts(aval or {}, bval or {})
         else:
             result[key] = bval or aval
 
@@ -58,6 +58,13 @@ def compare_service_versions(nextVersion, prevVersion, path=''):
         logging.debug("Value has changed at %s (%s != %s)", path, nextVersion, prevVersion)
         return False
     return True
+
+def merge_dicts(*dicts):
+    result = {}
+    for dts in dicts:
+        result = merge_two_dicts(result, dts)
+
+    return result
 
 def urlunparse(data):
     """
@@ -95,11 +102,19 @@ def build_request(url, data=None, headers={}, method='GET'):
 def parse_file(file):
     with open(file, 'r') as stream:
         doc = yaml.load(stream)
-        repository = doc['maven']['repository']
-        url = '{0}/{1}/{2}/{3}/{2}-{3}.json'.format(repository, doc['maven']['groupid'].replace('.', '/'), doc['maven']['artifactid'], doc['maven']['version'])
-        response = urllib2.urlopen(build_request(url)).read()
-        json_response = json.loads(response)
-        merged_content = merge_dicts(json_response, doc['override'])
+
+        g_file = ntpath.split(file)[0] + '/globals.yml'
+        with open(g_file, 'r') as g_stream:
+            g_doc = yaml.load(g_stream)
+            maven_content = merge_two_dicts(doc['maven'], g_doc['maven'])
+
+            repository = maven_content['repository']
+            url = '{0}/{1}/{2}/{3}/{2}-{3}.json'.format(repository, maven_content['groupid'].replace('.', '/'), maven_content['artifactid'], maven_content['version'])
+            response = urllib2.urlopen(build_request(url)).read()
+            json_response = json.loads(response)
+
+            merged_content = merge_dicts(json_response, doc['override'], doc['variables'], g_doc['variables'])
+
         return merged_content
 
 def get_marathon_url(url, id):

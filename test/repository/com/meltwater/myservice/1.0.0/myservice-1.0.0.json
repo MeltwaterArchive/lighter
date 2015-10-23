@@ -14,7 +14,7 @@
     "cpus": 0.1,
     "mem": 200.0,
     "env": {
-        "rabbit": "amqp://localhost:15672"
+        "rabbitmq": "amqp://localhost:15672"
     },
     "healthChecks": [
         {
