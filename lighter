@@ -3,4 +3,4 @@ export PYTHONPATH=".:`dirname $0`/src"
 
 # Run Python script in subprocess to make sure that [defunct] processes are reaped 
 # properly by bash. Google "docker PID 1 zombie reaping problem" for more info.
-python src/lighter/main.py $@ & wait
+python "`dirname $0`/src/lighter/main.py" $@ & wait
