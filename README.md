@@ -40,10 +40,10 @@ marathon-site/
 
 Running `lighter -m http://marathon-host:8080 staging/myservice.yml` will
 
-1) Merge *myservice.yml* with environment defaults from *marathon-site/staging/globals.yml* and *marathon-site/globals.yml*
-2) Fetch the template *json* file for this service from a Maven repository
-3) Expand the *json* template with values from the *yml* files
-4) Post the resulting *json* configuration into Marathon
+* Merge *myservice.yml* with environment defaults from *marathon-site/staging/globals.yml* and *marathon-site/globals.yml*
+* Fetch the template *json* file for this service from a Maven repository
+* Expand the *json* template with values from the *yml* files
+* Post the resulting *json* configuration into Marathon
 
 ### Maven
 The `maven:` section specifies where to fetch *json* template from. For example
