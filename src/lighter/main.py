@@ -90,7 +90,7 @@ def get_marathon_app(url):
 
 if __name__ == '__main__':
     parser = optparse.OptionParser(
-        usage='lighter.py [options]... service.yml service2.yml',
+        usage='docker run --rm -v "`pwd`:/site" meltwater/lighter:latest [options]... production/service.yml production/service2.yml',
         description='Marathon deployment tool')
 
     parser.add_option('-m', '--marathon', dest='marathon', help='Marathon url, e.g. "http://marathon-01:8080/"',
