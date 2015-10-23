@@ -114,11 +114,13 @@ if __name__ == '__main__':
         logging.info("Processing %s", file)
         service = parse_file(file)
         appurl = get_marathon_url(options.marathon, service.config['id'])
+        modified = True
 
         # See if service config has changed
         prevConfig = get_marathon_app(appurl)
         if compare_service_versions(service.config, prevConfig):
             logging.debug("Service already deployed with same config: %s", file)
+            modified = False
 
         # Deploy new service config
         logging.debug("Deploying %s", file)
@@ -126,5 +128,6 @@ if __name__ == '__main__':
         response = urllib2.urlopen(request)
 
         # Send HipChat notification
-        hipchat = HipChat(rget(service.document,'hipchat','url'), rget(service.document,'hipchat','token')).rooms(["2087542"])
-        hipchat.notify("Deployed <b>%s</b> in version <b>%s</b>" % (service.config['id'], service.config['container']['docker']['image']))
+        if modified:
+            hipchat = HipChat(rget(service.document,'hipchat','url'), rget(service.document,'hipchat','token')).rooms(["2087542"])
+            hipchat.notify("Deployed <b>%s</b> in version <b>%s</b>" % (service.config['id'], service.config['container']['docker']['image']))
