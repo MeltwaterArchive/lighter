@@ -14,7 +14,7 @@
     "cpus": 0.1,
     "mem": 200.0,
     "env": {
-        "rabbitmq": "amqp://localhost:15672"
+        "rabbitmq": "${rabbitmq.url}"
     },
     "healthChecks": [
         {
@@ -26,6 +26,5 @@
             "timeoutSeconds": 5,
             "maxConsecutiveFailures": 3
         }
-    ],
-    "es.transport.urls": "foo"
+    ]
 }

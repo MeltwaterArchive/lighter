@@ -2,14 +2,7 @@ maven:
   groupid: com.meltwater
   artifactid: myservice
   version: 1.0.0
-hipchat:
-  token: SFCABT1GxNHnDNn62D6mX4X3z4EvBMZchkgbTbzb
-  rooms:
-    - 2087542
 override:
-  cpus: 1
+  cpus: 1.0
   env:
     DATABASE: database:3306
-variables:
-  env:
-    rabbitmq: amqp://localhost:15672

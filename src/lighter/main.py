@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import os, sys, optparse, logging
 from pprint import pprint
-import yaml, urllib2, json, base64,ntpath
+import yaml, urllib2, json, ntpath
 from lighter.hipchat import HipChat
-from lighter.util import merge_dicts, merge_two_dicts, build_request
+from lighter.util import *
 
 def parsebool(value):
     truevals = set(['true', '1'])
@@ -27,53 +27,63 @@ def parseint(value):
 def parselist(value):
     return filter(bool, value.split(','))
 
-def compare_service_versions(nextVersion, prevVersion, path=''):
+def compare_service_versions(nextVersion, prevConfig, path=''):
     if isinstance(nextVersion, dict):
         for key, value in nextVersion.items():
             keypath = path + '/' + key
-            if key not in prevVersion:
+            if key not in prevConfig:
                 logging.debug("New key found %s", keypath)
                 return False
-            if not compare_service_versions(value, prevVersion[key], keypath):
+            if not compare_service_versions(value, prevConfig[key], keypath):
                 return False
     elif isinstance(nextVersion, list):
-        if len(nextVersion) != len(prevVersion):
+        if len(nextVersion) != len(prevConfig):
             logging.debug("List have changed at %s", path)
             return False
-        for nextValue, prevValue in zip(sorted(nextVersion), sorted(prevVersion)):
+        for nextValue, prevValue in zip(sorted(nextVersion), sorted(prevConfig)):
             if not compare_service_versions(nextValue, prevValue, path):
                 return False
-    elif nextVersion != prevVersion:
-        logging.debug("Value has changed at %s (%s != %s)", path, nextVersion, prevVersion)
+    elif nextVersion != prevConfig:
+        logging.debug("Value has changed at %s (%s != %s)", path, nextVersion, prevConfig)
         return False
     return True
 
-def parse_file(file):
-    with open(file, 'r') as stream:
-        doc = yaml.load(stream)
+class Service(object):
+    def __init__(self, document, config):
+        self.document = document
+        self.config = config
 
-        g_file = ntpath.split(file)[0] + '/globals.yml'
-        with open(g_file, 'r') as g_stream:
-            g_doc = yaml.load(g_stream)
-            maven_content = merge_two_dicts(doc['maven'], g_doc['maven'])
+def parse_file(filename):
+    with open(filename, 'r') as fd:
+        document = yaml.load(fd)
 
-            repository = maven_content['repository']
-            url = '{0}/{1}/{2}/{3}/{2}-{3}.json'.format(repository, maven_content['groupid'].replace('.', '/'), maven_content['artifactid'], maven_content['version'])
-            response = urllib2.urlopen(build_request(url)).read()
-            json_response = json.loads(response)
+        # Merge globals.yml files into document
+        path = os.path.dirname(os.path.abspath(filename))
+        while '/' in path:
+            candidate = os.path.join(path, 'globals.yml')
+            if os.path.exists(candidate):
+                with open(candidate, 'r') as fd2:
+                    document = merge(yaml.load(fd2), document)
+            path = path[0:path.rindex('/')]
 
-            merged_content = merge_dicts(json_response, doc['override'], doc['variables'], g_doc['variables'])
+        # Fetch json template from maven
+        maven = document['maven']
+        config = get_json('{0}/{1}/{2}/{3}/{2}-{3}.json'.format(maven['repository'], maven['groupid'].replace('.', '/'), maven['artifactid'], maven['version']))
 
-        return merged_content
+        # Merge overrides into json template
+        config = merge(config, document.get('override', {}))
+
+        # Substitute variables into the config
+        config = replace(config, document.get('variables', {}))
+
+        return Service(document, config)
 
 def get_marathon_url(url, id):
     return url.rstrip('/') + '/v2/apps/' + id.strip('/') + '?force=true'
 
 def get_marathon_app(url):
     try:
-        response = urllib2.urlopen(build_request(url))
-        content = response.read()
-        return json.loads(content)['app']
+        return get_json(url)['app']
     except urllib2.URLError, e:
         logging.debug(str(e))
         return {}
@@ -100,22 +110,21 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(1)
 
-    hipchat = HipChat('https://api.hipchat.com', 'SFCABT1GxNHnDNn62D6mX4X3z4EvBMZchkgbTbzb').rooms(["2087542"])
-
     for file in args:
         logging.info("Processing %s", file)
-        nextVersion = parse_file(file)
-        appurl = get_marathon_url(options.marathon, nextVersion['id'])
+        service = parse_file(file)
+        appurl = get_marathon_url(options.marathon, service.config['id'])
 
         # See if service config has changed
-        prevVersion = get_marathon_app(appurl)
-        if compare_service_versions(nextVersion, prevVersion):
+        prevConfig = get_marathon_app(appurl)
+        if compare_service_versions(service.config, prevConfig):
             logging.debug("Service already deployed with same config: %s", file)
 
         # Deploy new service config
         logging.debug("Deploying %s", file)
-        request = build_request(appurl, nextVersion, {}, 'PUT')
+        request = build_request(appurl, service.config, {}, 'PUT')
         response = urllib2.urlopen(request)
 
         # Send HipChat notification
-        hipchat.notify("Deployed <b>%s</b> in version <b>%s</b>" % (nextVersion['id'], nextVersion['container']['docker']['image']))
+        hipchat = HipChat(rget(service.document,'hipchat','url'), rget(service.document,'hipchat','token')).rooms(["2087542"])
+        hipchat.notify("Deployed <b>%s</b> in version <b>%s</b>" % (service.config['id'], service.config['container']['docker']['image']))

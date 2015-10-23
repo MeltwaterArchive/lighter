@@ -1,25 +1,38 @@
 import urlparse, base64, json, urllib2
+from copy import copy
 
-def merge_two_dicts(a, b):
-    result = {}
+def merge(*args):
+    args = list(args)
+    result = copy(args.pop(0))
 
-    for key in set(a.keys() + b.keys()):
-        aval = a.get(key)
-        bval = b.get(key)
-        if isinstance(aval, dict) or isinstance(bval, dict):
-            result[key] = merge_two_dicts(aval or {}, bval or {})
+    while args:
+        b = args.pop(0)
+
+        for key in set(result.keys() + b.keys()):
+            aval = result.get(key)
+            bval = b.get(key)
+            if isinstance(aval, dict) or isinstance(bval, dict):
+                result[key] = merge(aval or {}, bval or {})
+            else:
+                result[key] = bval or aval
+
+    return result
+
+def replace(template, variables):
+    result = copy(template)
+
+    for key, value in result.items():
+        if isinstance(value, dict):
+            result[key] = replace(value, variables)
+        elif isinstance(value, list) or isinstance(value, tuple):
+            result[key] = [replace(elem, variables) for elem in value]
         else:
-            result[key] = bval or aval
+            if isinstance(value, str) or isinstance(value, unicode) and '${' in value:
+                for varkey, varval in variables.items():
+                    value = value.replace('${' + varkey + '}', varval)
+            result[key] = value
 
     return result
-
-def merge_dicts(*dicts):
-    result = {}
-    for dts in dicts:
-        result = merge_two_dicts(result, dts)
-
-    return result
-
 
 def urlunparse(data):
     """
@@ -58,3 +71,13 @@ def build_request(url, data=None, headers={}, method='GET'):
         request.add_header("Authorization", "Basic %s" % base64string)
 
     return request
+
+def get_json(url):
+    response = urllib2.urlopen(build_request(url)).read()
+    return json.loads(response)
+
+def rget(root, *args):
+    node = root
+    for arg, i in zip(args, range(len(args))):
+        node = node.get(arg, i < len(args)-1 and {} or None)
+    return node
