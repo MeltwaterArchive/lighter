@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN apk -U add python py-yaml
+RUN apk -U add ca-certificates python py-yaml
 
 ADD src/ /src/
 ADD lighter /
