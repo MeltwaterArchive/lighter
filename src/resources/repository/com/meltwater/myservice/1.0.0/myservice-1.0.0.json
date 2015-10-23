@@ -26,5 +26,6 @@
             "timeoutSeconds": 5,
             "maxConsecutiveFailures": 3
         }
-    ]
+    ],
+    "es.transport.urls": "foo"
 }

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-import unittest, lighter
+import unittest
+import lighter.main as lighter
 
 class TestStringMethods(unittest.TestCase):
     def test_parse_file(self):
-        json_file = lighter.parse_file('test/yaml/staging/myservice.yml')
+        json_file = lighter.parse_file('src/resources/yaml/staging/myservice.yml')
 
         self.assertEqual(json_file['id'],'/myproduct/myservice')
         self.assertEqual(json_file['env']['DATABASE'], 'database:3306')

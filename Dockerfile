@@ -2,10 +2,10 @@ FROM alpine:latest
 
 RUN apk -U add python py-yaml
 
-ADD lighter.py /
+ADD src/ /src/
+ADD lighter /
 
-ADD test.py /
-ADD test /test/
-RUN /test.py
+ADD test /
+RUN /test
 
-ENTRYPOINT ["/lighter.py"]
+ENTRYPOINT ["/lighter"]

@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import os, sys, optparse, logging
 from pprint import pprint
-import yaml, urllib2, json, urlparse, base64,ntpath
+import yaml, urllib2, json, base64,ntpath
+from lighter.hipchat import HipChat
+from lighter.util import merge_dicts, merge_two_dicts, build_request
 
 def parsebool(value):
     truevals = set(['true', '1'])
@@ -25,19 +27,6 @@ def parseint(value):
 def parselist(value):
     return filter(bool, value.split(','))
 
-def merge_two_dicts(a, b):
-    result = {}
-
-    for key in set(a.keys() + b.keys()):
-        aval = a.get(key)
-        bval = b.get(key)
-        if isinstance(aval, dict) or isinstance(bval, dict):
-            result[key] = merge_two_dicts(aval or {}, bval or {})
-        else:
-            result[key] = bval or aval
-
-    return result
-
 def compare_service_versions(nextVersion, prevVersion, path=''):
     if isinstance(nextVersion, dict):
         for key, value in nextVersion.items():
@@ -58,46 +47,6 @@ def compare_service_versions(nextVersion, prevVersion, path=''):
         logging.debug("Value has changed at %s (%s != %s)", path, nextVersion, prevVersion)
         return False
     return True
-
-def merge_dicts(*dicts):
-    result = {}
-    for dts in dicts:
-        result = merge_two_dicts(result, dts)
-
-    return result
-
-def urlunparse(data):
-    """
-    Modified from urlparse.urlunparse to support file://./path/to urls
-    """
-    scheme, netloc, url, params, query, fragment = data
-    if params:
-        url = "%s;%s" % (url, params)
-    if netloc:
-        url = '//' + (netloc or '') + url
-    if scheme:
-        url = scheme + ':' + url
-    if query:
-        url = url + '?' + query
-    if fragment:
-        url = url + '#' + fragment
-    return url
-
-def build_request(url, data=None, headers={}, method='GET'):
-    parsed_url = urlparse.urlparse(url)
-    parts = list(parsed_url[0:6])
-    parts[1] = ('@' in parts[1]) and parts[1].split('@')[1] or parts[1]
-
-    request = urllib2.Request(urlunparse(parts), data, headers)
-    request.get_method = lambda: method
-
-    if parsed_url.username is not None and parsed_url.password is not None:
-        # You need the replace to handle encodestring adding a trailing newline
-        # (https://docs.python.org/2/library/base64.html#base64.encodestring)
-        base64string = base64.encodestring('%s:%s' % (parsed_url.username, parsed_url.password)).replace('\n', '')
-        request.add_header("Authorization", "Basic %s" % base64string)
-
-    return request
 
 def parse_file(file):
     with open(file, 'r') as stream:
@@ -125,7 +74,7 @@ def get_marathon_app(url):
         response = urllib2.urlopen(build_request(url))
         content = response.read()
         return json.loads(content)['app']
-    except Exception, e:
+    except urllib2.URLError, e:
         logging.debug(str(e))
         return {}
 
@@ -151,6 +100,8 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(1)
 
+    hipchat = HipChat('https://api.hipchat.com', 'SFCABT1GxNHnDNn62D6mX4X3z4EvBMZchkgbTbzb').rooms(["2087542"])
+
     for file in args:
         logging.info("Processing %s", file)
         nextVersion = parse_file(file)
@@ -163,7 +114,8 @@ if __name__ == '__main__':
 
         # Deploy new service config
         logging.debug("Deploying %s", file)
-        serialized_json = json.dumps(nextVersion)
-        request = urllib2.Request(appurl, serialized_json, {'Content-Type': 'application/json'})
-        request.get_method = lambda: 'PUT'
+        request = build_request(appurl, nextVersion, {}, 'PUT')
         response = urllib2.urlopen(request)
+
+        # Send HipChat notification
+        hipchat.notify("Deployed <b>%s</b> in version <b>%s</b>" % (nextVersion['id'], nextVersion['container']['docker']['image']))
