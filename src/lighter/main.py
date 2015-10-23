@@ -96,8 +96,8 @@ if __name__ == '__main__':
     parser.add_option('-m', '--marathon', dest='marathon', help='Marathon url, e.g. "http://marathon-01:8080/"',
                       default=os.environ.get('MARATHON_URL', ''))
 
-    parser.add_option('-n', '--noop', dest='noop', help='No post call to Marathon',
-                      action='store_true', default='false')
+    parser.add_option('-n', '--noop', dest='noop', help='Execute dry-run without modifying Marathon',
+                      action='store_true', default=parsebool(os.environ.get('MARATHON_URL', 'false')))
 
     parser.add_option('-v', '--verbose', dest='verbose', help='Increase logging verbosity',
                       action="store_true", default=parsebool(os.environ.get('VERBOSE', False)))
