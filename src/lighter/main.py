@@ -3,7 +3,7 @@ import os, sys, optparse, logging
 from pprint import pprint
 import yaml, urllib2, json, ntpath
 from lighter.hipchat import HipChat
-from lighter.util import *
+import lighter.util as util
 
 def parsebool(value):
     truevals = set(['true', '1'])
@@ -64,18 +64,18 @@ def parse_file(filename):
             candidate = os.path.join(path, 'globals.yml')
             if os.path.exists(candidate):
                 with open(candidate, 'r') as fd2:
-                    document = merge(yaml.load(fd2), document)
+                    document = util.merge(yaml.load(fd2), document)
             path = path[0:path.rindex('/')]
 
         # Fetch json template from maven
         maven = document['maven']
-        config = get_json('{0}/{1}/{2}/{3}/{2}-{3}.json'.format(maven['repository'], maven['groupid'].replace('.', '/'), maven['artifactid'], maven['version']))
+        config = util.get_json('{0}/{1}/{2}/{3}/{2}-{3}.json'.format(maven['repository'], maven['groupid'].replace('.', '/'), maven['artifactid'], maven['version']))
 
         # Merge overrides into json template
-        config = merge(config, document.get('override', {}))
+        config = util.merge(config, document.get('override', {}))
 
         # Substitute variables into the config
-        config = replace(config, document.get('variables', {}))
+        config = util.replace(config, document.get('variables', {}))
 
         return Service(document, config, document['facts']['environment'])
 
@@ -84,10 +84,45 @@ def get_marathon_url(url, id):
 
 def get_marathon_app(url):
     try:
-        return get_json(url)['app']
+        return util.get_json(url)['app']
     except urllib2.URLError, e:
         logging.debug(str(e))
         return {}
+
+def deploy(marathonurl, noop, files):
+    services = []
+    for file in files:
+        logging.info("Processing %s", file)
+        service = parse_file(file)
+        services.append(service)
+
+    for service in services:
+        appurl = get_marathon_url(marathonurl, service.config['id'])
+        modified = True
+
+        # See if service config has changed
+        prevConfig = get_marathon_app(appurl)
+        if compare_service_versions(service.config, prevConfig):
+            logging.debug("Service already deployed with same config: %s", file)
+            modified = False
+
+        # Deploy new service config
+        if not noop:
+            logging.debug("Deploying %s", file)
+            util.get_json(appurl, data=service.config, method='PUT')
+
+        # Send HipChat notification
+        if modified and not noop:
+            hipchat = HipChat(util.rget(service.document,'hipchat','url'), util.rget(service.document,'hipchat','token')).rooms(["2087542"])
+            hipchat.notify("Deployed <b>%s</b> in version <b>%s</b> to environment <b>%s</b>" % (service.config['id'], service.config['container']['docker']['image'], service.environment))
+
+        # Write json file to disk for logging purposes
+        basedir = '/tmp/lighter'
+        outputfile = os.path.join(basedir, file + '.json')
+        if not os.path.exists(os.path.dirname(outputfile)):
+            os.makedirs(os.path.dirname(outputfile))
+        with open(outputfile, 'w') as fd:
+            fd.write(json.dumps(service.config, indent=4))
 
 if __name__ == '__main__':
     parser = optparse.OptionParser(
@@ -114,36 +149,4 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(1)
 
-    for file in args:
-        logging.info("Processing %s", file)
-        service = parse_file(file)
-        appurl = get_marathon_url(options.marathon, service.config['id'])
-        modified = True
-
-        # See if service config has changed
-        prevConfig = get_marathon_app(appurl)
-        if compare_service_versions(service.config, prevConfig):
-            logging.debug("Service already deployed with same config: %s", file)
-            modified = False
-
-        if options.noop:
-            # Skip deployment due to noop
-            logging.info("Skipping deploying to endpoint, noop: %s", options.noop)
-        else:
-            # Deploy new service config
-            logging.debug("Deploying %s", file)
-            request = build_request(appurl, service.config, {}, 'PUT')
-            response = urllib2.urlopen(request)
-
-        # Send HipChat notification
-        if modified and not options.noop:
-            hipchat = HipChat(rget(service.document,'hipchat','url'), rget(service.document,'hipchat','token')).rooms(["2087542"])
-            hipchat.notify("Deployed <b>%s</b> in version <b>%s</b> to environment <b>%s</b>" % (service.config['id'], service.config['container']['docker']['image'], service.environment))
-
-        # Write json file to disk for logging purposes
-        basedir = '/tmp/lighter'
-        outputfile = os.path.join(basedir, file + '.json')
-        if not os.path.exists(os.path.dirname(outputfile)):
-            os.makedirs(os.path.dirname(outputfile))
-        with open(outputfile, 'w') as fd:
-            fd.write(json.dumps(service.config, indent=4))
+    deploy(options.marathon, options.noop, args)

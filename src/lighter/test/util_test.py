@@ -1,13 +1,13 @@
-#!/usr/bin/env python
 import unittest
 import lighter.main as lighter
-from lighter.util import *
+import lighter.util as util
 
 class TestStringMethods(unittest.TestCase):
     def test_parse_file(self):
         service = lighter.parse_file('src/resources/yaml/staging/myservice.yml')
         self.assertEqual(service.document['hipchat']['token'], 'abc123')
         self.assertEqual(service.document['hipchat']['rooms'][0], '123456')
+        self.assertEqual(service.environment, 'staging')
 
         config = service.config
         self.assertEqual(config['id'],'/myproduct/myservice')
@@ -22,14 +22,14 @@ class TestStringMethods(unittest.TestCase):
         z = {'c': 5, 'd': 6}
         
         m = {'a': 1, 'b': 3, 'c': 5, 'd': 6}
-        self.assertEqual(merge(x, y, z),m)
+        self.assertEqual(util.merge(x, y, z),m)
         m = {'a': 1, 'b': 2, 'c': 4, 'd': 6}
-        self.assertEqual(merge(z, y, x),m)
+        self.assertEqual(util.merge(z, y, x),m)
 
     def test_replace(self):
         x = {'a':'abc%{var}def', 'b':[u'%{var} %{var2} %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
         m = {'a':'abc1def', 'b':[u'1 2 3'], 'c': {'d': '2 3'}}
-        self.assertEquals(replace(x, {'var':'1', 'var2':2, 'var3': u'3'}), m)
+        self.assertEquals(util.replace(x, {'var':'1', 'var2':2, 'var3': u'3'}), m)
 
     def test_compare_service_versions(self):
         x = {'a': 1, 'b': 2}
@@ -67,8 +67,5 @@ class TestStringMethods(unittest.TestCase):
 
     def test_build_request(self):
         url = "https://user:pass@maven.example.com/path/to/my/repo"
-        req = lighter.build_request(url)
+        req = util.build_request(url)
         self.assertTrue(req.get_header('Authorization').startswith('Basic '))
-
-if __name__ == '__main__':
-    unittest.main()
