@@ -49,7 +49,7 @@ def compare_service_versions(nextVersion, prevConfig, path=''):
     return True
 
 class Service(object):
-    def __init__(self, document, config, environment):
+    def __init__(self, document, config):
         self.document = document
         self.config = config
 
@@ -63,7 +63,7 @@ class Service(object):
     
     @property
     def environment(self):
-        return util.rget(document,'facts','environment') or 'default'
+        return util.rget(self.document,'facts','environment') or 'default'
 
 def parse_file(filename):
     with open(filename, 'r') as fd:
@@ -120,6 +120,7 @@ def deploy(marathonurl, noop, files):
         # Deploy new service config
         if not noop:
             logging.debug("Deploying %s", file)
+            logging.debug("Appurl %s", appurl)
             util.get_json(appurl, data=service.config, method='PUT')
 
         # Send HipChat notification
