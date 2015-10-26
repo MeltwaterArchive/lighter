@@ -135,7 +135,7 @@ if __name__ == '__main__':
             response = urllib2.urlopen(request)
 
         # Send HipChat notification
-        if modified:
+        if modified and not options.noop:
             hipchat = HipChat(rget(service.document,'hipchat','url'), rget(service.document,'hipchat','token')).rooms(["2087542"])
             hipchat.notify("Deployed <b>%s</b> in version <b>%s</b>" % (service.config['id'], service.config['container']['docker']['image']))
 

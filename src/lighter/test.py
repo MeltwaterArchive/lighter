@@ -26,8 +26,8 @@ class TestStringMethods(unittest.TestCase):
         m = {'a': 1, 'b': 2, 'c': 4, 'd': 6}
         self.assertEqual(merge(z, y, x),m)
 
-    def test_replade(self):
-        x = {'a':'abc${var}def', 'b':[u'${var} ${var2} ${var3}'], 'c': {'d': '${var2} ${var3}'}}
+    def test_replace(self):
+        x = {'a':'abc%{var}def', 'b':[u'%{var} %{var2} %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
         m = {'a':'abc1def', 'b':[u'1 2 3'], 'c': {'d': '2 3'}}
         self.assertEquals(replace(x, {'var':'1', 'var2':2, 'var3': u'3'}), m)
 

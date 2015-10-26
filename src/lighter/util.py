@@ -27,9 +27,9 @@ def replace(template, variables):
     elif isinstance(result, list) or isinstance(result, tuple):
         result = [replace(elem, variables) for elem in result]
     else:
-        if isinstance(result, str) or isinstance(result, unicode) and '${' in result:
+        if isinstance(result, str) or isinstance(result, unicode) and '%{' in result:
             for varkey, varval in variables.items():
-                result = result.replace('${' + varkey + '}', unicode(varval))
+                result = result.replace('%{' + varkey + '}', unicode(varval))
 
     return result
 
