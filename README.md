@@ -78,11 +78,11 @@ And used from the *json* template like
     "id": "/myproduct/myservice",
     "container": {
         "docker": {
-            "image": "${docker.registry}/myservice:1.2.3"
+            "image": "%{docker.registry}/myservice:1.2.3"
         }
     },
     "env": {
-        "rabbitmq.url": "amqp://guest:guest@${rabbitmq.host}:5672"
+        "rabbitmq.url": "amqp://guest:guest@%{rabbitmq.host}:5672"
     }
 }
 ```
