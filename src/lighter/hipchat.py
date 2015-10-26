@@ -14,7 +14,7 @@ class HipChat(object):
         }
 
     def rooms(self, ids):
-        self._rooms = ids
+        self._rooms = ids or []
         return self
 
     def notify(self, message):
