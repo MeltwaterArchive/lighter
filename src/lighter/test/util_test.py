@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import unittest
 import lighter.main as lighter
 from lighter.util import *
@@ -7,7 +8,6 @@ class TestStringMethods(unittest.TestCase):
         service = lighter.parse_file('src/resources/yaml/staging/myservice.yml')
         self.assertEqual(service.document['hipchat']['token'], 'abc123')
         self.assertEqual(service.document['hipchat']['rooms'][0], '123456')
-        self.assertEqual(service.environment, 'staging')
 
         config = service.config
         self.assertEqual(config['id'],'/myproduct/myservice')

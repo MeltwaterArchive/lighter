@@ -1,10 +1,10 @@
 import logging, urllib2
-from lighter.util import merge, build_request
+import lighter.util as util
 
 class HipChat(object):
-    def __init__(self, url, token):
-        self._url = url or 'https://api.hipchat.com'
+    def __init__(self, token, url=None):
         self._token = token
+        self._url = url or 'https://api.hipchat.com'
         self_rooms = []
         self._sender = 'Lighter'
         self._message_attribs = {
@@ -19,7 +19,7 @@ class HipChat(object):
 
     def notify(self, message):
         for room in self._rooms:
-            self._call('/v2/room/%s/notification' % room, merge({'message': message}, self._message_attribs))
+            self._call('/v2/room/%s/notification' % room, util.merge({'message': message}, self._message_attribs))
 
     def _call(self, endpoint, data):
         if self._url is None or self._token is None:
@@ -27,10 +27,9 @@ class HipChat(object):
             return
 
         try:
-            url = self._url.rstrip('/') + '/' + endpoint + '?auth_token=' + self._token
+            url = self._url.rstrip('/') + endpoint + '?auth_token=' + self._token
             logging.debug('Calling HipChat endpoint %s', endpoint)
-            response = urllib2.urlopen(build_request(url, data, {}, 'POST'))
-            content = response.read()
+            util.get_json(url, data=data, method='POST')
         except urllib2.URLError, e:
             logging.warn(str(e))
             return {}

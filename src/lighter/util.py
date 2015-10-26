@@ -71,7 +71,7 @@ def build_request(url, data=None, headers={}, method='GET'):
 
     return request
 
-def get_json(url):
+def get_json(url, data=None, headers={}, method='GET'):
     response = urllib2.urlopen(build_request(url)).read()
     return json.loads(response)
 
