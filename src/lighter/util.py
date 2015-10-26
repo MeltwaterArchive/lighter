@@ -72,7 +72,7 @@ def build_request(url, data=None, headers={}, method='GET'):
     return request
 
 def get_json(url, data=None, headers={}, method='GET'):
-    response = urllib2.urlopen(build_request(url)).read()
+    response = urllib2.urlopen(build_request(url, data, headers, method)).read()
     return json.loads(response)
 
 def rget(root, *args):
