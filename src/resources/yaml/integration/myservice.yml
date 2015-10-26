@@ -1,0 +1,8 @@
+maven:
+  groupid: com.meltwater
+  artifactid: myservice
+  resolve: "[1.0.0,1.1.0)"
+override:
+  cpus: 1.0
+  env:
+    DATABASE: database:3306

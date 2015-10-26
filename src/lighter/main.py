@@ -4,6 +4,7 @@ from pprint import pprint
 import yaml, urllib2, json, ntpath
 from lighter.hipchat import HipChat
 import lighter.util as util
+import lighter.maven as maven
 
 def parsebool(value):
     truevals = set(['true', '1'])
@@ -79,8 +80,10 @@ def parse_file(filename):
             path = path[0:path.rindex('/')]
 
         # Fetch json template from maven
-        maven = document['maven']
-        config = util.get_json('{0}/{1}/{2}/{3}/{2}-{3}.json'.format(maven['repository'], maven['groupid'].replace('.', '/'), maven['artifactid'], maven['version']))
+        coord = document['maven']
+        resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'])
+        version = coord.get('version') or resolver.resolve(coord['resolve'])
+        config = resolver.get(version)
 
         # Merge overrides into json template
         config = util.merge(config, document.get('override', {}))
@@ -120,7 +123,6 @@ def deploy(marathonurl, noop, files):
         # Deploy new service config
         if not noop:
             logging.debug("Deploying %s", file)
-            logging.debug("Appurl %s", appurl)
             util.get_json(appurl, data=service.config, method='PUT')
 
         # Send HipChat notification

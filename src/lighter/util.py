@@ -1,4 +1,5 @@
 import os, urlparse, base64, json, urllib2
+import xml.dom.minidom as minidom
 from copy import copy
 
 def merge(*args):
@@ -75,8 +76,15 @@ def get_json(url, data=None, headers={}, method='GET'):
     response = urllib2.urlopen(build_request(url, data, headers, method)).read()
     return json.loads(response)
 
+def get_xml(url, data=None, headers={}, method='GET'):
+    response = urllib2.urlopen(build_request(url, data, headers, method)).read()
+    return minidom.parseString(response)
+
 def rget(root, *args):
     node = root
+    default = {}
     for arg, i in zip(args, range(len(args))):
-        node = node.get(arg, i < len(args)-1 and {} or None)
+        if i+1 >= len(args):
+            default = None
+        node = node.get(arg, default)
     return node

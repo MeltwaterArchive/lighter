@@ -3,7 +3,7 @@
     "container": {
         "type": "DOCKER",
         "docker": {
-            "image": "meltwater/myservice:1.0.0",
+            "image": "meltwater/myservice:1.1.0",
             "network": "BRIDGE",
             "portMappings": [
                 { "containerPort": 8080, "servicePort": 1234 }

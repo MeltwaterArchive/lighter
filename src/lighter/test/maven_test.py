@@ -1,0 +1,31 @@
+import unittest
+import lighter.maven as maven
+
+class MavenTest(unittest.TestCase):
+	def setUp(self):
+		self.resolver = maven.ArtifactResolver('file:./src/resources/repository/', 'com.meltwater', 'myservice')
+
+	def select(self, expression, versions):
+		return self.resolver.selectVersion(expression, versions)
+
+	def testResolve(self):
+		self.assertEquals(self.resolver.resolve('[1.0.0,2.0.0)'), '1.1.0')
+		
+	def testSelectVersionInclusive(self):
+		versions = ['0.1.2', '1.2.0', '1.2.1', '2.0.0', '2.0.1']
+		self.assertEquals(self.select('[1.0.0,2.0.0]', versions), '2.0.0')
+		self.assertEquals(self.select('[1.0.0,2.2.0]', versions), '2.0.1')
+		self.assertEquals(self.select('[1.0.0,1.3.0]', versions), '1.2.1')
+
+	def testSelectVersionExclusive(self):
+		versions = ['0.1.2', '1.2.0', '1.2.1', '2.0.0', '2.0.1']
+		self.assertEquals(self.select('[1.0.0,2.0.0)', versions), '1.2.1')
+		self.assertEquals(self.select('[0.1.0,2.2.0)', versions), '2.0.1')
+		self.assertEquals(self.select('[0.0.0,1.3.0)', versions), '1.2.1')
+
+		try:
+			self.assertEquals(self.select('(1.2.0,1.2.0]', versions), '1.2.0')
+		except RuntimeError:
+			pass
+		else:
+			self.fail('Expected RuntimeError')

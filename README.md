@@ -62,6 +62,23 @@ maven:
   version: 1.0.0
 ```
 
+#### Dynamic Version
+Versions can be resolved from Maven using a range syntax. For example
+
+```
+maven:
+  groupid: com.example
+  artifactid: myservice
+  resolve: "[1.0.0,2.0.0)"
+```
+
+Some examples
+```
+[1.0.0,2.0.0) - 1.0.0 up to but not including 2.0.0
+[1.0.0,1.2.0] - 1.0.0 up to and including 1.2.0
+[1.0.0,1.2.0]-SNAPSHOT - 1.0.0 up to and including 1.2.0, only matches -SNAPSHOT versions
+```
+
 ### Facts
 Yaml files may contain `facts:` section containing regarding environments and information regarding the service surroundings
 
