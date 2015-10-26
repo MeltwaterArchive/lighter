@@ -62,6 +62,14 @@ maven:
   version: 1.0.0
 ```
 
+### Facts
+Yaml files may contain `facts:` section containing regarding environments and information regarding the service surroundings
+
+```
+facts:
+    environment: "staging"
+```
+
 ### Variables
 Yaml files may contain an `variables:` section containing key/value pairs that will be substituted into the *json* template. All 
 variables in a templates must be resolved or it's considered an error. This can be used to ensure that some parameters are 

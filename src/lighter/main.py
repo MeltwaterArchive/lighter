@@ -49,9 +49,10 @@ def compare_service_versions(nextVersion, prevConfig, path=''):
     return True
 
 class Service(object):
-    def __init__(self, document, config):
+    def __init__(self, document, config, environment):
         self.document = document
         self.config = config
+        self.environment = environment
 
 def parse_file(filename):
     with open(filename, 'r') as fd:
@@ -76,7 +77,7 @@ def parse_file(filename):
         # Substitute variables into the config
         config = replace(config, document.get('variables', {}))
 
-        return Service(document, config)
+        return Service(document, config, document['facts']['environment'])
 
 def get_marathon_url(url, id):
     return url.rstrip('/') + '/v2/apps/' + id.strip('/') + '?force=true'
@@ -137,7 +138,7 @@ if __name__ == '__main__':
         # Send HipChat notification
         if modified and not options.noop:
             hipchat = HipChat(rget(service.document,'hipchat','url'), rget(service.document,'hipchat','token')).rooms(["2087542"])
-            hipchat.notify("Deployed <b>%s</b> in version <b>%s</b>" % (service.config['id'], service.config['container']['docker']['image']))
+            hipchat.notify("Deployed <b>%s</b> in version <b>%s</b> to environment <b>%s</b>" % (service.config['id'], service.config['container']['docker']['image'], service.environment))
 
         # Write json file to disk for logging purposes
         basedir = '/tmp/lighter'
