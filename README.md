@@ -9,18 +9,36 @@ handling of differences between multiple environments.
 ## Usage
 
 ```
-Usage: docker run --rm -v "`pwd`:/site" meltwater/lighter:latest [options]... production/service.yml production/service2.yml
+usage: lighter COMMAND [OPTIONS]...
 
 Marathon deployment tool
 
-Options:
+positional arguments:
+  {deploy}       Available commands
+    deploy       Deploy services to Marathon
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -n, --noop     Execute dry-run without modifying Marathon [default: False]
+  -v, --verbose  Increase logging verbosity [default: False]
+```
+
+### Deploy Command
+
+```
+usage: lighter deploy [OPTIONS]... YMLFILE...
+
+Deploy services to Marathon
+
+positional arguments:
+  YMLFILE               Service files to expand and deploy
+
+optional arguments:
   -h, --help            show this help message and exit
-  -m MARATHON, --marathon=MARATHON
+  -m MARATHON, --marathon MARATHON
                         Marathon url, e.g. "http://marathon-host:8080/"
-  -n, --noop            Execute dry-run without modifying Marathon
   -f, --force           Force deployment even if the service is already
-                        affected by a running deployment
-  -v, --verbose         Increase logging verbosity
+                        affected by a running deployment [default: False]
 ```
 
 ## Configuration
@@ -40,7 +58,7 @@ my-config-repo/
            myservice.yml
 ```
 
-Running `lighter -m http://marathon-host:8080 staging/services/myservice.yml` will
+Running `lighter deploy -m http://marathon-host:8080 staging/services/myservice.yml` will
 
 * Merge *myservice.yml* with environment defaults from *my-config-repo/staging/globals.yml* and *my-config-repo/globals.yml*
 * Fetch the *json* template for this service and version from the Maven repository
@@ -172,9 +190,12 @@ Execute the script for example like
 ```
 cd my-config-repo
 
+# Make sure you're using the latest lighter version (if you're not using a fixed version)
+docker pull meltwater/lighter:latest
+
 # Deploy/sync all services (for example from Jenkins or other CI/CD server)
-./lighter -f -m http://marathon-host:8080 $(find staging -name \*.yml -not -name globals.yml)
+./lighter deploy -f -m http://marathon-host:8080 $(find staging -name \*.yml -not -name globals.yml)
 
 # Deploy single services
-./lighter -m http://marathon-host:8080 staging/myservice.yml staging/myservice2.yml
+./lighter deploy -m http://marathon-host:8080 staging/myservice.yml staging/myservice2.yml
 ```

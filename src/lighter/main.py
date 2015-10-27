@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sys, optparse, logging
+import os, sys, argparse, logging
 from urlparse import urlparse
 from pprint import pprint
 import yaml, urllib2, json, ntpath
@@ -150,29 +150,37 @@ def deploy(marathonurl, filenames, noop=False, force=False):
             fd.write(json.dumps(service.config, indent=4))
 
 if __name__ == '__main__':
-    parser = optparse.OptionParser(
-        usage='docker run --rm -v "`pwd`:/site" meltwater/lighter:latest [options]... production/service.yml production/service2.yml',
+    parser = argparse.ArgumentParser(
+        prog='lighter',
+        usage='%(prog)s COMMAND [OPTIONS]...',
         description='Marathon deployment tool')
+    subparsers = parser.add_subparsers(help='Available commands', dest='command')
 
-    parser.add_option('-m', '--marathon', dest='marathon', help='Marathon url, e.g. "http://marathon-host:8080/"',
-                      default=os.environ.get('MARATHON_URL', ''))
-
-    parser.add_option('-n', '--noop', dest='noop', help='Execute dry-run without modifying Marathon',
+    parser.add_argument('-n', '--noop', dest='noop', help='Execute dry-run without modifying Marathon [default: %(default)s]',
                       action='store_true', default=False)
-    parser.add_option('-f', '--force', dest='force', help='Force deployment even if the service is already affected by a running deployment',
-                      action='store_true', default=False)
-    parser.add_option('-v', '--verbose', dest='verbose', help='Increase logging verbosity',
+    parser.add_argument('-v', '--verbose', dest='verbose', help='Increase logging verbosity [default: %(default)s]',
                       action="store_true", default=False)
 
-    (options, args) = parser.parse_args()
+    # Create the parser for the "deploy" command
+    deploy_parser = subparsers.add_parser('deploy', 
+        prog='lighter',
+        usage='%(prog)s deploy [OPTIONS]... YMLFILE...',
+        help='Deploy services to Marathon',
+        description='Deploy services to Marathon')
+    
+    deploy_parser.add_argument('-m', '--marathon', required=True, dest='marathon', help='Marathon url, e.g. "http://marathon-host:8080/"',
+                      default=os.environ.get('MARATHON_URL', ''))
+    deploy_parser.add_argument('-f', '--force', dest='force', help='Force deployment even if the service is already affected by a running deployment [default: %(default)s]',
+                      action='store_true', default=False)
+    deploy_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
+                       help='Service files to expand and deploy')
+    
+    args = parser.parse_args()
 
-    if options.verbose:
+    if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     else:
         logging.getLogger().setLevel(logging.INFO)
 
-    if not options.marathon:
-        parser.print_help()
-        sys.exit(1)
-
-    deploy(options.marathon, noop=options.noop, force=options.force, filenames=args)
+    if args.command == 'deploy':
+        deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames)
