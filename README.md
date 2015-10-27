@@ -4,7 +4,7 @@ handling of differences between multiple environments.
 
 ## Environment Variables
 
- * **MARATHON_URL** - Marathon url, e.g. "http://marathon-01:8080/"
+ * **MARATHON_URL** - Marathon url, e.g. "http://marathon-host:8080/"
 
 ## Usage
 
@@ -16,16 +16,16 @@ Marathon deployment tool
 Options:
   -h, --help            show this help message and exit
   -m MARATHON, --marathon=MARATHON
-                        Marathon url, e.g. "http://marathon-01:8080/"
+                        Marathon url, e.g. "http://marathon-host:8080/"
   -n, --noop            Execute dry-run without modifying Marathon
   -v, --verbose         Increase logging verbosity
 ```
 
 ## Configuration
-
 Given a directory structure like
+
 ```
-marathon-site/
+my-config-repo/
 |   globals.yml
 └─ production/
 |   |   globals.yml
@@ -35,12 +35,12 @@ marathon-site/
 └─ staging/
     |   globals.yml
     └─ services/
-            myservice.yml
+           myservice.yml
 ```
 
 Running `lighter -m http://marathon-host:8080 staging/services/myservice.yml` will
 
-* Merge *myservice.yml* with environment defaults from *marathon-site/staging/globals.yml* and *marathon-site/globals.yml*
+* Merge *myservice.yml* with environment defaults from *my-config-repo/staging/globals.yml* and *my-config-repo/globals.yml*
 * Fetch the *json* template for this service and version from the Maven repository
 * Expand the *json* template with variables and overrides from the *yml* files
 * Post the resulting *json* configuration into Marathon
@@ -51,24 +51,24 @@ The `maven:` section specifies where to fetch *json* templates from. For example
 *globals.yml*
 ```
 maven:
-  repository: "http://username:password@maven.example.com/nexus/content/groups/public
+  repository: "http://username:password@maven.example.com/nexus/content/groups/public"
 ```
 
 *myservice.yml*
 ```
 maven:
-  groupid: com.example
-  artifactid: myservice
-  version: 1.0.0
+  groupid: "com.example"
+  artifactid: "myservice"
+  version: "1.0.0"
 ```
 
-#### Dynamic Version
+#### Dynamic Versions
 Versions can be dynamically resolved from Maven using a range syntax.
 
 ```
 maven:
-  groupid: com.example
-  artifactid: myservice
+  groupid: "com.example"
+  artifactid: "myservice"
   resolve: "[1.0.0,2.0.0)"
 ```
 
@@ -126,7 +126,7 @@ structure contained in the `override:` section must correspond to the [Marathon 
 ```
 overrides:
   instances: 4
-  mem: 4000
+  cpus: 2.0
   env:
     LOGLEVEL: "info"
     NEW_RELIC_APP_NAME: "MyService Staging"
@@ -141,4 +141,38 @@ hipchat:
   token: "123abc"
   rooms:
     - "123456"
+```
+
+## Deployment
+Place a `lighter` script in the root of your configuration repo.
+
+```
+#!/bin/sh
+set -e
+
+# Must mount this directory into the container so that all globals.yml are found
+OLDCWD="`pwd`"
+cd "`dirname $0`"
+NEWCWD="`pwd`"
+
+if [ "$OLDCWD" != "$NEWCWD" ]; then
+  LIGHTER_DOCKER_OPTS="$LIGHTER_DOCKER_OPTS -v ${NEWCWD}:${NEWCWD} -v ${OLDCWD}:${OLDCWD} --workdir ${OLDCWD}"
+else
+  LIGHTER_DOCKER_OPTS="$LIGHTER_DOCKER_OPTS -v ${NEWCWD}:${NEWCWD} --workdir ${NEWCWD}"
+fi
+
+# Ligher will write the expanded json files to ./output 
+exec docker run --rm --net=host -v "${NEWCWD}/output:/tmp/lighter" $LIGHTER_DOCKER_OPTS meltwater/lighter:latest $@
+```
+
+Execute the script for example like
+
+```
+cd my-config-repo
+
+# Deploy/sync all services (for example from Jenkins or other CI/CD server)
+./lighter -m http://marathon-host:8080 $(find staging -name \*.yml -not -name globals.yml)
+
+# Deploy single services
+./lighter -m http://marathon-host:8080 staging/myservice.yml staging/myservice2.yml
 ```
