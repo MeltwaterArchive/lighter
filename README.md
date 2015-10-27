@@ -27,12 +27,12 @@ Given a directory structure like
 ```
 marathon-site/
 |   globals.yml
-└─production/
+└─ production/
 |   |   globals.yml
 |   └─ services/
 |          myservice.yml
 |          myservice2.yml
-└─staging/
+└─ staging/
     |   globals.yml
     └─ services/
             myservice.yml
@@ -63,7 +63,7 @@ maven:
 ```
 
 #### Dynamic Version
-Versions can be resolved from Maven using a range syntax. For example
+Versions can be dynamically resolved from Maven using a range syntax.
 
 ```
 maven:
@@ -72,19 +72,26 @@ maven:
   resolve: "[1.0.0,2.0.0)"
 ```
 
-Some examples
-```
-[1.0.0,2.0.0) - 1.0.0 up to but not including 2.0.0
-[1.0.0,1.2.0] - 1.0.0 up to and including 1.2.0
-[1.0.0,1.2.0]-SNAPSHOT - 1.0.0 up to and including 1.2.0, only matches -SNAPSHOT versions
-```
+For example
+
+Expression | Resolve To
+:----------|:-----------
+[1.0.0,2.0.0) | 1.0.0 up to but not including 2.0.0
+[1.0.0,1.2.0] | 1.0.0 up to and including 1.2.0
+[1.0.0,2.0.0)-featurebranch | 1.0.0 up to and including 1.2.0, only matches *featurebranch* releases
+[1.0.0,1.2.0]-SNAPSHOT | 1.0.0 up to and including 1.2.0, only matches *SNAPSHOT* versions
+[1.0.0,2.0.0]-featurebranch-SNAPSHOT | 1.0.0 up to and including 1.2.0, only matches *featurebranch-SNAPSHOT* versions
+[1.0.0,] | 1.0.0 or greater
+(1.0.0,] | Greater than 1.0.0
+[,] | Latest release version
+[,]-SNAPSHOT | Latest *SNAPSHOT* version
 
 ### Facts
-Yaml files may contain `facts:` section containing regarding environments and information regarding the service surroundings
+Yaml files may contain a `facts:` section with information about the service surroundings
 
 ```
 facts:
-    environment: "staging"
+  environment: "staging"
 ```
 
 ### Variables
