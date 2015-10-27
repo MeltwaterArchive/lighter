@@ -131,8 +131,8 @@ def deploy(marathonurl, noop, files):
         # Send HipChat notification
         if modified and not noop:
             hipchat = HipChat(
-                util.rget(service.document,'hipchat','url'), 
-                util.rget(service.document,'hipchat','token')).rooms(
+                util.rget(service.document,'hipchat','token'), 
+                util.rget(service.document,'hipchat','url')).rooms(
                     util.rget(service.document,'hipchat','rooms'))
             hipchat.notify("Deployed <b>%s</b> using image <b>%s</b> to <b>%s</b> (%s)" % 
                 (service.id, service.image, service.environment, parsedMarathonUrl.netloc))

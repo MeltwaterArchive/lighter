@@ -1,4 +1,4 @@
-import os, urlparse, base64, json, urllib2
+import os, urlparse, base64, json, urllib2, logging
 import xml.dom.minidom as minidom
 from copy import copy
 
@@ -73,8 +73,13 @@ def build_request(url, data=None, headers={}, method='GET'):
     return request
 
 def get_json(url, data=None, headers={}, method='GET'):
-    response = urllib2.urlopen(build_request(url, data, headers, method)).read()
-    return json.loads(response)
+    response = urllib2.urlopen(build_request(url, data, headers, method))
+    content = response.read()
+    if response.info().gettype() == 'application/json' or response.info().gettype() == 'text/plain':
+        return json.loads(content)
+    
+    logging.debug('Content-Type %s is not json %s', response.info().gettype(), content)
+    return {}
 
 def get_xml(url, data=None, headers={}, method='GET'):
     response = urllib2.urlopen(build_request(url, data, headers, method)).read()
