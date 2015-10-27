@@ -18,6 +18,7 @@ class HipChat(object):
         return self
 
     def notify(self, message):
+        logging.debug("Sending HipChat message: %s", message)
         for room in self._rooms:
             self._call('/v2/room/%s/notification' % room, util.merge({'message': message}, self._message_attribs))
 

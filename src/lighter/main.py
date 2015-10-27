@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os, sys, optparse, logging
+from urlparse import urlparse
 from pprint import pprint
 import yaml, urllib2, json, ntpath
 from lighter.hipchat import HipChat
@@ -104,6 +105,8 @@ def get_marathon_app(url):
         return {}
 
 def deploy(marathonurl, noop, files):
+    parsedMarathonUrl = urlparse(marathonurl)
+
     services = []
     for file in files:
         logging.info("Processing %s", file)
@@ -131,8 +134,8 @@ def deploy(marathonurl, noop, files):
                 util.rget(service.document,'hipchat','url'), 
                 util.rget(service.document,'hipchat','token')).rooms(
                     util.rget(service.document,'hipchat','rooms'))
-            hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to environment <b>%s</b>" % 
-                (service.id, service.image, service.environment))
+            hipchat.notify("Deployed <b>%s</b> using image <b>%s</b> to <b>%s</b> (%s)" % 
+                (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
 
         # Write json file to disk for logging purposes
         basedir = '/tmp/lighter'

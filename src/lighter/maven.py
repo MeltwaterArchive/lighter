@@ -16,8 +16,8 @@ class VersionRange(object):
 
     def accepts(self, version):
         parsed = self.parseVersion(version)
-        return (self._lbound == '[' and self._lversion <= parsed or self._lbound == '(' and self._lversion < parsed) and \
-               (self._rbound == ']' and parsed <= self._rversion or self._rbound == ')' and parsed < self._rversion) and \
+        return (self._lversion is None or self._lbound == '[' and self._lversion <= parsed or self._lbound == '(' and self._lversion < parsed) and \
+               (self._rversion is None or self._rbound == ']' and parsed <= self._rversion or self._rbound == ')' and parsed < self._rversion) and \
                VersionRange.suffix(version) == self._suffix
 
     @staticmethod
@@ -31,7 +31,9 @@ class VersionRange(object):
 
     @staticmethod
     def parseVersion(version):
-        return tuple(int(digit) for digit in VersionRange.SPLIT.split(version.split('-')[0]) if digit.isdigit())
+        if version:
+        	return tuple(int(digit) for digit in VersionRange.SPLIT.split(version.split('-')[0]) if digit.isdigit())
+        return None
 
     @staticmethod
     def compareVersions(a, b):

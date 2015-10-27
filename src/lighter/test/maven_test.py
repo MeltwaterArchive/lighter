@@ -12,13 +12,13 @@ class MavenTest(unittest.TestCase):
 		self.assertEquals(self.resolver.resolve('[1.0.0,2.0.0)'), '1.1.0')
 		
 	def testSelectVersionInclusive(self):
-		versions = ['0.1.2', '1.2.0', '1.2.1', '2.0.0', '2.0.1']
+		versions = ['0.1.2', '1.2.0', '1.2.1', '2.0.0-SNAPSHOT', '2.0.0', '2.0.1', '2.0.2-SNAPSHOT']
 		self.assertEquals(self.select('[1.0.0,2.0.0]', versions), '2.0.0')
 		self.assertEquals(self.select('[1.0.0,2.2.0]', versions), '2.0.1')
 		self.assertEquals(self.select('[1.0.0,1.3.0]', versions), '1.2.1')
 
 	def testSelectVersionExclusive(self):
-		versions = ['0.1.2', '1.2.0', '1.2.1', '2.0.0', '2.0.1']
+		versions = ['0.1.2', '1.2.0', '1.2.1', '2.0.0-SNAPSHOT', '2.0.0', '2.0.1', '2.0.2-SNAPSHOT']
 		self.assertEquals(self.select('[1.0.0,2.0.0)', versions), '1.2.1')
 		self.assertEquals(self.select('[0.1.0,2.2.0)', versions), '2.0.1')
 		self.assertEquals(self.select('[0.0.0,1.3.0)', versions), '1.2.1')
@@ -29,3 +29,15 @@ class MavenTest(unittest.TestCase):
 			pass
 		else:
 			self.fail('Expected RuntimeError')
+
+	def testSelectVersionLatest(self):
+		versions = ['0.1.2', '1.2.0', '1.2.1', '2.0.0-SNAPSHOT', '2.0.0', '2.0.1', '2.0.2-SNAPSHOT']
+		self.assertEquals(self.select('[1.0.0,)', versions), '2.0.1')
+		self.assertEquals(self.select('[1.0.0,]', versions), '2.0.1')
+		self.assertEquals(self.select('(1.0.0,)', versions), '2.0.1')
+		self.assertEquals(self.select('(1.0.0,]', versions), '2.0.1')
+
+		self.assertEquals(self.select('[,1.2.1)', versions), '1.2.0')
+		self.assertEquals(self.select('[,1.2.1]', versions), '1.2.1')
+		self.assertEquals(self.select('(,1.2.1)', versions), '1.2.0')
+		self.assertEquals(self.select('(,1.2.1]', versions), '1.2.1')
