@@ -150,7 +150,7 @@ if __name__ == '__main__':
         usage='docker run --rm -v "`pwd`:/site" meltwater/lighter:latest [options]... production/service.yml production/service2.yml',
         description='Marathon deployment tool')
 
-    parser.add_option('-m', '--marathon', dest='marathon', help='Marathon url, e.g. "http://marathon-01:8080/"',
+    parser.add_option('-m', '--marathon', dest='marathon', help='Marathon url, e.g. "http://marathon-host:8080/"',
                       default=os.environ.get('MARATHON_URL', ''))
 
     parser.add_option('-n', '--noop', dest='noop', help='Execute dry-run without modifying Marathon',
