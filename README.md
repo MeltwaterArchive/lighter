@@ -18,6 +18,8 @@ Options:
   -m MARATHON, --marathon=MARATHON
                         Marathon url, e.g. "http://marathon-host:8080/"
   -n, --noop            Execute dry-run without modifying Marathon
+  -f, --force           Force deployment even if the service is already
+                        affected by a running deployment
   -v, --verbose         Increase logging verbosity
 ```
 
@@ -171,7 +173,7 @@ Execute the script for example like
 cd my-config-repo
 
 # Deploy/sync all services (for example from Jenkins or other CI/CD server)
-./lighter -m http://marathon-host:8080 $(find staging -name \*.yml -not -name globals.yml)
+./lighter -f -m http://marathon-host:8080 $(find staging -name \*.yml -not -name globals.yml)
 
 # Deploy single services
 ./lighter -m http://marathon-host:8080 staging/myservice.yml staging/myservice2.yml

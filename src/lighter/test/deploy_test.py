@@ -25,7 +25,7 @@ class DeployTest(unittest.TestCase):
 	def testParseError(self):
 		with patch('lighter.util.get_json', wraps=self._parseErrorPost) as mock_get_json:
 			try:
-				lighter.deploy('http://localhost:1/', noop=False, files=['src/resources/yaml/staging/myservice.yml', 'src/resources/yaml/staging/myservice-broken.yml'])
+				lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/staging/myservice.yml', 'src/resources/yaml/staging/myservice-broken.yml'])
 			except yaml.scanner.ScannerError:
 				pass
 			else:
@@ -41,5 +41,5 @@ class DeployTest(unittest.TestCase):
 
 	def testResolve(self):
 		with patch('lighter.util.get_json', wraps=self._resolvePost) as mock_get_json:
-			lighter.deploy('http://localhost:1/', noop=False, files=['src/resources/yaml/integration/myservice.yml'])
+			lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/myservice.yml'])
 			self.assertTrue(self._resolvePostCalled)

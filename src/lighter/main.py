@@ -103,8 +103,8 @@ def parse_services(filenames):
         services.append(service)
     return services
 
-def get_marathon_url(url, id):
-    return url.rstrip('/') + '/v2/apps/' + id.strip('/') + '?force=true'
+def get_marathon_url(url, id, force=False):
+    return url.rstrip('/') + '/v2/apps/' + id.strip('/') + (force and '?force=true' or '')
 
 def get_marathon_app(url):
     try:
@@ -113,12 +113,12 @@ def get_marathon_app(url):
         logging.debug(str(e))
         return {}
 
-def deploy(marathonurl, noop, files):
+def deploy(marathonurl, filenames, noop=False, force=False):
     parsedMarathonUrl = urlparse(marathonurl)
-    services = parse_services(files)
+    services = parse_services(filenames)
 
     for service in services:
-        appurl = get_marathon_url(marathonurl, service.config['id'])
+        appurl = get_marathon_url(marathonurl, service.config['id'], force)
         modified = True
 
         # See if service config has changed
@@ -158,10 +158,11 @@ if __name__ == '__main__':
                       default=os.environ.get('MARATHON_URL', ''))
 
     parser.add_option('-n', '--noop', dest='noop', help='Execute dry-run without modifying Marathon',
-                      action='store_true', default=parsebool(os.environ.get('MARATHON_URL', 'false')))
-
+                      action='store_true', default=False)
+    parser.add_option('-f', '--force', dest='force', help='Force deployment even if the service is already affected by a running deployment',
+                      action='store_true', default=False)
     parser.add_option('-v', '--verbose', dest='verbose', help='Increase logging verbosity',
-                      action="store_true", default=parsebool(os.environ.get('VERBOSE', False)))
+                      action="store_true", default=False)
 
     (options, args) = parser.parse_args()
 
@@ -174,4 +175,4 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(1)
 
-    deploy(options.marathon, options.noop, args)
+    deploy(options.marathon, noop=options.noop, force=options.force, filenames=args)
