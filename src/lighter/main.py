@@ -51,7 +51,8 @@ def compare_service_versions(nextVersion, prevConfig, path=''):
     return True
 
 class Service(object):
-    def __init__(self, document, config):
+    def __init__(self, filename, document, config):
+        self.filename = filename
         self.document = document
         self.config = config
 
@@ -67,7 +68,7 @@ class Service(object):
     def environment(self):
         return util.rget(self.document,'facts','environment') or 'default'
 
-def parse_file(filename):
+def parse_service(filename):
     with open(filename, 'r') as fd:
         document = yaml.load(fd)
 
@@ -92,7 +93,15 @@ def parse_file(filename):
         # Substitute variables into the config
         config = util.replace(config, document.get('variables', {}))
 
-        return Service(document, config)
+        return Service(filename, document, config)
+
+def parse_services(filenames):
+    services = []
+    for filename in filenames:
+        logging.info("Processing %s", filename)
+        service = parse_service(filename)
+        services.append(service)
+    return services
 
 def get_marathon_url(url, id):
     return url.rstrip('/') + '/v2/apps/' + id.strip('/') + '?force=true'
@@ -106,12 +115,7 @@ def get_marathon_app(url):
 
 def deploy(marathonurl, noop, files):
     parsedMarathonUrl = urlparse(marathonurl)
-
-    services = []
-    for file in files:
-        logging.info("Processing %s", file)
-        service = parse_file(file)
-        services.append(service)
+    services = parse_services(files)
 
     for service in services:
         appurl = get_marathon_url(marathonurl, service.config['id'])
@@ -120,12 +124,12 @@ def deploy(marathonurl, noop, files):
         # See if service config has changed
         prevConfig = get_marathon_app(appurl)
         if compare_service_versions(service.config, prevConfig):
-            logging.debug("Service already deployed with same config: %s", file)
+            logging.debug("Service already deployed with same config: %s", service.filename)
             modified = False
 
         # Deploy new service config
         if not noop:
-            logging.debug("Deploying %s", file)
+            logging.debug("Deploying %s", service.filename)
             util.get_json(appurl, data=service.config, method='PUT')
 
         # Send HipChat notification
@@ -139,7 +143,7 @@ def deploy(marathonurl, noop, files):
 
         # Write json file to disk for logging purposes
         basedir = '/tmp/lighter'
-        outputfile = os.path.join(basedir, file + '.json')
+        outputfile = os.path.join(basedir, service.filename + '.json')
         if not os.path.exists(os.path.dirname(outputfile)):
             os.makedirs(os.path.dirname(outputfile))
         with open(outputfile, 'w') as fd:

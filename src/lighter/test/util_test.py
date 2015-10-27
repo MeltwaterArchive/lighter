@@ -3,19 +3,6 @@ import lighter.main as lighter
 import lighter.util as util
 
 class TestStringMethods(unittest.TestCase):
-    def test_parse_file(self):
-        service = lighter.parse_file('src/resources/yaml/staging/myservice.yml')
-        self.assertEqual(service.document['hipchat']['token'], 'abc123')
-        self.assertEqual(service.document['hipchat']['rooms'][0], '123456')
-        self.assertEqual(service.environment, 'staging')
-
-        config = service.config
-        self.assertEqual(config['id'],'/myproduct/myservice')
-        self.assertEqual(config['env']['DATABASE'], 'database:3306')
-        self.assertEqual(config['env']['rabbitmq'], 'amqp://myserver:15672')
-        self.assertEqual(config['cpus'], 1)
-        self.assertEqual(config['instances'], 3)
-
     def test_merge(self):
         x = {'a': 1, 'b': 2}
         y = {'b': 3, 'c': 4}

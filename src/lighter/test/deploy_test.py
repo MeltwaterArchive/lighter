@@ -1,9 +1,22 @@
 import unittest, yaml
 from mock import patch, ANY
-from lighter.main import deploy
+import lighter.main as lighter
 from lighter.util import get_json
 
 class DeployTest(unittest.TestCase):
+    def testParseService(self):
+        service = lighter.parse_service('src/resources/yaml/staging/myservice.yml')
+        self.assertEqual(service.document['hipchat']['token'], 'abc123')
+        self.assertEqual(service.document['hipchat']['rooms'][0], '123456')
+        self.assertEqual(service.environment, 'staging')
+
+        config = service.config
+        self.assertEqual(config['id'],'/myproduct/myservice')
+        self.assertEqual(config['env']['DATABASE'], 'database:3306')
+        self.assertEqual(config['env']['rabbitmq'], 'amqp://myserver:15672')
+        self.assertEqual(config['cpus'], 1)
+        self.assertEqual(config['instances'], 3)
+
 	def _parseErrorPost(self, url, *args, **kwargs):
 		if url.startswith('file:'):
 			return get_json(url, *args, **kwargs)
@@ -12,7 +25,7 @@ class DeployTest(unittest.TestCase):
 	def testParseError(self):
 		with patch('lighter.util.get_json', wraps=self._parseErrorPost) as mock_get_json:
 			try:
-				deploy('http://localhost:1/', noop=False, files=['src/resources/yaml/staging/myservice.yml', 'src/resources/yaml/staging/myservice-broken.yml'])
+				lighter.deploy('http://localhost:1/', noop=False, files=['src/resources/yaml/staging/myservice.yml', 'src/resources/yaml/staging/myservice-broken.yml'])
 			except yaml.scanner.ScannerError:
 				pass
 			else:
@@ -28,5 +41,5 @@ class DeployTest(unittest.TestCase):
 
 	def testResolve(self):
 		with patch('lighter.util.get_json', wraps=self._resolvePost) as mock_get_json:
-			deploy('http://localhost:1/', noop=False, files=['src/resources/yaml/integration/myservice.yml'])
+			lighter.deploy('http://localhost:1/', noop=False, files=['src/resources/yaml/integration/myservice.yml'])
 			self.assertTrue(self._resolvePostCalled)
