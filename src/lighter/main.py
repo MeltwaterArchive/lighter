@@ -139,7 +139,7 @@ def deploy(marathonurl, filenames, noop=False, force=False):
                     util.rget(service.document,'hipchat','token'), 
                     util.rget(service.document,'hipchat','url')).rooms(
                         util.rget(service.document,'hipchat','rooms'))
-                hipchat.notify("Deployed <b>%s</b> using image <b>%s</b> to <b>%s</b> (%s)" % 
+                hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" % 
                     (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
 
             # Write json file to disk for logging purposes
@@ -193,4 +193,3 @@ if __name__ == '__main__':
     except RuntimeError, e:
         logging.error(str(e))
         sys.exit(1)
-    
