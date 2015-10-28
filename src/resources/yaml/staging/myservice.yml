@@ -6,3 +6,7 @@ override:
   cpus: 1.0
   env:
     DATABASE: database:3306
+hipchat:
+  rooms:
+    - "456"
+    - "789"

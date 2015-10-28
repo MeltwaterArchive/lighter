@@ -1,6 +1,14 @@
-import os, urlparse, base64, json, urllib2, logging
+import os, urlparse, base64, json, urllib2, logging, itertools
 import xml.dom.minidom as minidom
 from copy import copy
+
+def hashable(a):
+    return not isinstance(a, dict) and not isinstance(a, list) and not isinstance(a, tuple)
+
+def unique(a):
+    result = list(set(value for value in a if hashable(value)))
+    result.extend([value for value in a if not hashable(value)])
+    return result
 
 def merge(*args):
     args = list(args)
@@ -14,6 +22,8 @@ def merge(*args):
             bval = b.get(key)
             if isinstance(aval, dict) or isinstance(bval, dict):
                 result[key] = merge(aval or {}, bval or {})
+            elif isinstance(aval, list) or isinstance(bval, list) or isinstance(aval, tuple) or isinstance(bval, tuple):
+                result[key] = unique((aval and list(aval) or []) + (bval and list(bval) or []))
             else:
                 result[key] = bval or aval
 

@@ -1,7 +1,7 @@
-hipchat:
-  rooms:
-    - "123456"
 facts:
   environment: "staging"
 variables:
   rabbitmq.url: "amqp://myserver:15672"
+hipchat:
+  rooms:
+    - "456"

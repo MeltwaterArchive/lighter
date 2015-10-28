@@ -13,6 +13,12 @@ class TestStringMethods(unittest.TestCase):
         m = {'a': 1, 'b': 2, 'c': 4, 'd': 6}
         self.assertEqual(util.merge(z, y, x),m)
 
+    def testMergeLists(self):
+        x = {'a': [1, 2]}
+        y = {'a': [2, 3]}
+        m = {'a': [1, 2, 3]}
+        self.assertEquals(util.merge(x, y), m)
+
     def testReplace(self):
         x = {'a':'abc%{var}def', 'b':[u'%{var} %{var2} %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
         m = {'a':'abc1def', 'b':[u'1 2 3'], 'c': {'d': '2 3'}}
