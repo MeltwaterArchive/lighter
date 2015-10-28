@@ -1,4 +1,4 @@
-import re, logging
+import sys, re, urllib2, logging
 import lighter.util as util
 
 class VersionRange(object):
@@ -57,7 +57,13 @@ class ArtifactResolver(object):
         self._artifactid = artifactid
 
     def get(self, version):
-        return util.get_json('{0}/{1}/{2}/{3}/{2}-{3}.json'.format(self._url, self._groupid.replace('.', '/'), self._artifactid, version))
+        url = '{0}/{1}/{2}/{3}/{2}-{3}.json'.format(self._url, self._groupid.replace('.', '/'), self._artifactid, version)
+        try:
+            return util.get_json(url)
+        except urllib2.HTTPError, e:
+            raise RuntimeError("Failed to retrieve %s HTTP %d (%s)" % (url, e.code, e)), None, sys.exc_info()[2]
+        except urllib2.URLError, e:
+            raise RuntimeError("Failed to retrieve %s (%s)" % (url, e)), None, sys.exc_info()[2]
 
     def resolve(self, expression):
         def getText(nodelist):

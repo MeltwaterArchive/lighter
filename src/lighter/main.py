@@ -118,36 +118,41 @@ def deploy(marathonurl, filenames, noop=False, force=False):
     services = parse_services(filenames)
 
     for service in services:
-        appurl = get_marathon_url(marathonurl, service.config['id'], force)
-        modified = True
+        try:
+            appurl = get_marathon_url(marathonurl, service.config['id'], force)
+            modified = True
 
-        # See if service config has changed
-        prevConfig = get_marathon_app(appurl)
-        if compare_service_versions(service.config, prevConfig):
-            logging.debug("Service already deployed with same config: %s", service.filename)
-            modified = False
+            # See if service config has changed
+            prevConfig = get_marathon_app(appurl)
+            if compare_service_versions(service.config, prevConfig):
+                logging.debug("Service already deployed with same config: %s", service.filename)
+                modified = False
 
-        # Deploy new service config
-        if not noop:
-            logging.debug("Deploying %s", service.filename)
-            util.get_json(appurl, data=service.config, method='PUT')
+            # Deploy new service config
+            if not noop:
+                logging.debug("Deploying %s", service.filename)
+                util.get_json(appurl, data=service.config, method='PUT')
 
-        # Send HipChat notification
-        if modified and not noop:
-            hipchat = HipChat(
-                util.rget(service.document,'hipchat','token'), 
-                util.rget(service.document,'hipchat','url')).rooms(
-                    util.rget(service.document,'hipchat','rooms'))
-            hipchat.notify("Deployed <b>%s</b> using image <b>%s</b> to <b>%s</b> (%s)" % 
-                (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
+            # Send HipChat notification
+            if modified and not noop:
+                hipchat = HipChat(
+                    util.rget(service.document,'hipchat','token'), 
+                    util.rget(service.document,'hipchat','url')).rooms(
+                        util.rget(service.document,'hipchat','rooms'))
+                hipchat.notify("Deployed <b>%s</b> using image <b>%s</b> to <b>%s</b> (%s)" % 
+                    (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
 
-        # Write json file to disk for logging purposes
-        basedir = '/tmp/lighter'
-        outputfile = os.path.join(basedir, service.filename + '.json')
-        if not os.path.exists(os.path.dirname(outputfile)):
-            os.makedirs(os.path.dirname(outputfile))
-        with open(outputfile, 'w') as fd:
-            fd.write(json.dumps(service.config, indent=4))
+            # Write json file to disk for logging purposes
+            basedir = '/tmp/lighter'
+            outputfile = os.path.join(basedir, service.filename + '.json')
+            if not os.path.exists(os.path.dirname(outputfile)):
+                os.makedirs(os.path.dirname(outputfile))
+            with open(outputfile, 'w') as fd:
+                fd.write(json.dumps(service.config, indent=4))
+        except urllib2.HTTPError, e:
+            raise RuntimeError("Failed to deploy %s HTTP %d (%s)" % (service.filename, e.code, e)), None, sys.exc_info()[2]
+        except urllib2.URLError, e:
+            raise RuntimeError("Failed to deploy %s (%s)" % (service.filename, e)), None, sys.exc_info()[2]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -182,5 +187,10 @@ if __name__ == '__main__':
     else:
         logging.getLogger().setLevel(logging.INFO)
 
-    if args.command == 'deploy':
-        deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames)
+    try:
+        if args.command == 'deploy':
+            deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames)
+    except RuntimeError, e:
+        logging.error(str(e))
+        sys.exit(1)
+    

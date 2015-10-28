@@ -41,3 +41,14 @@ class MavenTest(unittest.TestCase):
 		self.assertEquals(self.select('[,1.2.1]', versions), '1.2.1')
 		self.assertEquals(self.select('(,1.2.1)', versions), '1.2.0')
 		self.assertEquals(self.select('(,1.2.1]', versions), '1.2.1')
+
+	def testGet(self):
+		json = self.resolver.get('1.0.0')
+		self.assertTrue(bool(json))
+
+		try:
+			self.resolver.get('0.0.0')
+		except RuntimeError, e:
+			pass
+		else:
+			self.fail("Expected RuntimeError")

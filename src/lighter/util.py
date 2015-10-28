@@ -73,6 +73,7 @@ def build_request(url, data=None, headers={}, method='GET'):
     return request
 
 def get_json(url, data=None, headers={}, method='GET'):
+    logging.debug('%sing url %s', method, url)
     response = urllib2.urlopen(build_request(url, data, headers, method))
     content = response.read()
     if response.info().gettype() == 'application/json' or response.info().gettype() == 'text/plain':
