@@ -23,7 +23,7 @@ def merge(*args):
             if isinstance(aval, dict) or isinstance(bval, dict):
                 result[key] = merge(aval or {}, bval or {})
             elif isinstance(aval, list) or isinstance(bval, list) or isinstance(aval, tuple) or isinstance(bval, tuple):
-                result[key] = unique((aval and list(aval) or []) + (bval and list(bval) or []))
+                result[key] = (aval and list(aval) or []) + (bval and list(bval) or [])
             else:
                 result[key] = bval or aval
 

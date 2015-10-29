@@ -7,7 +7,7 @@ class DeployTest(unittest.TestCase):
     def testParseService(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice.yml')
         self.assertEqual(service.document['hipchat']['token'], 'abc123')
-        self.assertEqual(sorted(service.document['hipchat']['rooms']), ['123','456','789'])
+        self.assertEqual(sorted(service.document['hipchat']['rooms']), ['123','456','456','789'])
         self.assertEqual(service.environment, 'staging')
 
         config = service.config

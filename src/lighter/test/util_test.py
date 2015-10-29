@@ -16,7 +16,7 @@ class TestStringMethods(unittest.TestCase):
     def testMergeLists(self):
         x = {'a': [1, 2]}
         y = {'a': [2, 3]}
-        m = {'a': [1, 2, 3]}
+        m = {'a': [1, 2, 2, 3]}
         self.assertEquals(util.merge(x, y), m)
 
     def testReplace(self):
