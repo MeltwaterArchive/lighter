@@ -81,11 +81,15 @@ def parse_service(filename):
                     document = util.merge(yaml.load(fd2), document)
             path = path[0:path.rindex('/')]
 
-        # Fetch json template from maven
-        coord = document['maven']
-        resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'])
-        version = coord.get('version') or resolver.resolve(coord['resolve'])
-        config = resolver.get(version)
+        # Start from a service section if it exists
+        config = document.get('service', {})
+
+        # Fetch and merge json template from maven
+        if util.rget(document,'maven','version') or util.rget(document,'maven','resolve'):
+            coord = document['maven']
+            resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'])
+            version = coord.get('version') or resolver.resolve(coord['resolve'])
+            config = util.merge(config, resolver.get(version))
 
         # Merge overrides into json template
         config = util.merge(config, document.get('override', {}))

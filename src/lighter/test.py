@@ -7,4 +7,4 @@ from lighter.test.util_test import *
 logging.getLogger().setLevel(logging.DEBUG)
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)

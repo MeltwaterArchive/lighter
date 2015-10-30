@@ -2,7 +2,7 @@ import unittest
 import lighter.main as lighter
 import lighter.util as util
 
-class TestStringMethods(unittest.TestCase):
+class UtilTest(unittest.TestCase):
     def testMerge(self):
         x = {'a': 1, 'b': 2}
         y = {'b': 3, 'c': 4}

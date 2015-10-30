@@ -66,7 +66,8 @@ Running `lighter deploy -m http://marathon-host:8080 staging/services/myservice.
 * Post the resulting *json* configuration into Marathon
 
 ### Maven
-The `maven:` section specifies where to fetch *json* templates from. For example
+The `maven:` section specifies where to fetch *json* templates from which are 
+merged into the configuration. For example
 
 *globals.yml*
 ```
@@ -106,12 +107,48 @@ Expression | Resolve To
 [,] | Latest release version
 [,]-SNAPSHOT | Latest *SNAPSHOT* version
 
-### Facts
-Yaml files may contain a `facts:` section with information about the service surroundings
+### Freestyle Services
+Yaml files may contain a `service:` tag which specifies a Marathon *json* fragment 
+to use as the service configuration base for further merging. This allows for
+services which aren't based on a *json* template but rather defined exclusively 
+in *yaml*.
+
+*myservice.yml*
+```
+service:
+  id: "/myproduct/myservice"
+  container:
+    docker:
+      image: "meltwater/myservice:latest"
+  env:
+    DATABASE: "database:3306"
+  cpus: 1.0
+  mem: 1200
+  instances: 1
+```
+
+### Overrides
+Yaml files may contain an `overrides:` section that will be merged directly into the Marathon json. The 
+structure contained in the `override:` section must correspond to the [Marathon REST API](https://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps). For example 
 
 ```
-facts:
-  environment: "staging"
+overrides:
+  instances: 4
+  cpus: 2.0
+  env:
+    LOGLEVEL: "info"
+    NEW_RELIC_APP_NAME: "MyService Staging"
+    NEW_RELIC_LICENSE_KEY: "123abc"
+```
+
+### HipChat
+Yaml files may contain an `hipchat:` section that specifies where to announce deployments. Create a [HipChat V2 token](https://www.hipchat.com/docs/apiv2) that is allowed to post to rooms. For example
+
+```
+hipchat:
+  token: "123abc"
+  rooms:
+    - "123456"
 ```
 
 ### Variables
@@ -139,28 +176,12 @@ And used from the *json* template like
 }
 ```
 
-### Overrides
-Yaml files may contain an `overrides:` section that will be merged directly into the Marathon json. The 
-structure contained in the `override:` section must correspond to the [Marathon REST API](https://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps). For example 
+### Facts
+Yaml files may contain a `facts:` section with information about the service surroundings
 
 ```
-overrides:
-  instances: 4
-  cpus: 2.0
-  env:
-    LOGLEVEL: "info"
-    NEW_RELIC_APP_NAME: "MyService Staging"
-    NEW_RELIC_LICENSE_KEY: "123abc"
-```
-
-### HipChat
-Yaml files may contain an `hipchat:` section that specifies where to announce deployments. Create a [HipChat V2 token](https://www.hipchat.com/docs/apiv2) that is allowed to post to rooms. For example
-
-```
-hipchat:
-  token: "123abc"
-  rooms:
-    - "123456"
+facts:
+  environment: "staging"
 ```
 
 ## Deployment

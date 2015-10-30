@@ -17,29 +17,37 @@ class DeployTest(unittest.TestCase):
         self.assertEqual(config['cpus'], 1)
         self.assertEqual(config['instances'], 3)
 
-	def _parseErrorPost(self, url, *args, **kwargs):
-		if url.startswith('file:'):
-			return get_json(url, *args, **kwargs)
-		raise self.fail('Should not POST into Marathon')
+    def _parseErrorPost(self, url, *args, **kwargs):
+        if url.startswith('file:'):
+            return get_json(url, *args, **kwargs)
+        raise self.fail('Should not POST into Marathon')
 
-	def testParseError(self):
-		with patch('lighter.util.get_json', wraps=self._parseErrorPost) as mock_get_json:
-			try:
-				lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/staging/myservice.yml', 'src/resources/yaml/staging/myservice-broken.yml'])
-			except yaml.scanner.ScannerError:
-				pass
-			else:
-				self.fail("Expected yaml.ScannerError")
+    def testParseError(self):
+        with patch('lighter.util.get_json', wraps=self._parseErrorPost) as mock_get_json:
+            try:
+                lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/staging/myservice.yml', 'src/resources/yaml/staging/myservice-broken.yml'])
+            except yaml.scanner.ScannerError:
+                pass
+            else:
+                self.fail("Expected yaml.ScannerError")
 
-	def _resolvePost(self, url, data=None, *args, **kwargs):
-		if url.startswith('file:'):
-			return get_json(url, data, *args, **kwargs)
-		if data is not None:
-			self.assertEquals(data['container']['docker']['image'], 'meltwater/myservice:1.0.0')
-			self._resolvePostCalled = True
-		return {'app': {}}
+    def _resolvePost(self, url, data=None, *args, **kwargs):
+        if url.startswith('file:'):
+            return get_json(url, data, *args, **kwargs)
+        if '/v2/apps' in url and data:
+            self.assertEquals(data['container']['docker']['image'], 'meltwater/myservice:1.0.0')
+            self._resolvePostCalled = True
+        return {'app': {}}
 
-	def testResolve(self):
-		with patch('lighter.util.get_json', wraps=self._resolvePost) as mock_get_json:
-			lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/myservice.yml'])
-			self.assertTrue(self._resolvePostCalled)
+    def testResolve(self):
+        with patch('lighter.util.get_json', wraps=self._resolvePost) as mock_get_json:
+            lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/myservice.yml'])
+            self.assertTrue(self._resolvePostCalled)
+
+    def testParseNoMavenService(self):
+        service = lighter.parse_service('src/resources/yaml/staging/myservice-nomaven.yml')
+        self.assertEqual(service.document['hipchat']['token'], 'abc123')
+        self.assertEqual(service.config['id'], '/myproduct/myservice-nomaven')
+        self.assertEqual(service.config['instances'], 1)
+        self.assertEqual(service.config['env']['DATABASE'], 'database:3306')
+        self.assertEqual(service.config['container']['docker']['image'], 'meltwater/myservice:latest')

@@ -32,7 +32,7 @@ class VersionRange(object):
     @staticmethod
     def parseVersion(version):
         if version:
-        	return tuple(int(digit) for digit in VersionRange.SPLIT.split(version.split('-')[0]) if digit.isdigit())
+            return tuple(int(digit) for digit in VersionRange.SPLIT.split(version.split('-')[0]) if digit.isdigit())
         return None
 
     @staticmethod
@@ -85,5 +85,5 @@ class ArtifactResolver(object):
         logging.debug('%s:%s matched %s to versions %s', self._groupid, self._artifactid, expression, matches)
 
         if not matches:
-        	raise RuntimeError('Failed to find a version that matches %s', expression)
+            raise RuntimeError('Failed to find a version that matches %s', expression)
         return matches[-1]

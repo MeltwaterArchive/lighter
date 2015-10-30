@@ -6,5 +6,5 @@ python "`dirname $0`/src/lighter/main.py" $@
 
 # Make sure the output files are writable outside the Docker container
 if [ -e "/tmp/lighter" ]; then
-	chmod -R a+rwX "/tmp/lighter"
+    chmod -R a+rwX "/tmp/lighter"
 fi
