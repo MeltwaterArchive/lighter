@@ -1,5 +1,5 @@
 # Lighter
-Lighter solves the problem of automating deployments to [Marathon](https://github.com/mesosphere/marathon) and 
+[Lighter](https://en.wikipedia.org/wiki/Lighter_(barge)) solves the problem of automating deployments to [Marathon](https://github.com/mesosphere/marathon) and 
 handling of differences between multiple environments.
 
 ## Environment Variables
