@@ -1,6 +1,14 @@
 # Lighter
-[Lighter](https://en.wikipedia.org/wiki/Lighter_(barge)) solves the problem of automating deployments to [Marathon](https://github.com/mesosphere/marathon) and 
-handling of differences between multiple environments.
+[Lighter](https://en.wikipedia.org/wiki/Lighter_(barge)) solves the problem of automating 
+deployments to [Marathon](https://github.com/mesosphere/marathon) and handling of differences
+between multiple environments. Given a heirachy of yaml files and environments Ligther can 
+expand service config files and deploy them to Marathon. 
+
+For even tighter integration into the development process Lighter can resolve Marathon config files 
+from Maven and merge these with environment specific overrides. This enables continuous deployment 
+whenever new releases or snapshots appear in the Maven repository. Optional version range constraints 
+allows for example patches/minor versions to be rolled out continuously, while requiring a config
+change to roll out major versions.
 
 ## Environment Variables
 
