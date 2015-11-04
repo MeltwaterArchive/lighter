@@ -86,19 +86,22 @@ maven:
 *myservice.yml*
 ```
 maven:
-  groupid: "com.example"
-  artifactid: "myservice"
-  version: "1.0.0"
+  groupid: 'com.example'
+  artifactid: 'myservice'
+  version: '1.0.0'
+  classifier: 'marathon'
 ```
+
+The Maven 'classifier' tag is optional.
 
 #### Dynamic Versions
 Versions can be dynamically resolved from Maven using a range syntax.
 
 ```
 maven:
-  groupid: "com.example"
-  artifactid: "myservice"
-  resolve: "[1.0.0,2.0.0)"
+  groupid: 'com.example'
+  artifactid: 'myservice'
+  resolve: '[1.0.0,2.0.0)'
 ```
 
 For example
@@ -124,12 +127,12 @@ in *yaml*.
 *myservice.yml*
 ```
 service:
-  id: "/myproduct/myservice"
+  id: '/myproduct/myservice'
   container:
     docker:
-      image: "meltwater/myservice:latest"
+      image: 'meltwater/myservice:latest'
   env:
-    DATABASE: "database:3306"
+    DATABASE: 'database:3306'
   cpus: 1.0
   mem: 1200
   instances: 1
@@ -144,9 +147,9 @@ overrides:
   instances: 4
   cpus: 2.0
   env:
-    LOGLEVEL: "info"
-    NEW_RELIC_APP_NAME: "MyService Staging"
-    NEW_RELIC_LICENSE_KEY: "123abc"
+    LOGLEVEL: 'info'
+    NEW_RELIC_APP_NAME: 'MyService Staging'
+    NEW_RELIC_LICENSE_KEY: '123abc'
 ```
 
 ### HipChat
@@ -154,9 +157,9 @@ Yaml files may contain an `hipchat:` section that specifies where to announce de
 
 ```
 hipchat:
-  token: "123abc"
+  token: '123abc'
   rooms:
-    - "123456"
+    - '123456'
 ```
 
 ### Variables
@@ -165,8 +168,8 @@ variables in a templates must be resolved or it's considered an error. This can 
 guaranteed to be provided to a service. For example
 ```
 variables:
-  docker.registry: "docker.example.com"
-  rabbitmq.host: "rabbitmq-hostname"
+  docker.registry: 'docker.example.com'
+  rabbitmq.host: 'rabbitmq-hostname'
 ```
 
 And used from the *json* template like
@@ -189,7 +192,7 @@ Yaml files may contain a `facts:` section with information about the service sur
 
 ```
 facts:
-  environment: "staging"
+  environment: 'staging'
 ```
 
 ## Deployment

@@ -1,7 +1,8 @@
 maven:
   groupid: 'com.meltwater'
-  artifactid: 'myservice'
+  artifactid: 'myservice-classifier'
   version: '1.0.0'
+  classifier: 'marathon'
 override:
   cpus: 1.0
   env:

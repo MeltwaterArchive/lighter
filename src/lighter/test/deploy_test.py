@@ -11,11 +11,15 @@ class DeployTest(unittest.TestCase):
         self.assertEqual(service.environment, 'staging')
 
         config = service.config
-        self.assertEqual(config['id'],'/myproduct/myservice')
+        self.assertEqual(config['id'], '/myproduct/myservice')
         self.assertEqual(config['env']['DATABASE'], 'database:3306')
         self.assertEqual(config['env']['rabbitmq'], 'amqp://myserver:15672')
         self.assertEqual(config['cpus'], 1)
         self.assertEqual(config['instances'], 3)
+
+    def testParseClassifierService(self):
+        service = lighter.parse_service('src/resources/yaml/staging/myservice-classifier.yml')
+        self.assertEqual(service.config['env']['isclassifier'], 'marathon')
 
     def _parseErrorPost(self, url, *args, **kwargs):
         if url.startswith('file:'):

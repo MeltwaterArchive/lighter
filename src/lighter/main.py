@@ -87,7 +87,7 @@ def parse_service(filename):
         # Fetch and merge json template from maven
         if util.rget(document,'maven','version') or util.rget(document,'maven','resolve'):
             coord = document['maven']
-            resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'])
+            resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'], coord.get('classifier'))
             version = coord.get('version') or resolver.resolve(coord['resolve'])
             config = util.merge(config, resolver.get(version))
 

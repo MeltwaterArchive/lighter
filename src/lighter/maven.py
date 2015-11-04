@@ -51,13 +51,18 @@ class VersionRange(object):
         return result
 
 class ArtifactResolver(object):
-    def __init__(self, url, groupid, artifactid):
+    def __init__(self, url, groupid, artifactid, classifier=None):
         self._url = url
         self._groupid = groupid
         self._artifactid = artifactid
+        self._classifier = classifier
 
     def get(self, version):
-        url = '{0}/{1}/{2}/{3}/{2}-{3}.json'.format(self._url, self._groupid.replace('.', '/'), self._artifactid, version)
+        url = '{0}/{1}/{2}/{3}/{2}-{3}'.format(self._url, self._groupid.replace('.', '/'), self._artifactid, version)
+        if self._classifier is not None:
+            url += '-' + self._classifier
+        url += '.json'
+
         try:
             return util.get_json(url)
         except urllib2.HTTPError, e:

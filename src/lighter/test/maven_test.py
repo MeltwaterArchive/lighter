@@ -52,3 +52,8 @@ class MavenTest(unittest.TestCase):
             pass
         else:
             self.fail("Expected RuntimeError")
+
+    def testClassifier(self):
+        resolver = maven.ArtifactResolver('file:./src/resources/repository/', 'com.meltwater', 'myservice-classifier', classifier='marathon')
+        json = resolver.get('1.0.0')
+        self.assertTrue(bool(json))
