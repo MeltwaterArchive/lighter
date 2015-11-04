@@ -54,6 +54,18 @@ class UtilTest(unittest.TestCase):
         self.assertFalse(lighter.compare_service_versions(y, x))
         self.assertTrue(lighter.compare_service_versions(x, x))
 
+        x = {'foo': [0, 456]}
+        y = {'foo': [789, 456]}
+        self.assertFalse(lighter.compare_service_versions(x, y))
+
+        x = {'ports': [0, 456]}
+        y = {'ports': [789, 456]}
+        self.assertTrue(lighter.compare_service_versions(x, y))
+
+        x = {'ports': [0, 456]}
+        y = {'ports': [123, 456]}
+        self.assertTrue(lighter.compare_service_versions(x, y))
+
     def test_get_marathon_url(self):
         self.assertEqual(lighter.get_marathon_url('myurl', 'myid'), 'myurl/v2/apps/myid')
         self.assertEqual(lighter.get_marathon_url('myurl/', '/myid/'), 'myurl/v2/apps/myid')

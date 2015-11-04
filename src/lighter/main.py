@@ -42,10 +42,12 @@ def compare_service_versions(nextVersion, prevConfig, path=''):
         if len(nextVersion) != len(prevConfig):
             logging.debug("List have changed at %s", path)
             return False
-        for nextValue, prevValue in zip(sorted(nextVersion), sorted(prevConfig)):
+        for nextValue, prevValue in zip(nextVersion, prevConfig):
             if not compare_service_versions(nextValue, prevValue, path):
                 return False
     elif nextVersion != prevConfig:
+        if isinstance(nextVersion, int) and isinstance(prevConfig, int) and nextVersion == 0 and path == '/ports':
+            return True
         logging.debug("Value has changed at %s (%s != %s)", path, nextVersion, prevConfig)
         return False
     return True
