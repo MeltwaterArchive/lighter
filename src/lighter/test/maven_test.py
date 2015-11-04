@@ -57,3 +57,8 @@ class MavenTest(unittest.TestCase):
         resolver = maven.ArtifactResolver('file:./src/resources/repository/', 'com.meltwater', 'myservice-classifier', classifier='marathon')
         json = resolver.get('1.0.0')
         self.assertTrue(bool(json))
+
+    def testUniqueSnapshotClassifier(self):
+        resolver = maven.ArtifactResolver('file:./src/resources/repository/', 'com.meltwater', 'myservice-snapshot', classifier='marathon')
+        json = resolver.get('1.1.1-SNAPSHOT')
+        self.assertTrue(bool(json))

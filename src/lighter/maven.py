@@ -58,7 +58,25 @@ class ArtifactResolver(object):
         self._classifier = classifier
 
     def get(self, version):
-        url = '{0}/{1}/{2}/{3}/{2}-{3}'.format(self._url, self._groupid.replace('.', '/'), self._artifactid, version)
+        try:
+            return self._get(version)
+        except RuntimeError, e:
+            # Try to resolve unique/timestamped snapshot versions
+            if version.endswith('-SNAPSHOT'):
+                logging.debug('Trying to resolve %s to a unique timestamp-buildnumber version', version)
+                url = '{0}/{1}/{2}/{3}/maven-metadata.xml'.format(self._url, self._groupid.replace('.', '/'), self._artifactid, version)
+                document = util.get_xml(url)
+                snapshot = document.getElementsByTagName('snapshot')[0]
+                timestamp = util.xml_text(snapshot.getElementsByTagName('timestamp'))
+                buildNumber = util.xml_text(snapshot.getElementsByTagName('buildNumber'))
+                uniqueversion = version.replace('-SNAPSHOT', '-%s-%s' % (timestamp, buildNumber))
+                logging.debug('Resolved %s to unique version %s', version, uniqueversion)
+                return self._get(version, uniqueversion)
+            
+            raise e, None, sys.exc_info()[2]
+
+    def _get(self, version, uniqueversion=None):
+        url = '{0}/{1}/{2}/{3}/{2}-{4}'.format(self._url, self._groupid.replace('.', '/'), self._artifactid, version, uniqueversion or version)
         if self._classifier is not None:
             url += '-' + self._classifier
         url += '.json'
@@ -71,15 +89,8 @@ class ArtifactResolver(object):
             raise RuntimeError("Failed to retrieve %s (%s)" % (url, e)), None, sys.exc_info()[2]
 
     def resolve(self, expression):
-        def getText(nodelist):
-            rc = []
-            for node in nodelist:
-                if node.nodeType == node.TEXT_NODE:
-                    rc.append(node.data)
-            return ''.join(rc)
-
         document = util.get_xml('{0}/{1}/{2}/maven-metadata.xml'.format(self._url, self._groupid.replace('.', '/'), self._artifactid))
-        versions = [getText(version.childNodes) for version in document.getElementsByTagName('version')]
+        versions = [util.xml_text(version.childNodes) for version in document.getElementsByTagName('version')]
         logging.debug('%s:%s candidate versions %s', self._groupid, self._artifactid, versions)
         return self.selectVersion(expression, versions)
 

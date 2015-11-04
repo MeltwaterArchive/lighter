@@ -96,6 +96,15 @@ def get_xml(url, data=None, headers={}, method='GET'):
     response = urllib2.urlopen(build_request(url, data, headers, method)).read()
     return minidom.parseString(response)
 
+def xml_text(nodelist):
+    result = ''
+    for node in nodelist:
+        if node.nodeType == node.TEXT_NODE:
+            result += node.data
+        else:
+            result += xml_text(node.childNodes)
+    return result
+
 def rget(root, *args):
     node = root
     default = {}
