@@ -13,7 +13,7 @@ def unique(a):
 def toList(a):
     if isinstance(a, (list, tuple)):
         return a
-    return a and [a] or []
+    return [a] if (a is not None) else []
 
 def merge(*args):
     args = list(args)
@@ -28,9 +28,9 @@ def merge(*args):
             if isinstance(aval, dict) or isinstance(bval, dict):
                 result[key] = merge(aval or {}, bval or {})
             elif isinstance(aval, (list, tuple)) or isinstance(bval, (list, tuple)):
-                result[key] = (aval and list(aval) or []) + (bval and list(bval) or [])
+                result[key] = toList(aval) + toList(bval)
             else:
-                result[key] = bval or aval
+                result[key] = bval if (bval is not None) else aval
 
     return result
 

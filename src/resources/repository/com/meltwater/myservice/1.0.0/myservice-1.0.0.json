@@ -16,6 +16,9 @@
     "env": {
         "rabbitmq": "%{rabbitmq.url}"
     },
+    "upgradeStrategy": {
+        "minimumHealthCapacity": 0.0
+    },
     "healthChecks": [
         {
             "protocol": "HTTP",

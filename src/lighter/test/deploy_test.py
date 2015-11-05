@@ -18,6 +18,10 @@ class DeployTest(unittest.TestCase):
         self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.0.0')
         self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.0.0')
 
+        # Check that zero are translated correctly
+        self.assertEquals(service.config['upgradeStrategy']['minimumHealthCapacity'], 0.0)
+        self.assertEquals(service.config['upgradeStrategy']['maximumOverCapacity'], 0.0)
+
     def testParseClassifier(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice-classifier.yml')
         self.assertEquals(service.config['env']['isclassifier'], 'marathon')
