@@ -5,6 +5,7 @@ maven:
 override:
   cpus: 1.0
   env:
+    SERVICE_VERSION: '%{lighter.uniqueVersion}'
     DATABASE: 'database:3306'
 hipchat:
   rooms:

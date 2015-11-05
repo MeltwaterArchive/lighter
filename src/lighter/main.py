@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import os, sys, argparse, logging
-from urlparse import urlparse
-from pprint import pprint
 import yaml, urllib2, json, ntpath
+from urlparse import urlparse
 from lighter.hipchat import HipChat
 import lighter.util as util
 import lighter.maven as maven
@@ -89,9 +88,13 @@ def parse_service(filename):
         # Fetch and merge json template from maven
         if util.rget(document,'maven','version') or util.rget(document,'maven','resolve'):
             coord = document['maven']
+            
             resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'], coord.get('classifier'))
             version = coord.get('version') or resolver.resolve(coord['resolve'])
-            config = util.merge(config, resolver.get(version))
+            
+            response = resolver.fetch(version)
+            document['variables'] = util.merge(document.get('variables', {}), response.variables)
+            config = util.merge(config, response.body)
 
         # Merge overrides into json template
         config = util.merge(config, document.get('override', {}))
@@ -114,7 +117,7 @@ def get_marathon_url(url, id, force=False):
 
 def get_marathon_app(url):
     try:
-        return util.get_json(url)['app']
+        return util.jsonRequest(url)['app']
     except urllib2.URLError, e:
         logging.debug(str(e))
         return {}
@@ -137,7 +140,7 @@ def deploy(marathonurl, filenames, noop=False, force=False):
             # Deploy new service config
             if not noop:
                 logging.debug("Deploying %s", service.filename)
-                util.get_json(appurl, data=service.config, method='PUT')
+                util.jsonRequest(appurl, data=service.config, method='PUT')
 
             # Send HipChat notification
             if modified and not noop:

@@ -20,9 +20,9 @@ class UtilTest(unittest.TestCase):
         self.assertEquals(util.merge(x, y), m)
 
     def testReplace(self):
-        x = {'a':'abc%{var}def', 'b':[u'%{var} %{var2} %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
-        m = {'a':'abc1def', 'b':[u'1 2 3'], 'c': {'d': '2 3'}}
-        self.assertEquals(util.replace(x, {'var':'1', 'var2':2, 'var3': u'3'}), m)
+        x = {'a':'abc%{var}def', 'b':['%{var} %{var2} %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
+        m = {'a':'abc1def', 'b':['1 2 3'], 'c': {'d': '2 3'}}
+        self.assertEquals(util.replace(x, {'var':'1', 'var2':2, 'var3': '3'}), m)
 
     def testCompare(self):
         x = {'a': 1, 'b': 2}
@@ -66,12 +66,32 @@ class UtilTest(unittest.TestCase):
         y = {'ports': [123, 456]}
         self.assertTrue(lighter.compare_service_versions(x, y))
 
+    def testGetXml(self):
+        url = 'file:./src/resources/repository/com/meltwater/myservice-snapshot/1.1.1-SNAPSHOT/maven-metadata.xml'
+        actual = util.xmlRequest(url)
+        expected = {
+            'versioning': {
+                'snapshot': {
+                    'timestamp': '20151102.035053',
+                    'buildNumber': '8'
+                },
+                'lastUpdated': '20151102035120',
+                'snapshotVersions': {
+                    'snapshotVersion': {
+                        'classifier': 'marathon', 'extension': 'json', 'value': '1.1.1-20151102.035053-8', 'updated': '20151102035120'
+                    }
+                }
+            }
+        }
+
+        self.assertEquals(actual, expected)
+
     def test_get_marathon_url(self):
         self.assertEqual(lighter.get_marathon_url('myurl', 'myid'), 'myurl/v2/apps/myid')
         self.assertEqual(lighter.get_marathon_url('myurl/', '/myid/'), 'myurl/v2/apps/myid')
         self.assertEqual(lighter.get_marathon_url('myurl/', '/myid/', True), 'myurl/v2/apps/myid?force=true')
 
-    def test_build_request(self):
+    def test_buildRequest(self):
         url = "https://user:pass@maven.example.com/path/to/my/repo"
-        req = util.build_request(url)
+        req = util.buildRequest(url)
         self.assertTrue(req.get_header('Authorization').startswith('Basic '))

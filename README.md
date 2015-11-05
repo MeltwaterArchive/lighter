@@ -118,6 +118,20 @@ Expression | Resolve To
 [,] | Latest release version
 [,]-SNAPSHOT | Latest *SNAPSHOT* version
 
+##### Snapshot Builds
+If an image is rebuilt with the same Docker tag Marathon won't detect a change and roll out the new image. To ensure
+that new snapshot/latest versions are deployed use `%{lighter.uniqueVersion}` and `forcePullImage` like for example
+
+*myservice.yml*
+```
+override:
+  container:
+    docker:
+      forcePullImage: true
+  env:
+    SERVICE_VERSION: '%{lighter.uniqueVersion}'
+```
+
 ### Freestyle Services
 Yaml files may contain a `service:` tag which specifies a Marathon *json* fragment 
 to use as the service configuration base for further merging. This allows for
@@ -139,11 +153,11 @@ service:
 ```
 
 ### Overrides
-Yaml files may contain an `overrides:` section that will be merged directly into the Marathon json. The 
+Yaml files may contain an `override:` section that will be merged directly into the Marathon json. The 
 structure contained in the `override:` section must correspond to the [Marathon REST API](https://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps). For example 
 
 ```
-overrides:
+override:
   instances: 4
   cpus: 2.0
   env:
@@ -186,6 +200,12 @@ And used from the *json* template like
     }
 }
 ```
+
+#### Predefined Variables
+
+Variable | Contains
+:--------|:--------
+%{lighter.uniqueVersion} | Unique build version resolved from Maven metadata
 
 ### Facts
 Yaml files may contain a `facts:` section with information about the service surroundings

@@ -26,7 +26,7 @@ class HipChat(object):
         try:
             url = self._url.rstrip('/') + endpoint + '?auth_token=' + self._token
             logging.debug('Calling HipChat endpoint %s', endpoint)
-            util.get_json(url, data=data, method='POST')
+            util.jsonRequest(url, data=data, method='POST')
         except urllib2.URLError, e:
             logging.warn(str(e))
             return {}

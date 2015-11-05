@@ -1,14 +1,19 @@
-import os, urlparse, base64, json, urllib2, logging, itertools
+import os, urlparse, base64, json, urllib2, logging, itertools, types
 import xml.dom.minidom as minidom
 from copy import copy
 
 def hashable(a):
-    return not isinstance(a, dict) and not isinstance(a, list) and not isinstance(a, tuple)
+    return not isinstance(a, (dict, list, tuple))
 
 def unique(a):
     result = list(set(value for value in a if hashable(value)))
     result.extend([value for value in a if not hashable(value)])
     return result
+
+def toList(a):
+    if isinstance(a, (list, tuple)):
+        return a
+    return a and [a] or []
 
 def merge(*args):
     args = list(args)
@@ -22,7 +27,7 @@ def merge(*args):
             bval = b.get(key)
             if isinstance(aval, dict) or isinstance(bval, dict):
                 result[key] = merge(aval or {}, bval or {})
-            elif isinstance(aval, list) or isinstance(bval, list) or isinstance(aval, tuple) or isinstance(bval, tuple):
+            elif isinstance(aval, (list, tuple)) or isinstance(bval, (list, tuple)):
                 result[key] = (aval and list(aval) or []) + (bval and list(bval) or [])
             else:
                 result[key] = bval or aval
@@ -35,14 +40,20 @@ def replace(template, variables):
     if isinstance(result, dict):
         for key, value in result.items():
             result[key] = replace(value, variables)
-    elif isinstance(result, list) or isinstance(result, tuple):
+    elif isinstance(result, (list, tuple)):
         result = [replace(elem, variables) for elem in result]
     else:
-        if isinstance(result, str) or isinstance(result, unicode) and '%{' in result:
+        if isinstance(result, (str, unicode)) and '%{' in result:
             for varkey, varval in variables.items():
                 result = result.replace('%{' + varkey + '}', unicode(varval))
 
     return result
+
+def find(collection, condition, default=None):
+    for item in toList(collection):
+        if condition(item):
+            return item
+    return default
 
 def urlunparse(data):
     """
@@ -61,7 +72,7 @@ def urlunparse(data):
         url = url + '#' + fragment
     return url
 
-def build_request(url, data=None, headers={}, method='GET'):
+def buildRequest(url, data=None, headers={}, method='GET'):
     parsed_url = urlparse.urlparse(url)
     parts = list(parsed_url[0:6])
     parts[1] = ('@' in parts[1]) and parts[1].split('@')[1] or parts[1]
@@ -82,9 +93,9 @@ def build_request(url, data=None, headers={}, method='GET'):
 
     return request
 
-def get_json(url, data=None, headers={}, method='GET'):
+def jsonRequest(url, data=None, headers={}, method='GET'):
     logging.debug('%sing url %s', method, url)
-    response = urllib2.urlopen(build_request(url, data, headers, method))
+    response = urllib2.urlopen(buildRequest(url, data, headers, method))
     content = response.read()
     if response.info().gettype() == 'application/json' or response.info().gettype() == 'text/plain':
         return json.loads(content)
@@ -92,18 +103,36 @@ def get_json(url, data=None, headers={}, method='GET'):
     logging.debug('Content-Type %s is not json %s', response.info().gettype(), content)
     return {}
 
-def get_xml(url, data=None, headers={}, method='GET'):
-    response = urllib2.urlopen(build_request(url, data, headers, method)).read()
-    return minidom.parseString(response)
+def xmlRequest(url, data=None, headers={}, method='GET'):
+    logging.debug('%sing url %s', method, url)
+    response = urllib2.urlopen(buildRequest(url, data, headers, method)).read()
+    return xmlTransform(minidom.parseString(response).documentElement)
 
-def xml_text(nodelist):
+def xmlText(nodelist):
     result = ''
     for node in nodelist:
         if node.nodeType == node.TEXT_NODE:
             result += node.data
         else:
-            result += xml_text(node.childNodes)
+            result += xmlText(node.childNodes)
     return result
+
+def xmlTransform(node):
+    result = {}
+
+    for child in node.childNodes:
+        if child.nodeType != node.TEXT_NODE:
+            value = xmlTransform(child)
+            item = result.get(child.tagName)
+            if item is None:
+                item = value
+            elif isinstance(item, list):
+                item.append(value)
+            else:
+                item = [item, value]
+            result[child.tagName] = item
+
+    return result or xmlText(node.childNodes)
 
 def rget(root, *args):
     node = root
