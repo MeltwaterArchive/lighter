@@ -129,7 +129,7 @@ override:
     docker:
       forcePullImage: true
   env:
-    SERVICE_VERSION: '%{lighter.uniqueVersion}'
+    SERVICE_BUILD: '%{lighter.uniqueVersion}'
 ```
 
 ### Freestyle Services
@@ -205,6 +205,7 @@ And used from the *json* template like
 
 Variable | Contains
 :--------|:--------
+%{lighter.version} | Fixed or resolved Maven version
 %{lighter.uniqueVersion} | Unique build version resolved from Maven metadata
 
 ### Facts

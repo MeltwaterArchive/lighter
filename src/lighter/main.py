@@ -5,6 +5,7 @@ from urlparse import urlparse
 from lighter.hipchat import HipChat
 import lighter.util as util
 import lighter.maven as maven
+from pprint import pprint
 
 def parsebool(value):
     truevals = set(['true', '1'])
@@ -92,9 +93,12 @@ def parse_service(filename):
             resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'], coord.get('classifier'))
             version = coord.get('version') or resolver.resolve(coord['resolve'])
             
-            response = resolver.fetch(version)
-            document['variables'] = util.merge(document.get('variables', {}), response.variables)
-            config = util.merge(config, response.body)
+            artifact = resolver.fetch(version)
+            document['variables'] = util.merge(
+                document.get('variables', {}), 
+                {'lighter.version': artifact.version, 'lighter.uniqueVersion': artifact.uniqueVersion})
+            pprint(document['variables'])
+            config = util.merge(config, artifact.body)
 
         # Merge overrides into json template
         config = util.merge(config, document.get('override', {}))

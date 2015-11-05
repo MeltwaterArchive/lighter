@@ -16,19 +16,23 @@ class DeployTest(unittest.TestCase):
         self.assertEquals(service.config['cpus'], 1)
         self.assertEquals(service.config['instances'], 3)
         self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.0.0')
+        self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.0.0')
 
     def testParseClassifier(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice-classifier.yml')
         self.assertEquals(service.config['env']['isclassifier'], 'marathon')
-        self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.0.0-marathon')
+        self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.0.0')
+        self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.0.0-marathon')
 
     def testParseSnapshot(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice-snapshot.yml')
-        self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.1.1-20151105011659-4')
+        self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.1.1-SNAPSHOT')
+        self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.1.1-20151105011659-4')
 
     def testParseUniqueSnapshot(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice-unique-snapshot.yml')
-        self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.1.1-20151102.035053-8-marathon')
+        self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.1.1-SNAPSHOT')
+        self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.1.1-20151102.035053-8-marathon')
 
     def _parseErrorPost(self, url, *args, **kwargs):
         if url.startswith('file:'):

@@ -52,10 +52,8 @@ class VersionRange(object):
 
 class Artifact(object):
     def __init__(self, version, uniqueVersion, classifier, body):
-        self.variables = {
-            'lighter.version': version,
-            'lighter.classifier': classifier,
-            'lighter.uniqueVersion': (uniqueVersion or version) + (classifier and ('-' + classifier) or '')}
+        self.version = version
+        self.uniqueVersion = (uniqueVersion or version) + (classifier and ('-' + classifier) or '')
         self.body = body
 
 class ArtifactResolver(object):
@@ -76,7 +74,7 @@ class ArtifactResolver(object):
         logging.debug('Trying to resolve %s to a unique timestamp-buildnumber version', version)
         url = '{0}/{1}/{2}/{3}/maven-metadata.xml'.format(self._url, self._groupid.replace('.', '/'), self._artifactid, version)
         metadata = {}
-        
+
         try:
             metadata = util.xmlRequest(url)
         except urllib2.URLError, e:
