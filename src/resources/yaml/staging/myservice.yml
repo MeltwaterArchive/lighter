@@ -8,9 +8,14 @@ override:
     SERVICE_VERSION: '%{lighter.version}'
     SERVICE_BUILD: '%{lighter.uniqueVersion}'
     DATABASE: 'database:3306'
+    CVAR: '%{cvar}'
   upgradeStrategy:
     maximumOverCapacity: 0.0
 hipchat:
   rooms:
     - '456'
     - '789'
+variables:
+  avar: '123'
+  bvar: '%{avar}'
+  cvar: '%{avar}'

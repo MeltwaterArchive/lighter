@@ -1,4 +1,4 @@
-import os, urlparse, base64, json, urllib2, logging, itertools, types
+import os, urlparse, base64, json, urllib2, logging, itertools, types, re
 import xml.dom.minidom as minidom
 from copy import copy
 
@@ -43,10 +43,18 @@ def replace(template, variables):
     elif isinstance(result, (list, tuple)):
         result = [replace(elem, variables) for elem in result]
     else:
-        if isinstance(result, (str, unicode)) and '%{' in result:
-            for varkey, varval in variables.items():
-                result = result.replace('%{' + varkey + '}', unicode(varval))
-
+        if isinstance(result, (str, unicode)):
+            remainingvars = copy(variables)
+            while True:
+                varnames = re.findall(r"%\{([\w\.]+)\}", result)
+                if not varnames:
+                    break
+                for varname in varnames:
+                    if varname not in remainingvars:
+                        raise KeyError('Variable %%{%s} not found' % varname)
+                    result = result.replace('%{' + varname + '}', unicode(remainingvars[varname]))
+                    del remainingvars[varname]
+                
     return result
 
 def find(collection, condition, default=None):

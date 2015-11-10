@@ -14,7 +14,8 @@
     "cpus": 0.1,
     "mem": 200.0,
     "env": {
-        "rabbitmq": "%{rabbitmq.url}"
+        "rabbitmq": "%{rabbitmq.url}",
+        "BVAR": "%{bvar}"
     },
     "upgradeStrategy": {
         "minimumHealthCapacity": 0.0

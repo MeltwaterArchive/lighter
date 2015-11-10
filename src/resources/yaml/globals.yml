@@ -4,3 +4,5 @@ hipchat:
   token: 'abc123'
   rooms:
     - '123'
+variables:
+  rabbitmq.url: amqp://localhost:5672

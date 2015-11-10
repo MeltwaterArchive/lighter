@@ -6,7 +6,3 @@ override:
   cpus: 1.0
   env:
     DATABASE: 'database:3306'
-variables:
-  avar: '123'
-  bvar: '%{avar}'
-  cvar: '%{avar}'

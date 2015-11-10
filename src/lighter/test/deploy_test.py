@@ -28,6 +28,11 @@ class DeployTest(unittest.TestCase):
         self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.0.0')
         self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.0.0-marathon')
 
+    def testParseRecursiveVariable(self):
+        service = lighter.parse_service('src/resources/yaml/staging/myservice.yml')
+        self.assertEquals(service.config['env']['BVAR'], '123')
+        self.assertEquals(service.config['env']['CVAR'], '123')
+
     def testParseSnapshot(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice-snapshot.yml')
         self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.1.1-SNAPSHOT')
@@ -64,6 +69,14 @@ class DeployTest(unittest.TestCase):
         with patch('lighter.util.jsonRequest', wraps=self._resolvePost) as mock_jsonRequest:
             lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/myservice.yml'])
             self.assertTrue(self._resolvePostCalled)
+
+    def testUnresolvedVariable(self):        
+        try:
+            lighter.parse_service('src/resources/yaml/integration/myservice-unresolved-variable.yml')
+        except KeyError, e:
+            self.assertEquals(e.message, 'Variable %{bvar} not found')
+        else:
+            self.fail('Expected ValueError')
 
     def testParseNoMavenService(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice-nomaven.yml')
