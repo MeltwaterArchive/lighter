@@ -5,7 +5,6 @@ from urlparse import urlparse
 from lighter.hipchat import HipChat
 import lighter.util as util
 import lighter.maven as maven
-from pprint import pprint
 
 def parsebool(value):
     truevals = set(['true', '1'])
