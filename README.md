@@ -22,13 +22,14 @@ usage: lighter COMMAND [OPTIONS]...
 Marathon deployment tool
 
 positional arguments:
-  {deploy}       Available commands
-    deploy       Deploy services to Marathon
+  {deploy,verify}  Available commands
+    deploy         Deploy services to Marathon
+    verify         Verify and generate Marathon configuration files
 
 optional arguments:
-  -h, --help     show this help message and exit
-  -n, --noop     Execute dry-run without modifying Marathon [default: False]
-  -v, --verbose  Increase logging verbosity [default: False]
+  -h, --help       show this help message and exit
+  -n, --noop       Execute dry-run without modifying Marathon [default: False]
+  -v, --verbose    Increase logging verbosity [default: False]
 ```
 
 ### Deploy Command
