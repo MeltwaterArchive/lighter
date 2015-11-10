@@ -140,27 +140,28 @@ def deploy(marathonurl, filenames, noop=False, force=False):
     for service in services:
         try:
             appurl = get_marathon_url(marathonurl, service.config['id'], force)
-            modified = True
 
             # See if service config has changed
             prevConfig = get_marathon_app(appurl)
             if compare_service_versions(service.config, prevConfig):
                 logging.debug("Service already deployed with same config: %s", service.filename)
-                modified = False
+                continue
+
+            # Skip deployment if noop flag is given
+            if noop:
+                continue
 
             # Deploy new service config
-            if not noop:
-                logging.debug("Deploying %s", service.filename)
-                util.jsonRequest(appurl, data=service.config, method='PUT')
+            logging.debug("Deploying %s", service.filename)
+            util.jsonRequest(appurl, data=service.config, method='PUT')
 
             # Send HipChat notification
-            if modified and not noop:
-                hipchat = HipChat(
-                    util.rget(service.document,'hipchat','token'), 
-                    util.rget(service.document,'hipchat','url'),
-                    util.rget(service.document,'hipchat','rooms'))
-                hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" % 
-                    (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
+            hipchat = HipChat(
+                util.rget(service.document,'hipchat','token'), 
+                util.rget(service.document,'hipchat','url'),
+                util.rget(service.document,'hipchat','rooms'))
+            hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" % 
+                (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
 
         except urllib2.HTTPError, e:
             raise RuntimeError("Failed to deploy %s HTTP %d (%s)" % (service.filename, e.code, e)), None, sys.exc_info()[2]
