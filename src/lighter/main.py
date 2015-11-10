@@ -112,6 +112,15 @@ def parse_services(filenames):
         logging.info("Processing %s", filename)
         service = parse_service(filename)
         services.append(service)
+
+        # Write json file to disk for logging purposes
+        basedir = '/tmp/lighter'
+        outputfile = os.path.join(basedir, service.filename + '.json')
+        if not os.path.exists(os.path.dirname(outputfile)):
+            os.makedirs(os.path.dirname(outputfile))
+        with open(outputfile, 'w') as fd:
+            fd.write(json.dumps(service.config, indent=4))
+
     return services
 
 def get_marathon_url(url, id, force=False):
@@ -153,17 +162,13 @@ def deploy(marathonurl, filenames, noop=False, force=False):
                 hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" % 
                     (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
 
-            # Write json file to disk for logging purposes
-            basedir = '/tmp/lighter'
-            outputfile = os.path.join(basedir, service.filename + '.json')
-            if not os.path.exists(os.path.dirname(outputfile)):
-                os.makedirs(os.path.dirname(outputfile))
-            with open(outputfile, 'w') as fd:
-                fd.write(json.dumps(service.config, indent=4))
         except urllib2.HTTPError, e:
             raise RuntimeError("Failed to deploy %s HTTP %d (%s)" % (service.filename, e.code, e)), None, sys.exc_info()[2]
         except urllib2.URLError, e:
             raise RuntimeError("Failed to deploy %s (%s)" % (service.filename, e)), None, sys.exc_info()[2]
+
+def verify(filenames):
+    parse_services(filenames)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -191,6 +196,16 @@ if __name__ == '__main__':
     deploy_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
                        help='Service files to expand and deploy')
     
+    # Create the parser for the "verify" command
+    deploy_parser = subparsers.add_parser('verify', 
+        prog='lighter',
+        usage='%(prog)s verify YMLFILE...',
+        help='Verify and generate Marathon configuration files',
+        description='Verify and generate Marathon configuration files')
+    
+    deploy_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
+                       help='Service files to expand and deploy')
+
     args = parser.parse_args()
 
     if args.verbose:
@@ -201,6 +216,8 @@ if __name__ == '__main__':
     try:
         if args.command == 'deploy':
             deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames)
+        elif args.command == 'verify':
+            verify(args.filenames)
     except RuntimeError, e:
         logging.error(str(e))
         sys.exit(1)
