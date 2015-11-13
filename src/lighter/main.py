@@ -152,7 +152,7 @@ def deploy(marathonurl, filenames, noop=False, force=False):
                 continue
 
             # Deploy new service config
-            logging.debug("Deploying %s", service.filename)
+            logging.info("Deploying %s", service.filename)
             util.jsonRequest(appurl, data=service.config, method='PUT')
 
             # Send HipChat notification
