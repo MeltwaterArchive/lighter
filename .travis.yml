@@ -16,7 +16,7 @@ deploy:
   provider: releases
   api_key:
     secure: h9oQ1NEoopzDNOOCLg0+qeGD9kwTQk4DCQcrqgwLgQw8dm+70B4GibOZYqFMMz+9VbVMwWYt4UoP0BwtnJCikG7Ig/koANudV4fhFhl46ebh/d6rZswyYYJiB6LWH9zD6C9lYQ9EH2bCJmGC2cR676v0Mrn2tRMWOhu615DYyGuKOomLSaSk1XGHi8BhCr1KjmXWjhovj8PsYo7mjRMZ43K+QBq/+T7V0+KCM73RwIz6kTeGPSbRJfkorzX3BxbqBIblqeIohKiMcV5D0GDd0mefUqsORWBFoQGJUzVFPF3AeZZUnrv+VAD4OwsSNYIpw9ov8GdXnGMFqEBJkRURs3gB7CKHDwgWkEhUcpKeDIFr8sDicHr3XcDdc/7Rvx7qrEGTksRVpjJuANEEkVgKh74Hq9Q/byweNptFg0UlQO+D1e3PueqDs1X8lVDqPSZV9EOIeUTjgqiJpORZImVl7bXkKbc2B4sAxJJeXhdS6E3qBiIjLSTMLKIirly7S76tPFExzfYV8xmG2l4ILgaLDm4jI2olfM7z2KxC22HNo9u54h8OjSn6cnG2xtsn1mzdo/MjaTg9zInSwE0iQE59guMX9yFYSyf4CT0HaszvR3Sebs7nusI909w1J5+ZJB0MpMeVwuvJR5wdtUTs2awmRpafOQgDgGahG2gO/ttPS04=
-  file: "dist/lighter-${TRAVIS_OS_NAME}"
+  file: "dist/lighter-$(uname -s)-$(uname -m)"
   skip_cleanup: true
   on:
     tags: true

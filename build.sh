@@ -28,7 +28,8 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     source ~/.venv/bin/activate
 fi
 
+# Run unit tests
 ./test
 
-TRAVIS_OS_NAME=${TRAVIS_OS_NAME:-$(uname -s | tr '[:upper:]' '[:lower:]')}
-pyinstaller --onefile "--name=lighter-${TRAVIS_OS_NAME}" src/lighter/main.py
+# Build the standalone binary
+pyinstaller --onefile "--name=lighter-$(uname -s)-$(uname -m)" src/lighter/main.py
