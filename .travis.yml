@@ -1,10 +1,9 @@
 sudo: false
-
 language: python
-
 install: "./install.sh"
 script: "./build.sh"
 
+# Build for Linux and OSX (hack using xcode builder)
 matrix:
     include:
         - python: 2.7
@@ -12,11 +11,11 @@ matrix:
           os: osx
           osx_image: xcode7
 
-before_deploy: pwd; ls -la dist
+# Deploy executables to Github release tags
 deploy:
   provider: releases
   api_key:
-    secure: UGiva6CKGLOeUGtqrRP93PfdhywBNsGOyWXLUNTX3PjCC7OowTmcDrWGXUHeeD3fLX6CiPdxFWhQbSc/BiIkWB+vZ17YVlHWxsbD7NploFMC1R3Fw+BeKilKgwDcrNQqX9lpLTeC3XPDkw3alrDS8Zikin7EfchVorKcYvRcgfgRykaC+dDZ5HVaZV2SNUuFNBwTzFhn1mTakckFOgplx3aLeR3l4dh89i3oxC5QmY9Isuk0MfouJHUNlTq31ln/AaXnZt+aBUWDZpGJkYIa6QRnynnjQfLb8LgT4Quqhj7jgOMYGO6Z2NHyepAF4ZT1+qRmjgRQgz9l3vwBy2wl/+s51YeW5aRXPEanYAd2jjDuOsLaiocnT9joU+AAUquvdzFNM5yPZSJM1tR3usT/myhDwDTZ1RsnyZ61+LDsK7kW2mAaX4hpN0QsH/1uEIpGlq8u79FVYs8ZGjnygq3LcrhDNRrym97aEaXHzTunyXaTqlEscQGj0CCUr+HEi1IGZUNfnWqA1uitiumrXBNAB1M2+4PX5sQaLNobrtHXwXs+6Zf70QNno8RYlnzi61Per3YskhFuh1QN4rh283CexI7kirvItswcZH3znVS7m8s8yzEp4d25oxD/abnQhZVLU6mn60R3EHFvvK/QtnjdPMnEfyny6UufUt4+QQYe9QE=
+    secure: h9oQ1NEoopzDNOOCLg0+qeGD9kwTQk4DCQcrqgwLgQw8dm+70B4GibOZYqFMMz+9VbVMwWYt4UoP0BwtnJCikG7Ig/koANudV4fhFhl46ebh/d6rZswyYYJiB6LWH9zD6C9lYQ9EH2bCJmGC2cR676v0Mrn2tRMWOhu615DYyGuKOomLSaSk1XGHi8BhCr1KjmXWjhovj8PsYo7mjRMZ43K+QBq/+T7V0+KCM73RwIz6kTeGPSbRJfkorzX3BxbqBIblqeIohKiMcV5D0GDd0mefUqsORWBFoQGJUzVFPF3AeZZUnrv+VAD4OwsSNYIpw9ov8GdXnGMFqEBJkRURs3gB7CKHDwgWkEhUcpKeDIFr8sDicHr3XcDdc/7Rvx7qrEGTksRVpjJuANEEkVgKh74Hq9Q/byweNptFg0UlQO+D1e3PueqDs1X8lVDqPSZV9EOIeUTjgqiJpORZImVl7bXkKbc2B4sAxJJeXhdS6E3qBiIjLSTMLKIirly7S76tPFExzfYV8xmG2l4ILgaLDm4jI2olfM7z2KxC22HNo9u54h8OjSn6cnG2xtsn1mzdo/MjaTg9zInSwE0iQE59guMX9yFYSyf4CT0HaszvR3Sebs7nusI909w1J5+ZJB0MpMeVwuvJR5wdtUTs2awmRpafOQgDgGahG2gO/ttPS04=
   file: "dist/lighter-${TRAVIS_OS_NAME}"
   skip_cleanup: true
   on:
