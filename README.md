@@ -177,6 +177,22 @@ hipchat:
     - '123456'
 ```
 
+### New Relic
+To send [New Relic deployment notifications](https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/deployment-notifications) supply your [New Relic REST API key](https://docs.newrelic.com/docs/apis/rest-api-v2/requirements/api-keys) (different from the license key given to the agent) and set the `NEW_RELIC_APP_NAME` environment variable on the service. For example
+
+*globals.yml*
+```
+newrelic:
+  token: '123abc'
+```
+
+*myservice.yml*
+```
+override:
+  env:
+    NEW_RELIC_APP_NAME: 'MyService'
+```
+
 ### Variables
 Yaml files may contain an `variables:` section containing key/value pairs that will be substituted into the *json* template. All 
 variables in a templates must be resolved or it's considered an error. This can be used to ensure that some parameters are 
