@@ -1,4 +1,6 @@
 # Lighter
+<a href='https://travis-ci.org/meltwater/lighter'><img src='https://secure.travis-ci.org/meltwater/lighter.png?branch=master'></a>
+
 [Lighter](https://en.wikipedia.org/wiki/Lighter_(barge)) solves the problem of automating 
 deployments to [Marathon](https://github.com/mesosphere/marathon) and handling of differences
 between multiple environments. Given a heirachy of yaml files and environments Ligther can 

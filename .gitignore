@@ -1,2 +1,7 @@
 .idea/
 *.pyc
+\#*
+build/
+dist/
+lighter*.spec
+travis.log

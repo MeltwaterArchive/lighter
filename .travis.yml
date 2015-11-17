@@ -1,0 +1,23 @@
+sudo: false
+
+language: python
+
+install: "./install.sh"
+script: "./build.sh"
+
+matrix:
+    include:
+        - python: 2.7
+        - language: generic
+          os: osx
+          osx_image: xcode7
+
+before_deploy: pwd; ls -la dist
+deploy:
+  provider: releases
+  api_key:
+    secure: UGiva6CKGLOeUGtqrRP93PfdhywBNsGOyWXLUNTX3PjCC7OowTmcDrWGXUHeeD3fLX6CiPdxFWhQbSc/BiIkWB+vZ17YVlHWxsbD7NploFMC1R3Fw+BeKilKgwDcrNQqX9lpLTeC3XPDkw3alrDS8Zikin7EfchVorKcYvRcgfgRykaC+dDZ5HVaZV2SNUuFNBwTzFhn1mTakckFOgplx3aLeR3l4dh89i3oxC5QmY9Isuk0MfouJHUNlTq31ln/AaXnZt+aBUWDZpGJkYIa6QRnynnjQfLb8LgT4Quqhj7jgOMYGO6Z2NHyepAF4ZT1+qRmjgRQgz9l3vwBy2wl/+s51YeW5aRXPEanYAd2jjDuOsLaiocnT9joU+AAUquvdzFNM5yPZSJM1tR3usT/myhDwDTZ1RsnyZ61+LDsK7kW2mAaX4hpN0QsH/1uEIpGlq8u79FVYs8ZGjnygq3LcrhDNRrym97aEaXHzTunyXaTqlEscQGj0CCUr+HEi1IGZUNfnWqA1uitiumrXBNAB1M2+4PX5sQaLNobrtHXwXs+6Zf70QNno8RYlnzi61Per3YskhFuh1QN4rh283CexI7kirvItswcZH3znVS7m8s8yzEp4d25oxD/abnQhZVLU6mn60R3EHFvvK/QtnjdPMnEfyny6UufUt4+QQYe9QE=
+  file: "dist/lighter-${TRAVIS_OS_NAME}"
+  skip_cleanup: true
+  on:
+    tags: true
