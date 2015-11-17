@@ -5,6 +5,8 @@ from urlparse import urlparse
 from lighter.hipchat import HipChat
 import lighter.util as util
 import lighter.maven as maven
+from lighter.newrelic import NewRelic
+
 
 def parsebool(value):
     truevals = set(['true', '1'])
@@ -68,6 +70,11 @@ class Service(object):
     @property
     def environment(self):
         return util.rget(self.document,'facts','environment') or 'default'
+
+    @property
+    def uniqueVersion(self):
+        return util.rget(self.document, 'variables', 'lighter.uniqueVersion') or \
+               (self.image.split(':')[1] if ':' in self.image else 'latest')
 
 def parse_service(filename):
     with open(filename, 'r') as fd:
@@ -162,6 +169,13 @@ def deploy(marathonurl, filenames, noop=False, force=False):
                 util.rget(service.document,'hipchat','rooms'))
             hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" % 
                 (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
+
+            # Send NewRelic deployment notification
+            newrelic = NewRelic(util.rget(service.document, 'newrelic', 'token'))
+            newrelic.notify(
+                util.rget(service.config, 'env', 'NEW_RELIC_APP_NAME'),
+                service.uniqueVersion
+            )
 
         except urllib2.HTTPError, e:
             raise RuntimeError("Failed to deploy %s HTTP %d (%s)" % (service.filename, e.code, e)), None, sys.exc_info()[2]

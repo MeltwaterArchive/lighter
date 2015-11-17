@@ -2,6 +2,7 @@ facts:
   environment: "staging"
 variables:
   rabbitmq.url: "amqp://myserver:15672"
+  newrelic.appname.prefix: 'Staging'
 hipchat:
   rooms:
     - "456"
