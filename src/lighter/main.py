@@ -113,7 +113,7 @@ def parse_service(filename):
 
         return Service(filename, document, config)
 
-def parse_services(filenames):
+def parse_services(filenames, targetdir=None):
     services = []
     for filename in filenames:
         logging.info("Processing %s", filename)
@@ -121,12 +121,12 @@ def parse_services(filenames):
         services.append(service)
 
         # Write json file to disk for logging purposes
-        basedir = '/tmp/lighter'
-        outputfile = os.path.join(basedir, service.filename + '.json')
-        if not os.path.exists(os.path.dirname(outputfile)):
-            os.makedirs(os.path.dirname(outputfile))
-        with open(outputfile, 'w') as fd:
-            fd.write(json.dumps(service.config, indent=4))
+        if targetdir:
+            outputfile = os.path.join(targetdir, service.filename + '.json')
+            if not os.path.exists(os.path.dirname(outputfile)):
+                os.makedirs(os.path.dirname(outputfile))
+            with open(outputfile, 'w') as fd:
+                fd.write(json.dumps(service.config, indent=4))
 
     return services
 
@@ -140,9 +140,9 @@ def get_marathon_app(url):
         logging.debug(str(e))
         return {}
 
-def deploy(marathonurl, filenames, noop=False, force=False):
+def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
     parsedMarathonUrl = urlparse(marathonurl)
-    services = parse_services(filenames)
+    services = parse_services(filenames, targetdir)
 
     for service in services:
         try:
@@ -182,8 +182,8 @@ def deploy(marathonurl, filenames, noop=False, force=False):
         except urllib2.URLError, e:
             raise RuntimeError("Failed to deploy %s (%s)" % (service.filename, e)), None, sys.exc_info()[2]
 
-def verify(filenames):
-    parse_services(filenames)
+def verify(filenames, targetdir=None):
+    parse_services(filenames, targetdir)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -196,6 +196,8 @@ if __name__ == '__main__':
                       action='store_true', default=False)
     parser.add_argument('-v', '--verbose', dest='verbose', help='Increase logging verbosity [default: %(default)s]',
                       action="store_true", default=False)
+    parser.add_argument('-t', '--targetdir', dest='targetdir', help='Directory to output rendered config files',
+                      default=None)
 
     # Create the parser for the "deploy" command
     deploy_parser = subparsers.add_parser('deploy', 
@@ -230,9 +232,9 @@ if __name__ == '__main__':
 
     try:
         if args.command == 'deploy':
-            deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames)
+            deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames, targetdir=args.targetdir)
         elif args.command == 'verify':
-            verify(args.filenames)
+            verify(args.filenames, targetdir=args.targetdir)
     except RuntimeError, e:
         logging.error(str(e))
         sys.exit(1)

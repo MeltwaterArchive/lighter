@@ -236,34 +236,30 @@ facts:
 ```
 
 ## Deployment
-Place a `lighter` script in the root of your configuration repo.
+Place a `lighter` script in the root of your configuration repo. Replace the LIGHTER_VERSION with 
+a version from the [releases page](https://github.com/meltwater/lighter/releases).
 
 ```
 #!/bin/sh
 set -e
 
-# Must mount this directory into the container so that all globals.yml are found
-OLDCWD="`pwd`"
-cd "`dirname $0`"
-NEWCWD="`pwd`"
+LIGHTER_VERSION="0.1.2"
+LIGHTER="`dirname $0`/target/lighter-`uname -s`-`uname -m`-${LIGHTER_VERSION}"
 
-if [ "$OLDCWD" != "$NEWCWD" ]; then
-  LIGHTER_DOCKER_OPTS="$LIGHTER_DOCKER_OPTS -v ${NEWCWD}:${NEWCWD} -v ${OLDCWD}:${OLDCWD} --workdir ${OLDCWD}"
-else
-  LIGHTER_DOCKER_OPTS="$LIGHTER_DOCKER_OPTS -v ${NEWCWD}:${NEWCWD} --workdir ${NEWCWD}"
+if [ ! -x "$LIGHTER" ]; then
+    mkdir -p $(dirname "$LIGHTER")
+    curl -sfLo "$LIGHTER" https://github.com/meltwater/lighter/releases/download/${LIGHTER_VERSION}/lighter-`uname -s`-`uname -m`
+    chmod +x "$LIGHTER"
 fi
 
-# Ligher will write the expanded json files to ./output 
-exec docker run --rm --net=host -v "${NEWCWD}/output:/tmp/lighter" $LIGHTER_DOCKER_OPTS meltwater/lighter:latest $@
+# Ligher will write the expanded json files to /tmp/output 
+exec "$LIGHTER" $@
 ```
 
 Execute the script for example like
 
 ```
 cd my-config-repo
-
-# Make sure you're using the latest lighter version (if you're not using a fixed version)
-docker pull meltwater/lighter:latest
 
 # Deploy/sync all services (for example from Jenkins or other CI/CD server)
 ./lighter deploy -f -m http://marathon-host:8080 $(find staging -name \*.yml -not -name globals.yml)
