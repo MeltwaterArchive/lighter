@@ -1,3 +1,4 @@
 pyyaml
 mock
 pyinstaller
+requests
