@@ -243,7 +243,7 @@ a version from the [releases page](https://github.com/meltwater/lighter/releases
 #!/bin/sh
 set -e
 
-LIGHTER_VERSION="0.1.2"
+LIGHTER_VERSION="x.y.z"
 LIGHTER="`dirname $0`/target/lighter-`uname -s`-`uname -m`-${LIGHTER_VERSION}"
 
 if [ ! -x "$LIGHTER" ]; then
@@ -253,7 +253,7 @@ if [ ! -x "$LIGHTER" ]; then
 fi
 
 # Ligher will write the expanded json files to /tmp/output 
-exec "$LIGHTER" $@
+exec "$LIGHTER" -t "`dirname $0`/target" $@
 ```
 
 Execute the script for example like
