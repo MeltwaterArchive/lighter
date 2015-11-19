@@ -9,25 +9,25 @@ class NewRelic(object):
     For ref see https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/deployment-notifications
     """
 
-    def __init__(self, api_key):
+    def __init__(self, token):
         self._url = 'https://api.newrelic.com/deployments.xml'
-        self._api_key = api_key
+        self._token = token
 
     def notify(self, app_name, version, description=None, changelog=None):
-        if self._api_key is None or self._api_key is '':
-            logging.debug('No HipChat api key configured for %s', app_name)
+        if not self._token:
+            logging.debug('No New Relic api key configured for %s', app_name)
             return
 
-        if app_name is None or app_name is '':
-            logging.debug('No NewRelic app name configured, app is most likely not on NewRelic')
+        if not app_name:
+            logging.debug('No New Relic app name configured, app is most likely not on NewRelic')
             return
 
-        logging.debug("Sending deployment notification to newrelic: %s %s %s %s", app_name, version, description,
+        logging.debug("Sending deployment notification to New Relic: %s %s %s %s", app_name, version, description,
                       changelog)
 
         try:
             headers = {
-                'x-api-key': self._api_key
+                'x-api-key': self._token
             }
 
             data = {

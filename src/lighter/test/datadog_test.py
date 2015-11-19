@@ -6,9 +6,9 @@ import lighter.util
 class DatadogTest(unittest.TestCase):
     @patch('lighter.util.jsonRequest')
     def testNotify(self, mock_jsonRequest):
-        datadog = Datadog(api_key='abc').notify(title='test title', message='test message', tags=['environment:test'], priority='normal', alert_type='info')
-        mock_jsonRequest.assert_any_call('https://app.datadoghq.com/api/v1/events?api_key=abc', data=ANY, method='POST')
+        datadog = Datadog('abc').notify(title='test title', message='test message', tags=['environment:test'], priority='normal', alert_type='info')
         self.assertEquals(mock_jsonRequest.call_count, 1)
+        mock_jsonRequest.assert_any_call('https://app.datadoghq.com/api/v1/events?api_key=abc', data=ANY, method='POST')
     
     @patch('lighter.util.jsonRequest')
     def testNoApiKey(self, mock_jsonRequest):
@@ -17,10 +17,10 @@ class DatadogTest(unittest.TestCase):
         
     @patch('lighter.util.jsonRequest')
     def testNoTitle(self, mock_jsonRequest):
-        datadog = Datadog(api_key='abc').notify(title='', message='test message', tags=['environment:test'], priority='normal', alert_type='info')
+        datadog = Datadog('abc').notify(title='', message='test message', tags=['environment:test'], priority='normal', alert_type='info')
         self.assertEquals(mock_jsonRequest.call_count, 0)
     
     @patch('lighter.util.jsonRequest')
     def testNoMessage(self, mock_jsonRequest):
-        datadog = Datadog(api_key='abc').notify(title='test title', message='', tags=['environment:test'], priority='normal', alert_type='info')
+        datadog = Datadog('abc').notify(title='test title', message='', tags=['environment:test'], priority='normal', alert_type='info')
         self.assertEquals(mock_jsonRequest.call_count, 0)

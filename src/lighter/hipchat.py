@@ -19,7 +19,7 @@ class HipChat(object):
             self._call('/v2/room/%s/notification' % room, util.merge({'message': message}, self._message_attribs))
 
     def _call(self, endpoint, data):
-        if self._url is None or self._token is None:
+        if not self._url or not self._token:
             logging.debug('HipChat is not enabled')
             return
 
