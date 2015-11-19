@@ -6,6 +6,7 @@ from lighter.hipchat import HipChat
 import lighter.util as util
 import lighter.maven as maven
 from lighter.newrelic import NewRelic
+from lighter.datadog import Datadog
 
 def parsebool(value):
     truevals = set(['true', '1'])
@@ -174,6 +175,14 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             newrelic.notify(
                 util.rget(service.config, 'env', 'NEW_RELIC_APP_NAME'),
                 service.uniqueVersion
+            )
+
+            # Send Datadog deployment notification
+            datadog = Datadog(util.rget(service.document, 'datadog', 'token'))
+            datadog.notify(
+                title="Deployed %s to %s" % (service.image, service.environment),
+                message="Lighter deployed **%s** with image **%s** to **%s** (%s)" % (service.id, service.image, service.environment, parsedMarathonUrl.netloc),
+                tags=[ "environment:%s" % service.environment ]
             )
 
         except urllib2.HTTPError, e:

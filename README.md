@@ -180,7 +180,7 @@ hipchat:
 ```
 
 ### New Relic
-To send [New Relic deployment notifications](https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/deployment-notifications) supply your [New Relic REST API key](https://docs.newrelic.com/docs/apis/rest-api-v2/requirements/api-keys) (different from the license key given to the agent) and set the `NEW_RELIC_APP_NAME` environment variable on the service. For example
+To send [New Relic deployment notifications](https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/deployment-notifications) supply your [New Relic REST API key](https://docs.newrelic.com/docs/apis/rest-api-v2/requirements/api-keys) (different from the license key given to the agent). For example
 
 *globals.yml*
 ```
@@ -192,7 +192,17 @@ newrelic:
 ```
 override:
   env:
+    NEW_RELIC_LICENSE_KEY: 'abc123'
     NEW_RELIC_APP_NAME: 'MyService'
+```
+
+### Datadog
+To send [Datadog deployment events](http://docs.datadoghq.com/guides/overview/#events) supply your [Datadog API key](https://app.datadoghq.com/account/settings#api). For example
+
+*globals.yml*
+```
+datadog:
+  token: '123abc'
 ```
 
 ### Variables
