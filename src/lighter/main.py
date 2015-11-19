@@ -7,7 +7,6 @@ import lighter.util as util
 import lighter.maven as maven
 from lighter.newrelic import NewRelic
 
-
 def parsebool(value):
     truevals = set(['true', '1'])
     falsevals = set(['false', '0'])

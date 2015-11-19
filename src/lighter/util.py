@@ -1,4 +1,4 @@
-import os, urlparse, base64, json, urllib2, logging, itertools, types, re
+import os, sys, urlparse, base64, json, urllib2, logging, itertools, types, re
 import urllib
 import xml.dom.minidom as minidom
 from copy import copy
@@ -106,9 +106,13 @@ def buildRequest(url, data=None, headers={}, method='GET', contentType='applicat
 
     return request
 
+def openRequest(request):
+    cafile = os.path.join(sys._MEIPASS, 'requests', 'cacert.pem') if getattr(sys, 'frozen', None) else None
+    return urllib2.urlopen(request, cafile=cafile)
+
 def jsonRequest(url, data=None, headers={}, method='GET', contentType='application/json'):
     logging.debug('%sing url %s', method, url)
-    response = urllib2.urlopen(buildRequest(url, data, headers, method, contentType))
+    response = openRequest(buildRequest(url, data, headers, method, contentType))
     content = response.read()
     if response.info().gettype() == 'application/json' or response.info().gettype() == 'text/plain':
         return json.loads(content)
@@ -118,7 +122,7 @@ def jsonRequest(url, data=None, headers={}, method='GET', contentType='applicati
 
 def xmlRequest(url, data=None, headers={}, method='GET', contentType='application/json'):
     logging.debug('%sing url %s', method, url)
-    response = urllib2.urlopen(buildRequest(url, data, headers, method, contentType)).read()
+    response = openRequest(buildRequest(url, data, headers, method, contentType)).read()
     return xmlTransform(minidom.parseString(response).documentElement)
 
 def xmlText(nodelist):
