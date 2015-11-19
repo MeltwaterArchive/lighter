@@ -197,20 +197,12 @@ override:
 ```
 
 ### Datadog
-To send [Datadog deployment event](http://docs.datadoghq.com/guides/overview/#events) supply your [Datadog API key](https://app.datadoghq.com/account/settings#api). For example
+To send [Datadog deployment events](http://docs.datadoghq.com/guides/overview/#events) supply your [Datadog API key](https://app.datadoghq.com/account/settings#api). For example
 
 *globals.yml*
 ```
 datadog:
   token: '123abc'
-```
-
-*myservice.yml*
-```
-override:
-  env:
-    NEW_RELIC_LICENSE_KEY: 'abc123'
-    NEW_RELIC_APP_NAME: 'MyService'
 ```
 
 ### Variables
