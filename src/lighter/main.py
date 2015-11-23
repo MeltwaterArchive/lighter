@@ -182,7 +182,11 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             datadog.notify(
                 title="Deployed %s to the %s environment" % (service.id, service.environment),
                 message="%%%%%% \n Lighter deployed **%s** with image **%s** to **%s** (%s) \n %%%%%%" % (service.id, service.image, service.environment, parsedMarathonUrl.netloc),
-                tags=[ "environment:%s" % service.environment ]
+                id=service.id,
+                tags=[
+                    "environment:%s" % service.environment,
+                    "service:%s" % service.id
+                ]
             )
 
         except urllib2.HTTPError, e:

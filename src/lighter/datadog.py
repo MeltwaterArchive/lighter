@@ -5,24 +5,21 @@ class Datadog(object):
     def __init__(self, token):
         self._token = token
         self._url = 'https://app.datadoghq.com'
-        self._message_attribs = {
-            'aggregation_key': 'Lighter Deployment',
-            'source_type_name': 'lighter'
-        }
 
-    def notify(self, title, message, tags=[], priority='normal', alert_type='info'):
-        if not title or not message:
-            logging.warn('Datadog title and message required')
+    def notify(self, title, message, id, tags=[], priority='normal', alert_type='info'):
+        if not title or not message or not id:
+            logging.warn('Datadog title, message and id required')
             return
         
         logging.debug("Sending Datadog event: %s", message)
-        self._call('/api/v1/events', util.merge(self._message_attribs, {
+        self._call('/api/v1/events', {
             'title': title,
             'text': message,
-            'tags':tags,
+            'aggregation_key': 'lighter_' + id,
+            'tags': tags,
             'priority': priority,
             'alert_type': alert_type
-        }))
+        })
 
     def _call(self, endpoint, data):
         if not self._url or not self._token:
