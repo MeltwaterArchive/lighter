@@ -18,7 +18,7 @@ class Datadog(object):
         logging.debug("Sending Datadog event: %s", message)
         self._call('/api/v1/events', util.merge(self._message_attribs, {
             'title': title,
-            'message': message,
+            'text': message,
             'tags':tags,
             'priority': priority,
             'alert_type': alert_type
