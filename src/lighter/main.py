@@ -180,8 +180,8 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             # Send Datadog deployment notification
             datadog = Datadog(util.rget(service.document, 'datadog', 'token'))
             datadog.notify(
-                title="Deployed %s to %s" % (service.image, service.environment),
-                message="Lighter deployed **%s** with image **%s** to **%s** (%s)" % (service.id, service.image, service.environment, parsedMarathonUrl.netloc),
+                title="Deployed %s to the %s environment" % (service.id, service.environment),
+                message="%%%%%% \n Lighter deployed **%s** with image **%s** to **%s** (%s) \n %%%%%%" % (service.id, service.image, service.environment, parsedMarathonUrl.netloc),
                 tags=[ "environment:%s" % service.environment ]
             )
 
