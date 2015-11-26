@@ -3,3 +3,4 @@ mock
 pyinstaller
 requests
 joblib
+pynacl

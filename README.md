@@ -238,6 +238,28 @@ facts:
   environment: 'staging'
 ```
 
+## Secrets Management
+Lighter has support for [Secretary](https://github.com/mikljohansson/secretary) which can
+securely distribute secrets to containers.
+
+*someenv/globals.yml *
+```
+secretary:
+  url: 'https://secretary-daemon-loadbalancer:5070'
+  master:
+    publickey: 'someenv/keys/master-public-key.pem'
+  config:
+    publickey: 'someenv/keys/config-public-key.pem'
+    privatekey: 'someenv/keys/config-private-key.pem'
+```
+
+*someenv/myservice.yml*
+```
+override:
+  env:
+    DATABASE_PASSWORD: "ENC[NACL,NVnSkhxA010D2yOWKRFog0jpUvHQzmkmKKHmqAbHAnz8oGbPEFkDfyKHQHGO7w==]"
+```
+
 ## Installation
 Place a `lighter` script in the root of your configuration repo. Replace the LIGHTER_VERSION with 
 a version from the [releases page](https://github.com/meltwater/lighter/releases).
