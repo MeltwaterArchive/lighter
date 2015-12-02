@@ -35,6 +35,18 @@ def merge(*args):
 
     return result
 
+class FixedVariables(object):
+    def __init__(self, variables):
+        self._variables = variables
+
+    def clone(self):
+        return FixedVariables(copy(self._variables))
+
+    def pop(self, name):
+        if name not in self._variables:
+            raise KeyError('Variable %%{%s} not found' % name)
+        return self._variables.pop(name)
+
 def replace(template, variables):
     result = copy(template)
 
@@ -45,16 +57,14 @@ def replace(template, variables):
         result = [replace(elem, variables) for elem in result]
     else:
         if isinstance(result, (str, unicode)):
-            remainingvars = copy(variables)
+            remaining = variables.clone()
             while True:
-                varnames = re.findall(r"%\{([\w\.]+)\}", result)
-                if not varnames:
+                names = re.findall(r"%\{([\w\.]+)\}", result)
+                if not names:
                     break
-                for varname in varnames:
-                    if varname not in remainingvars:
-                        raise KeyError('Variable %%{%s} not found' % varname)
-                    result = result.replace('%{' + varname + '}', unicode(remainingvars[varname]))
-                    del remainingvars[varname]
+                for name in names:
+                    value = unicode(remaining.pop(name))
+                    result = result.replace('%{' + name + '}', value)
 
     return result
 
@@ -106,13 +116,13 @@ def buildRequest(url, data=None, headers={}, method='GET', contentType='applicat
 
     return request
 
-def openRequest(request):
+def openRequest(request, timeout=None):
     cafile = os.path.join(sys._MEIPASS, 'requests', 'cacert.pem') if getattr(sys, 'frozen', None) else None
-    return urllib2.urlopen(request, cafile=cafile)
+    return urllib2.urlopen(request, cafile=cafile, timeout=timeout)
 
-def jsonRequest(url, data=None, headers={}, method='GET', contentType='application/json'):
+def jsonRequest(url, data=None, headers={}, method='GET', contentType='application/json', timeout=None):
     logging.debug('%sing url %s', method, url)
-    response = openRequest(buildRequest(url, data, headers, method, contentType))
+    response = openRequest(buildRequest(url, data, headers, method, contentType), timeout=timeout)
     content = response.read()
     if response.info().gettype() == 'application/json' or response.info().gettype() == 'text/plain':
         return json.loads(content)
@@ -120,9 +130,9 @@ def jsonRequest(url, data=None, headers={}, method='GET', contentType='applicati
     logging.debug('Content-Type %s is not json %s', response.info().gettype(), content)
     return {}
 
-def xmlRequest(url, data=None, headers={}, method='GET', contentType='application/json'):
+def xmlRequest(url, data=None, headers={}, method='GET', contentType='application/json', timeout=None):
     logging.debug('%sing url %s', method, url)
-    response = openRequest(buildRequest(url, data, headers, method, contentType)).read()
+    response = openRequest(buildRequest(url, data, headers, method, contentType), timeout=timeout).read()
     return xmlTransform(minidom.parseString(response).documentElement)
 
 def xmlText(nodelist):
@@ -157,5 +167,8 @@ def rget(root, *args):
     for arg, i in zip(args, range(len(args))):
         if i+1 >= len(args):
             default = None
-        node = node.get(arg, default)
+        if isinstance(node, (list, tuple)):
+            node = node[arg] if (arg >= 0 and arg < len(node)) else default
+        else:
+            node = node.get(arg, default)
     return node

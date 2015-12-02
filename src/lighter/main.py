@@ -5,6 +5,7 @@ from urlparse import urlparse
 from lighter.hipchat import HipChat
 import lighter.util as util
 import lighter.maven as maven
+import lighter.docker as docker
 from lighter.newrelic import NewRelic
 from lighter.datadog import Datadog
 
@@ -91,6 +92,11 @@ def parse_service(filename):
 
         # Start from a service section if it exists
         config = document.get('service', {})
+        variables = util.FixedVariables(document.get('variables', {}))
+        
+        # Allow resolving version/uniqueVersion variables from docker registry
+        variables = docker.ImageVariables.create(
+            variables, document, util.rget(config,'container','docker','image'))
 
         # Fetch and merge json template from maven
         if util.rget(document,'maven','version') or util.rget(document,'maven','resolve'):
@@ -100,16 +106,14 @@ def parse_service(filename):
             version = coord.get('version') or resolver.resolve(coord['resolve'])
             
             artifact = resolver.fetch(version)
-            document['variables'] = util.merge(
-                document.get('variables', {}), 
-                {'lighter.version': artifact.version, 'lighter.uniqueVersion': artifact.uniqueVersion})
             config = util.merge(config, artifact.body)
-
+            variables = maven.ArtifactVariables(variables, artifact)
+        
         # Merge overrides into json template
         config = util.merge(config, document.get('override', {}))
 
         # Substitute variables into the config
-        config = util.replace(config, document.get('variables', {}))
+        config = util.replace(config, variables)
 
         return Service(filename, document, config)
 

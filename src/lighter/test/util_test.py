@@ -22,7 +22,7 @@ class UtilTest(unittest.TestCase):
     def testReplace(self):
         x = {'a':'abc%{var}def', 'b':['%{var} %{var2} %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
         m = {'a':'abc1def', 'b':['1 2 3'], 'c': {'d': '2 3'}}
-        self.assertEquals(util.replace(x, {'var':'1', 'var2':2, 'var3': '3'}), m)
+        self.assertEquals(util.replace(x, util.FixedVariables({'var':'1', 'var2':2, 'var3': '3'})), m)
 
     def testCompare(self):
         x = {'a': 1, 'b': 2}
@@ -95,3 +95,9 @@ class UtilTest(unittest.TestCase):
         url = "https://user:pass@maven.example.com/path/to/my/repo"
         req = util.buildRequest(url)
         self.assertTrue(req.get_header('Authorization').startswith('Basic '))
+
+    def testRGet(self):
+        self.assertEqual('c', util.rget({'a': [{'b': 'c'}]}, 'a', 0, 'b'))
+        self.assertEqual(None, util.rget({'a': [{'b': 'c'}]}, 'a', 0, 'd'))
+        self.assertEqual(None, util.rget({'a': [{'b': 'c'}]}, 'a', 1, 'b'))
+        self.assertEqual(None, util.rget({'a': [{'b': 'c'}]}, 'a', -1, 'b'))
