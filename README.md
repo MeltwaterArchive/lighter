@@ -12,12 +12,7 @@ whenever new releases or snapshots appear in the Maven repository. Optional vers
 allows patches/minor versions to be rolled out continuously, while requiring a config change to roll
 out major versions.
 
-## Environment Variables
-
- * **MARATHON_URL** - Marathon URL, e.g. "http://marathon-host:8080/"
-
 ## Usage
-
 ```
 usage: lighter COMMAND [OPTIONS]...
 
@@ -35,7 +30,6 @@ optional arguments:
 ```
 
 ### Deploy Command
-
 ```
 usage: lighter deploy [OPTIONS]... YMLFILE...
 
@@ -76,7 +70,7 @@ Running `lighter deploy -m http://marathon-host:8080 staging/services/myservice.
 * Expand the *json* template with variables and overrides from the *yml* files
 * Post the resulting *json* configuration into Marathon
 
-### Maven
+## Maven
 The `maven:` section specifies where to fetch *json* templates from which are 
 merged into the configuration. For example
 
@@ -97,7 +91,7 @@ maven:
 
 The Maven 'classifier' tag is optional.
 
-#### Dynamic Versions
+### Dynamic Versions
 Versions can be dynamically resolved from Maven using a range syntax.
 
 ```
@@ -121,22 +115,7 @@ Expression | Resolve To
 [,] | Latest release version
 [,]-SNAPSHOT | Latest *SNAPSHOT* version
 
-##### Snapshot Builds
-If an image is rebuilt with the same Docker tag, Marathon won't detect a change and hence won't roll out the new
-image. To ensure that new snapshot/latest versions are deployed use `%{lighter.uniqueVersion}` and `forcePullImage`
-like this
-
-*myservice.yml*
-```
-override:
-  container:
-    docker:
-      forcePullImage: true
-  env:
-    SERVICE_BUILD: '%{lighter.uniqueVersion}'
-```
-
-### Freestyle Services
+## Freestyle Services
 Yaml files may contain a `service:` tag which specifies a Marathon *json* fragment 
 to use as the service configuration base for further merging. This allows for
 services which aren't based on a *json* template but rather defined exclusively 
@@ -156,7 +135,7 @@ service:
   instances: 1
 ```
 
-### Overrides
+## Overrides
 Yaml files may contain an `override:` section that will be merged directly into the Marathon json. The 
 structure contained in the `override:` section must correspond to the [Marathon REST API](https://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps). For example 
 
@@ -170,43 +149,7 @@ override:
     NEW_RELIC_LICENSE_KEY: '123abc'
 ```
 
-### HipChat
-Yaml files may contain an `hipchat:` section that specifies where to announce deployments. Create a [HipChat V2 token](https://www.hipchat.com/docs/apiv2) that is allowed to post to rooms. For example
-
-```
-hipchat:
-  token: '123abc'
-  rooms:
-    - '123456'
-```
-
-### New Relic
-To send [New Relic deployment notifications](https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/deployment-notifications) supply your [New Relic REST API key](https://docs.newrelic.com/docs/apis/rest-api-v2/requirements/api-keys) (different from the license key given to the agent). For example
-
-*globals.yml*
-```
-newrelic:
-  token: '123abc'
-```
-
-*myservice.yml*
-```
-override:
-  env:
-    NEW_RELIC_LICENSE_KEY: 'abc123'
-    NEW_RELIC_APP_NAME: 'MyService'
-```
-
-### Datadog
-To send [Datadog deployment events](http://docs.datadoghq.com/guides/overview/#events) supply your [Datadog API key](https://app.datadoghq.com/account/settings#api). For example
-
-*globals.yml*
-```
-datadog:
-  token: '123abc'
-```
-
-### Variables
+## Variables
 Yaml files may contain an `variables:` section containing key/value pairs that will be substituted into the *json* template. All 
 variables in a templates must be resolved or it's considered an error. This can be used to ensure that some parameters are 
 guaranteed to be provided to a service. For example
@@ -231,22 +174,36 @@ And used from the *json* template like
 }
 ```
 
-#### Predefined Variables
+### Predefined Variables
 
 Variable | Contains
 :--------|:--------
 %{lighter.version} | Maven artifact version or Docker image version
 %{lighter.uniqueVersion} | Unique build version resolved from Maven/Docker metadata
 
-#### Docker Metadata
+## Snapshot Builds
+If an image is rebuilt with the same Docker tag, Marathon won't detect a change and hence won't roll out the new
+image. To ensure that new snapshot/latest versions are deployed use `%{lighter.uniqueVersion}` and `forcePullImage`
+like this
+
+*myservice.yml*
+```
+override:
+  container:
+    docker:
+      forcePullImage: true
+  env:
+    SERVICE_BUILD: '%{lighter.uniqueVersion}'
+```
+
+### Docker Registry
 Lighter calls the Docker Registry API to resolve `%{lighter.uniqueVersion}` when it's used
 in a non-Maven based service. This is only enabled if the `%{lighter.uniqueVersion}` variable
-is actually referenced from the config. 
+is actually referenced from the service config. 
 
-If the Docker image resides in a private repository you must supply the read-access credentials
-to be used for calling the registry API. You can find the base64 encoded credentials in your
-*~/.docker/config.json* or *~/.dockercfg* files. Note that Docker Hub is not supported at this
-time. For example
+For authenticated reprositories you must supply read-access credentials to be used when calling
+the registry API. You can find the base64 encoded credentials in your *~/.docker/config.json* or
+*~/.dockercfg* files. Note that Docker Hub is not supported at this time.
 
 *globals.yml*
 ```
@@ -256,15 +213,16 @@ docker:
       auth: 'dXNlcm5hbWU6cGFzc3dvcmQ='
 ```
 
-### Facts
+## Facts
 Yaml files may contain a `facts:` section with information about the service surroundings
 
+*staging/globals.yml*
 ```
 facts:
   environment: 'staging'
 ```
 
-## Deployment
+## Installation
 Place a `lighter` script in the root of your configuration repo. Replace the LIGHTER_VERSION with 
 a version from the [releases page](https://github.com/meltwater/lighter/releases).
 
@@ -285,8 +243,7 @@ fi
 exec "$LIGHTER" -t "`dirname $0`/target" $@
 ```
 
-Execute the script like
-
+Use the script like
 ```
 cd my-config-repo
 
@@ -295,4 +252,43 @@ cd my-config-repo
 
 # Deploy single services
 ./lighter deploy -m http://marathon-host:8080 staging/myservice.yml staging/myservice2.yml
+```
+
+## Integrations
+Lighter can push deployment notifications to a number of services.
+
+### HipChat
+Yaml files may contain an `hipchat:` section that specifies where to announce deployments. Create a [HipChat V2 token](https://www.hipchat.com/docs/apiv2) that is allowed to post to rooms. 
+
+```
+hipchat:
+  token: '123abc'
+  rooms:
+    - '123456'
+```
+
+### New Relic
+To send [New Relic deployment notifications](https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/deployment-notifications) supply your [New Relic REST API key](https://docs.newrelic.com/docs/apis/rest-api-v2/requirements/api-keys) (different from the license key given to the agent). 
+
+*globals.yml*
+```
+newrelic:
+  token: '123abc'
+```
+
+*myservice.yml*
+```
+override:
+  env:
+    NEW_RELIC_LICENSE_KEY: 'abc123'
+    NEW_RELIC_APP_NAME: 'MyService'
+```
+
+### Datadog
+To send [Datadog deployment events](http://docs.datadoghq.com/guides/overview/#events) supply your [Datadog API key](https://app.datadoghq.com/account/settings#api).
+
+*globals.yml*
+```
+datadog:
+  token: '123abc'
 ```
