@@ -20,26 +20,6 @@ class DockerTest(unittest.TestCase):
     def setUp(self):
         self._dockerRegistryCalled = False
 
-    def testDockerHub(self):
-        url = 'https://hubusername:hubpassword@registry.hub.docker.com/v2/repositories/library/alpine/tags/1.2.3/'
-        data = {"last_updated": "2015-11-21T15:57:10.030682Z"}
-
-        with patch('lighter.util.jsonRequest', wraps=self._wrapRequest(url, data)) as mock_jsonRequest:
-            service = lighter.parse_service('src/resources/yaml/staging/myservice-docker-hub.yml')
-            self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.2.3')
-            self.assertEquals(service.config['env']['SERVICE_BUILD'], '2015-11-21T15:57:10.030682Z')
-            self.assertTrue(self._dockerRegistryCalled)
-
-    def testDockerHubNotag(self):
-        url = 'https://hubusername:hubpassword@registry.hub.docker.com/v2/repositories/library/alpine/tags/latest/'
-        data = {"last_updated": "2015-11-21T15:57:10.030682Z"}
-
-        with patch('lighter.util.jsonRequest', wraps=self._wrapRequest(url, data)) as mock_jsonRequest:
-            service = lighter.parse_service('src/resources/yaml/staging/myservice-docker-hub-notag.yml')
-            self.assertEquals(service.config['env']['SERVICE_VERSION'], 'latest')
-            self.assertEquals(service.config['env']['SERVICE_BUILD'], '2015-11-21T15:57:10.030682Z')
-            self.assertTrue(self._dockerRegistryCalled)
-
     def testPrivateV2(self):
         url = 'http://registrywithport.example.com:5000/v2/myservice/manifests/1.2.3'
         data = {"schemaVersion": 1, 
@@ -52,18 +32,6 @@ class DockerTest(unittest.TestCase):
             service = lighter.parse_service('src/resources/yaml/staging/myservice-docker-private.yml')
             self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.2.3')
             self.assertEquals(service.config['env']['SERVICE_BUILD'], '30e6fc5eecc6e76733cf7881ee965335aae73d7c1bc7ca9817ecccbf925a4647')
-            self.assertTrue(self._dockerRegistryCalled)
-
-    def testPrivateV2NoCompat(self):
-        url = 'http://registrywithport.example.com:5000/v2/myservice/manifests/1.2.3'
-        data = {"schemaVersion": 1, 
-                "signatures": [{"signature": "phUEFfxCkGainkAf1BCggBtBKVaGzLhcJZRswYhkCU6Cif0Qg2N_NFbW0Munb4YPgNj7yfuIDybOJynjsFGhOw"}]
-                }
-
-        with patch('lighter.util.jsonRequest', wraps=self._wrapRequest(url, data)) as mock_jsonRequest:
-            service = lighter.parse_service('src/resources/yaml/staging/myservice-docker-private.yml')
-            self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.2.3')
-            self.assertEquals(service.config['env']['SERVICE_BUILD'], 'phUEFfxCkGainkAf1BCggBtBKVaGzLhcJZRswYhkCU6Cif0Qg2N_NFbW0Munb4YPgNj7yfuIDybOJynjsFGhOw')
             self.assertTrue(self._dockerRegistryCalled)
 
     def testPrivateV1Repo(self):

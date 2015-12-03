@@ -11,7 +11,7 @@ class ImageVariables(object):
         self._document = document
         self._image = image
 
-        self._registry = m.group(1) if m.group(1) else 'registry.hub.docker.com'
+        self._registry = m.group(1) if m.group(1) else 'registry-1.docker.io'
         self._organization = m.group(2)
         self._repository = m.group(3)
         self._tag = m.group(4) if m.group(4) else 'latest'
@@ -33,9 +33,6 @@ class ImageVariables(object):
             return self._tag
         
         if name == 'lighter.uniqueVersion':
-            if self._registry == 'registry.hub.docker.com':
-                return self._tryDockerHub()
-            
             return \
                 self._tryRegistryV2('https://%s/v2/%s/manifests/%s') or \
                 self._tryRegistryV1('https://%s/v1/repositories/%s/tags/%s') or \
@@ -87,23 +84,7 @@ class ImageVariables(object):
             layerinfo = json.loads(layerblob)
             return layerinfo.get('id')
 
-        # Use the crypto signature of the image
-        return util.rget(response, 'signatures', 0, 'signature')
-
-    def _tryDockerHub(self):
-        """
-        Resolves an image id from the special Docker Hub API
-        """
-        url = 'https://%s/v2/repositories/%s/tags/%s/'
-        expandedurl = self._expandurl(url, defaultrepo=True)
-        response = util.jsonRequest(expandedurl)
-
-        # Docker Hub v2 returns a dict with tag metadata (but not the image id)
-        if isinstance(response, dict):
-            return response.get('last_updated')
-        
-        obfuscatedurl = self._expandurl(url, defaultrepo=True, obfuscateauth=True)
-        raise ValueError("Failed to resolve image version '%s' using URL %s" % (self._image, obfuscatedurl))
+        return None
 
     def _fail(self, url):
         raise ValueError("Failed to resolve image version '%s' using URL like %s" % (self._image, self._expandurl(url, obfuscateauth=True)))

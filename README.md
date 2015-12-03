@@ -244,17 +244,14 @@ is actually referenced from the config.
 
 If the Docker image resides in a private repository you must supply the read-access credentials
 to be used for calling the registry API. You can find the base64 encoded credentials in your
-*~/.docker/config.json* or *~/.dockercfg* files. For example
+*~/.docker/config.json* or *~/.dockercfg* files. Note that Docker Hub is not supported at this
+time. For example
 
 *globals.yml*
 ```
 docker:
   registries:
-    'registry.hub.docker.com':
-      auth: 'aHVidXNlcm5hbWU6aHVicGFzc3dvcmQ='
     'registry.example.com':
-      auth: 'dXNlcm5hbWU6cGFzc3dvcmQ='
-    'registrywithport.example.com:5000':
       auth: 'dXNlcm5hbWU6cGFzc3dvcmQ='
 ```
 

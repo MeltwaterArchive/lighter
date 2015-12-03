@@ -1,8 +1,0 @@
-service:
-  id: '/myproduct/alpine'
-  container:
-    docker:
-      image: 'alpine:1.2.3'
-  env:
-    SERVICE_VERSION: "%{lighter.version}"
-    SERVICE_BUILD: "%{lighter.uniqueVersion}"

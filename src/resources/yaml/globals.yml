@@ -12,5 +12,3 @@ docker:
   registries:
     'authregistrywithport:5000':
       auth: 'dXNlcm5hbWU6cGFzc3dvcmQ='
-    'registry.hub.docker.com':
-      auth: 'aHVidXNlcm5hbWU6aHVicGFzc3dvcmQ='
