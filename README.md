@@ -1,20 +1,13 @@
 # Lighter
 <a href='https://travis-ci.org/meltwater/lighter'><img src='https://secure.travis-ci.org/meltwater/lighter.png?branch=master'></a>
 
-[Lighter](https://en.wikipedia.org/wiki/Lighter_(barge)) solves the problem of automating 
-deployments to [Marathon](https://github.com/mesosphere/marathon) and handling of differences
-between multiple environments. Given a heirachy of yaml files and environments Ligther can 
-expand service config files and deploy them to Marathon. 
+[Lighter](https://en.wikipedia.org/wiki/Lighter_(barge)) solves the problem of automating deployments to [Marathon](https://github.com/mesosphere/marathon) and handling of differences between multiple environments. Given a hierachy of yaml files and environments, Lighter can expand service config files and deploy them to Marathon. 
 
-For even tighter integration into the development process Lighter can resolve Marathon config files 
-from Maven and merge these with environment specific overrides. This enables continuous deployment 
-whenever new releases or snapshots appear in the Maven repository. Optional version range constraints 
-allows for example patches/minor versions to be rolled out continuously, while requiring a config
-change to roll out major versions.
+For even tighter integration into the development process, Lighter can resolve Marathon config files from Maven and merge these with environment specific overrides. This enables continuous deployment whenever new releases or snapshots appear in the Maven repository. Optional version range constraints allows for example patches/minor versions to be rolled out continuously, while requiring a config change to roll out major versions.
 
 ## Environment Variables
 
- * **MARATHON_URL** - Marathon url, e.g. "http://marathon-host:8080/"
+ * **MARATHON_URL** - Marathon URL, e.g. "http://marathon-host:8080/"
 
 ## Usage
 
@@ -122,8 +115,7 @@ Expression | Resolve To
 [,]-SNAPSHOT | Latest *SNAPSHOT* version
 
 ##### Snapshot Builds
-If an image is rebuilt with the same Docker tag Marathon won't detect a change and roll out the new image. To ensure
-that new snapshot/latest versions are deployed use `%{lighter.uniqueVersion}` and `forcePullImage` like for example
+If an image is rebuilt with the same Docker tag, Marathon won't detect a change and hence won't roll out the new image. To ensure that new snapshot/latest versions are deployed use `%{lighter.uniqueVersion}` and `forcePullImage` like this:
 
 *myservice.yml*
 ```
@@ -136,10 +128,7 @@ override:
 ```
 
 ### Freestyle Services
-Yaml files may contain a `service:` tag which specifies a Marathon *json* fragment 
-to use as the service configuration base for further merging. This allows for
-services which aren't based on a *json* template but rather defined exclusively 
-in *yaml*.
+Yaml files may contain a `service:` tag which specifies a Marathon *json* fragment to use as the service configuration base for further merging. This allows for services which aren't based on a *json* template but rather defined exclusively in *yaml*.
 
 *myservice.yml*
 ```
@@ -156,8 +145,7 @@ service:
 ```
 
 ### Overrides
-Yaml files may contain an `override:` section that will be merged directly into the Marathon json. The 
-structure contained in the `override:` section must correspond to the [Marathon REST API](https://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps). For example 
+Yaml files may contain an `override:` section that will be merged directly into the Marathon json. The structure contained in the `override:` section must correspond to the [Marathon REST API](https://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps). For example 
 
 ```
 override:
