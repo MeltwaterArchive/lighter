@@ -1,0 +1,8 @@
+service:
+  id: '/myproduct/myservice'
+  container:
+    docker:
+      image: 'registry.example.com/myrepo/myservice'
+  env:
+    SERVICE_VERSION: "%{lighter.version}"
+    SERVICE_BUILD: "%{lighter.uniqueVersion}"

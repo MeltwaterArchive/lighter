@@ -5,6 +5,7 @@ from lighter.test.maven_test import *
 from lighter.test.util_test import *
 from lighter.test.newrelic_test import *
 from lighter.test.datadog_test import *
+from lighter.test.docker_test import *
 
 #logging.getLogger().setLevel(logging.DEBUG)
 

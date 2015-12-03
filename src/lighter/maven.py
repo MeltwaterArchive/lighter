@@ -56,6 +56,21 @@ class Artifact(object):
         self.uniqueVersion = (uniqueVersion or version) + (classifier and ('-' + classifier) or '')
         self.body = body
 
+class ArtifactVariables(object):
+    def __init__(self, wrappedResolver, artifact):
+        self._wrappedResolver = wrappedResolver
+        self._artifact = artifact
+
+    def clone(self):
+        return ArtifactVariables(self._wrappedResolver.clone(), self._artifact)
+
+    def pop(self, name):
+        if name == 'lighter.version':
+            return self._artifact.version
+        if name == 'lighter.uniqueVersion':
+            return self._artifact.uniqueVersion
+        return self._wrappedResolver.pop(name)
+
 class ArtifactResolver(object):
     def __init__(self, url, groupid, artifactid, classifier=None):
         self._url = url

@@ -234,8 +234,26 @@ And used from the *json* template like
 
 Variable | Contains
 :--------|:--------
-%{lighter.version} | Fixed or resolved Maven version
-%{lighter.uniqueVersion} | Unique build version resolved from Maven metadata
+%{lighter.version} | Maven artifact version or Docker image version
+%{lighter.uniqueVersion} | Unique build version resolved from Maven/Docker metadata
+
+#### Docker Metadata
+Lighter calls the Docker Registry API to resolve `%{lighter.uniqueVersion}` when it's used
+in a non-Maven based service. This is only enabled if the `%{lighter.uniqueVersion}` variable
+is actually referenced from the config. 
+
+If the Docker image resides in a private repository you must supply the read-access credentials
+to be used for calling the registry API. You can find the base64 encoded credentials in your
+*~/.docker/config.json* or *~/.dockercfg* files. Note that Docker Hub is not supported at this
+time. For example
+
+*globals.yml*
+```
+docker:
+  registries:
+    'registry.example.com':
+      auth: 'dXNlcm5hbWU6cGFzc3dvcmQ='
+```
 
 ### Facts
 Yaml files may contain a `facts:` section with information about the service surroundings
