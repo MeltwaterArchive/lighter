@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import os, sys, argparse, logging
-import yaml, urllib2, json, ntpath
+import yaml, urllib2, json
 from urlparse import urlparse
+from joblib import Parallel, delayed
 from lighter.hipchat import HipChat
 import lighter.util as util
 import lighter.maven as maven
@@ -77,62 +78,58 @@ class Service(object):
         return util.rget(self.document, 'variables', 'lighter.uniqueVersion') or \
                (self.image.split(':')[1] if ':' in self.image else 'latest')
 
-def parse_service(filename):
+def parse_service(filename, targetdir=None):
+    logging.info("Processing %s", filename)
     with open(filename, 'r') as fd:
         document = yaml.load(fd)
 
-        # Merge globals.yml files into document
-        path = os.path.dirname(os.path.abspath(filename))
-        while '/' in path:
-            candidate = os.path.join(path, 'globals.yml')
-            if os.path.exists(candidate):
-                with open(candidate, 'r') as fd2:
-                    document = util.merge(yaml.load(fd2), document)
-            path = path[0:path.rindex('/')]
+    # Merge globals.yml files into document
+    path = os.path.dirname(os.path.abspath(filename))
+    while '/' in path:
+        candidate = os.path.join(path, 'globals.yml')
+        if os.path.exists(candidate):
+            with open(candidate, 'r') as fd2:
+                document = util.merge(yaml.load(fd2), document)
+        path = path[0:path.rindex('/')]
 
-        # Start from a service section if it exists
-        config = document.get('service', {})
-        variables = util.FixedVariables(document.get('variables', {}))
+    # Start from a service section if it exists
+    config = document.get('service', {})
+    variables = util.FixedVariables(document.get('variables', {}))
+    
+    # Allow resolving version/uniqueVersion variables from docker registry
+    variables = docker.ImageVariables.create(
+        variables, document, util.rget(config,'container','docker','image'))
+
+    # Fetch and merge json template from maven
+    if util.rget(document,'maven','version') or util.rget(document,'maven','resolve'):
+        coord = document['maven']
         
-        # Allow resolving version/uniqueVersion variables from docker registry
-        variables = docker.ImageVariables.create(
-            variables, document, util.rget(config,'container','docker','image'))
-
-        # Fetch and merge json template from maven
-        if util.rget(document,'maven','version') or util.rget(document,'maven','resolve'):
-            coord = document['maven']
-            
-            resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'], coord.get('classifier'))
-            version = coord.get('version') or resolver.resolve(coord['resolve'])
-            
-            artifact = resolver.fetch(version)
-            config = util.merge(config, artifact.body)
-            variables = maven.ArtifactVariables(variables, artifact)
+        resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'], coord.get('classifier'))
+        version = coord.get('version') or resolver.resolve(coord['resolve'])
         
-        # Merge overrides into json template
-        config = util.merge(config, document.get('override', {}))
+        artifact = resolver.fetch(version)
+        config = util.merge(config, artifact.body)
+        variables = maven.ArtifactVariables(variables, artifact)
+    
+    # Merge overrides into json template
+    config = util.merge(config, document.get('override', {}))
 
-        # Substitute variables into the config
-        config = util.replace(config, variables)
+    # Substitute variables into the config
+    config = util.replace(config, variables)
 
-        return Service(filename, document, config)
+    # Write json file to disk for logging purposes
+    if targetdir:
+        outputfile = os.path.join(targetdir, filename + '.json')
+        if not os.path.exists(os.path.dirname(outputfile)):
+            os.makedirs(os.path.dirname(outputfile))
+        with open(outputfile, 'w') as fd:
+            fd.write(json.dumps(config, indent=4))
+
+    return Service(filename, document, config)
 
 def parse_services(filenames, targetdir=None):
-    services = []
-    for filename in filenames:
-        logging.info("Processing %s", filename)
-        service = parse_service(filename)
-        services.append(service)
-
-        # Write json file to disk for logging purposes
-        if targetdir:
-            outputfile = os.path.join(targetdir, service.filename + '.json')
-            if not os.path.exists(os.path.dirname(outputfile)):
-                os.makedirs(os.path.dirname(outputfile))
-            with open(outputfile, 'w') as fd:
-                fd.write(json.dumps(service.config, indent=4))
-
-    return services
+    #return [parse_service(filename, targetdir) for filename in filenames]
+    return Parallel(n_jobs=8, backend="threading")(delayed(parse_service)(filename, targetdir) for filename in filenames)
 
 def get_marathon_url(url, id, force=False):
     return url.rstrip('/') + '/v2/apps/' + id.strip('/') + (force and '?force=true' or '')

@@ -2,3 +2,4 @@ pyyaml
 mock
 pyinstaller
 requests
+joblib
