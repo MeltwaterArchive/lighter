@@ -1,10 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 cd "`dirname $0`"
 export PYTHONPATH=".:`pwd`/src"
 
-if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+if [ "$TRAVIS_TAG" == "" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    echo "Executing tests with code coverage collection"
     coverage run "`dirname $0`/src/lighter/test.py" $@
 else
     python "`dirname $0`/src/lighter/test.py" $@

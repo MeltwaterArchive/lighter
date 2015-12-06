@@ -23,6 +23,6 @@ deploy:
 
 # Code coverage for master branch using https://codecov.io/github/mikljohansson/secretary
 before_install:
-  - pip install codecov
+  - if [ "$TRAVIS_TAG" == "" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; pip install codecov; fi
 after_success:
   - if [ "$TRAVIS_TAG" == "" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then codecov; fi
