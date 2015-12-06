@@ -20,3 +20,9 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
+
+# Code coverage for master branch using https://codecov.io/github/mikljohansson/secretary
+before_install:
+  - pip install codecov
+after_success:
+  - if [ "$TRAVIS_TAG" == "" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then codecov; fi

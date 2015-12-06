@@ -1,5 +1,6 @@
 # Lighter
-<a href='https://travis-ci.org/meltwater/lighter'><img src='https://secure.travis-ci.org/meltwater/lighter.png?branch=master'></a>
+[![Travis CI](https://img.shields.io/travis/meltwater/lighter/master.svg)](https://travis-ci.org/meltwater/lighter)
+[![Coverage Status](http://codecov.io/github/meltwater/lighter/coverage.svg?branch=master)](http://codecov.io/github/meltwater/lighter?branch=master)
 
 [Lighter](https://en.wikipedia.org/wiki/Lighter_(barge)) solves the problem of automating 
 deployments to [Marathon](https://github.com/mesosphere/marathon) and handling of differences

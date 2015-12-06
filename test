@@ -3,4 +3,9 @@ set -e
 
 cd "`dirname $0`"
 export PYTHONPATH=".:`pwd`/src"
-python "`dirname $0`/src/lighter/test.py" $@
+
+if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    coverage run "`dirname $0`/src/lighter/test.py" $@
+else
+    python "`dirname $0`/src/lighter/test.py" $@
+fi
