@@ -120,8 +120,13 @@ def parse_service(filename, targetdir=None):
     # Write json file to disk for logging purposes
     if targetdir:
         outputfile = os.path.join(targetdir, filename + '.json')
-        if not os.path.exists(os.path.dirname(outputfile)):
+
+        # Exception if directory exists, e.g. because another thread created it concurrently
+        try:
             os.makedirs(os.path.dirname(outputfile))
+        except OSError, e:
+            pass
+
         with open(outputfile, 'w') as fd:
             fd.write(json.dumps(config, indent=4))
 
