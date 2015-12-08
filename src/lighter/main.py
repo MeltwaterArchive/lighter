@@ -115,7 +115,10 @@ def parse_service(filename, targetdir=None):
     config = util.merge(config, document.get('override', {}))
 
     # Substitute variables into the config
-    config = util.replace(config, variables)
+    try:
+        config = util.replace(config, variables)
+    except KeyError, e:
+        raise RuntimeError('Failed to parse %s with the following message: %s' % (filename, str(e.message)))
 
     # Write json file to disk for logging purposes
     if targetdir:

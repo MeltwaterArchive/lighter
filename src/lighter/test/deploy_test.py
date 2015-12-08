@@ -70,11 +70,12 @@ class DeployTest(unittest.TestCase):
             lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/myservice.yml'])
             self.assertTrue(self._resolvePostCalled)
 
-    def testUnresolvedVariable(self):        
+    def testUnresolvedVariable(self):
+        service_yaml = 'src/resources/yaml/integration/myservice-unresolved-variable.yml'
         try:
-            lighter.parse_service('src/resources/yaml/integration/myservice-unresolved-variable.yml')
-        except KeyError, e:
-            self.assertEquals(e.message, 'Variable %{bvar} not found')
+            lighter.parse_service(service_yaml)
+        except RuntimeError, e:
+            self.assertEquals(e.message, 'Failed to parse %s with the following message: Variable %%{bvar} not found' % service_yaml)
         else:
             self.fail('Expected ValueError')
 
