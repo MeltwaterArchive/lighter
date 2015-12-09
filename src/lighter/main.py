@@ -81,7 +81,10 @@ class Service(object):
 def parse_service(filename, targetdir=None):
     logging.info("Processing %s", filename)
     with open(filename, 'r') as fd:
-        document = yaml.load(fd)
+        try:
+            document = yaml.load(fd)
+        except yaml.YAMLError, e:
+            raise RuntimeError("Error parsing file %s: %s" % (filename, e))
 
     # Merge globals.yml files into document
     path = os.path.dirname(os.path.abspath(filename))
