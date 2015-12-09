@@ -86,3 +86,7 @@ class DeployTest(unittest.TestCase):
         self.assertEquals(service.config['instances'], 1)
         self.assertEquals(service.config['env']['DATABASE'], 'database:3306')
         self.assertEquals(service.config['container']['docker']['image'], 'meltwater/myservice:latest')
+
+    def testPasswordCheckFail(self):
+        with self.assertRaises(RuntimeError):
+            lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', failOnPassword=True)
