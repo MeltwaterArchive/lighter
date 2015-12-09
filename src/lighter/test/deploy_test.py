@@ -50,12 +50,9 @@ class DeployTest(unittest.TestCase):
 
     def testParseError(self):
         with patch('lighter.util.jsonRequest', wraps=self._parseErrorPost) as mock_jsonRequest:
-            try:
+            with self.assertRaises(RuntimeError):
                 lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/staging/myservice.yml', 'src/resources/yaml/staging/myservice-broken.yml'])
-            except yaml.scanner.ScannerError:
-                pass
-            else:
-                self.fail("Expected yaml.ScannerError")
+            
 
     def _resolvePost(self, url, data=None, *args, **kwargs):
         if url.startswith('file:'):
