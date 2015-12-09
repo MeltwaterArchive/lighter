@@ -78,7 +78,7 @@ class Service(object):
         return util.rget(self.document, 'variables', 'lighter.uniqueVersion') or \
                (self.image.split(':')[1] if ':' in self.image else 'latest')
 
-def parse_service(filename, targetdir=None):
+def parse_service(filename, targetdir=None, verifySecrets=False):
     logging.info("Processing %s", filename)
     with open(filename, 'r') as fd:
         try:
@@ -123,6 +123,17 @@ def parse_service(filename, targetdir=None):
     except KeyError, e:
         raise RuntimeError('Failed to parse %s with the following message: %s' % (filename, str(e.message)))
 
+    # Check for unencrypted secrets
+    if 'env' in config:
+        for item in config['env'].iteritems():
+            key = item[0].lower()
+            if (('password' in key or 'pwd' in key or 'key' in key) and not 'public' in key) and not item[0].startswith('ENC['):
+                if verifySecrets:
+                    raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, item[0]))
+                else:
+                    logging.warn('Found unencrypted secret in %s: %s' % (filename, item[0]))
+                
+
     # Write json file to disk for logging purposes
     if targetdir:
         outputfile = os.path.join(targetdir, filename + '.json')
@@ -138,9 +149,9 @@ def parse_service(filename, targetdir=None):
 
     return Service(filename, document, config)
 
-def parse_services(filenames, targetdir=None):
+def parse_services(filenames, targetdir=None, verifySecrets=False):
     #return [parse_service(filename, targetdir) for filename in filenames]
-    return Parallel(n_jobs=8, backend="threading")(delayed(parse_service)(filename, targetdir) for filename in filenames)
+    return Parallel(n_jobs=8, backend="threading")(delayed(parse_service)(filename, targetdir, verifySecrets) for filename in filenames)
 
 def get_marathon_url(url, id, force=False):
     return url.rstrip('/') + '/v2/apps/' + id.strip('/') + (force and '?force=true' or '')
@@ -206,8 +217,8 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
         except urllib2.URLError, e:
             raise RuntimeError("Failed to deploy %s (%s)" % (service.filename, e)), None, sys.exc_info()[2]
 
-def verify(filenames, targetdir=None):
-    parse_services(filenames, targetdir)
+def verify(filenames, targetdir=None, verifySecrets=False):
+    parse_services(filenames, targetdir, verifySecrets)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -246,6 +257,9 @@ if __name__ == '__main__':
     
     deploy_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
                        help='Service files to expand and deploy')
+    
+    deploy_parser.add_argument('--verify-secrets', dest='verifySecrets', help='Fail verification if unencrypted secrets are found [default: %(default)s]',
+                      action='store_true', default=False)
 
     args = parser.parse_args()
 
@@ -258,7 +272,7 @@ if __name__ == '__main__':
         if args.command == 'deploy':
             deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames, targetdir=args.targetdir)
         elif args.command == 'verify':
-            verify(args.filenames, targetdir=args.targetdir)
+            verify(args.filenames, targetdir=args.targetdir, verifySecrets=args.verifySecrets)
     except RuntimeError, e:
         logging.error(str(e))
         sys.exit(1)
