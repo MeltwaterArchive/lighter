@@ -89,4 +89,4 @@ class DeployTest(unittest.TestCase):
 
     def testPasswordCheckFail(self):
         with self.assertRaises(RuntimeError):
-            lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', failOnPassword=True)
+            lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', verifySecrets=True)
