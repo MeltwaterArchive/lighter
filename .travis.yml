@@ -1,7 +1,7 @@
 sudo: false
 language: python
 install: "./install.sh"
-script: "./build.sh"
+script: "make"
 
 # Build for Linux and OSX (hack using xcode builder)
 matrix:
