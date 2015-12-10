@@ -223,6 +223,15 @@ facts:
   environment: 'staging'
 ```
 
+## Marathon Defaults
+Yaml files may contain a `marathon:` section with a default URL to reach Marathon at
+
+*globals.yml*
+```
+marathon:
+  url: 'http://marathon-host:8080/'
+```
+
 ## Installation
 Place a `lighter` script in the root of your configuration repo. Replace the LIGHTER_VERSION with 
 a version from the [releases page](https://github.com/meltwater/lighter/releases).

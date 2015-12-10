@@ -4,6 +4,9 @@ import lighter.main as lighter
 from lighter.util import jsonRequest
 
 class DeployTest(unittest.TestCase):
+    def setUp(self):
+        self._called = False
+
     def testParseService(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice.yml')
         self.assertEquals(service.document['hipchat']['token'], 'abc123')
@@ -53,20 +56,37 @@ class DeployTest(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/staging/myservice.yml', 'src/resources/yaml/staging/myservice-broken.yml'])
             
+    def _createJsonRequestWrapper(self, marathonurl='http://localhost:1'):
+        appurl = '%s/v2/apps/myproduct/myservice' % marathonurl
 
-    def _resolvePost(self, url, data=None, *args, **kwargs):
-        if url.startswith('file:'):
-            return jsonRequest(url, data, *args, **kwargs)
-        if '/v2/apps' in url and data:
-            self.assertEquals(data['container']['docker']['image'], 'meltwater/myservice:1.0.0')
-            self._resolvePostCalled = True
-        return {'app': {}}
+        def wrapper(url, method='GET', data=None, *args, **kwargs):
+            if url.startswith('file:'):
+                return jsonRequest(url, data, *args, **kwargs)
+            if url == appurl and method == 'PUT' and data:
+                self.assertEquals(data['container']['docker']['image'], 'meltwater/myservice:1.0.0')
+                self._called = True
+                return {}
+            if url == appurl and method == 'GET':
+                return {'app': {}}
+            return None
+        return wrapper
 
-    def testResolve(self):
-        with patch('lighter.util.jsonRequest', wraps=self._resolvePost) as mock_jsonRequest:
+    def testResolveMavenJson(self):
+        with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper()) as mock_jsonRequest:
             lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/myservice.yml'])
-            self.assertTrue(self._resolvePostCalled)
+            self.assertTrue(self._called)
 
+    def testDefaultMarathonUrl(self):
+        with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper('http://defaultmarathon:2')) as mock_jsonRequest:
+            lighter.deploy(marathonurl=None, filenames=['src/resources/yaml/integration/myservice.yml'])
+            self.assertTrue(self._called)
+
+    def testNoMarathonUrlDefined(self):
+        with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper()) as mock_jsonRequest:
+            with self.assertRaises(RuntimeError) as cm:
+                lighter.deploy(marathonurl=None, filenames=['src/resources/yaml/staging/myservice.yml'])
+            self.assertEqual("No Marathon URL defined for service src/resources/yaml/staging/myservice.yml", cm.exception.message)
+    
     def testUnresolvedVariable(self):
         service_yaml = 'src/resources/yaml/integration/myservice-unresolved-variable.yml'
         try:

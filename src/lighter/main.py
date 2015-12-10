@@ -164,12 +164,16 @@ def get_marathon_app(url):
         return {}
 
 def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
-    parsedMarathonUrl = urlparse(marathonurl)
     services = parse_services(filenames, targetdir)
 
     for service in services:
         try:
-            appurl = get_marathon_url(marathonurl, service.config['id'], force)
+            targetMarathonUrl = marathonurl or util.rget(service.document, 'marathon', 'url')
+            if not targetMarathonUrl:
+                raise RuntimeError("No Marathon URL defined for service %s" % service.filename)
+
+            parsedMarathonUrl = urlparse(targetMarathonUrl)
+            appurl = get_marathon_url(targetMarathonUrl, service.config['id'], force)
 
             # See if service config has changed
             prevConfig = get_marathon_app(appurl)
@@ -203,14 +207,11 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             # Send Datadog deployment notification
             datadog = Datadog(util.rget(service.document, 'datadog', 'token'))
             datadog.notify(
-                title="Deployed %s to the %s environment" % (service.id, service.environment),
-                message="%%%%%% \n Lighter deployed **%s** with image **%s** to **%s** (%s) \n %%%%%%" % (service.id, service.image, service.environment, parsedMarathonUrl.netloc),
                 id=service.id,
-                tags=[
-                    "environment:%s" % service.environment,
-                    "service:%s" % service.id
-                ]
-            )
+                title="Deployed %s to the %s environment" % (service.id, service.environment),
+                message="%%%%%% \n Lighter deployed **%s** with image **%s** to **%s** (%s) \n %%%%%%" % (
+                    service.id, service.image, service.environment, parsedMarathonUrl.netloc),
+                tags=["environment:%s" % service.environment, "service:%s" % service.id])
 
         except urllib2.HTTPError, e:
             raise RuntimeError("Failed to deploy %s HTTP %d (%s)" % (service.filename, e.code, e)), None, sys.exc_info()[2]
