@@ -164,12 +164,16 @@ def get_marathon_app(url):
         return {}
 
 def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
-    parsedMarathonUrl = urlparse(marathonurl)
     services = parse_services(filenames, targetdir)
 
     for service in services:
         try:
-            appurl = get_marathon_url(marathonurl, service.config['id'], force)
+            targetMarathonUrl = marathonurl or util.rget(service.document, 'marathon', 'url')
+            if not targetMarathonUrl:
+                raise RuntimeError("No Marathon URL defined for service %s" % service.filename)
+
+            parsedMarathonUrl = urlparse(targetMarathonUrl)
+            appurl = get_marathon_url(targetMarathonUrl, service.config['id'], force)
 
             # See if service config has changed
             prevConfig = get_marathon_app(appurl)
@@ -203,14 +207,11 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             # Send Datadog deployment notification
             datadog = Datadog(util.rget(service.document, 'datadog', 'token'))
             datadog.notify(
-                title="Deployed %s to the %s environment" % (service.id, service.environment),
-                message="%%%%%% \n Lighter deployed **%s** with image **%s** to **%s** (%s) \n %%%%%%" % (service.id, service.image, service.environment, parsedMarathonUrl.netloc),
                 id=service.id,
-                tags=[
-                    "environment:%s" % service.environment,
-                    "service:%s" % service.id
-                ]
-            )
+                title="Deployed %s to the %s environment" % (service.id, service.environment),
+                message="%%%%%% \n Lighter deployed **%s** with image **%s** to **%s** (%s) \n %%%%%%" % (
+                    service.id, service.image, service.environment, parsedMarathonUrl.netloc),
+                tags=["environment:%s" % service.environment, "service:%s" % service.id])
 
         except urllib2.HTTPError, e:
             raise RuntimeError("Failed to deploy %s HTTP %d (%s)" % (service.filename, e.code, e)), None, sys.exc_info()[2]
@@ -241,7 +242,7 @@ if __name__ == '__main__':
         help='Deploy services to Marathon',
         description='Deploy services to Marathon')
     
-    deploy_parser.add_argument('-m', '--marathon', required=True, dest='marathon', help='Marathon url, e.g. "http://marathon-host:8080/"',
+    deploy_parser.add_argument('-m', '--marathon', required=True, dest='marathon', help='Marathon URL like "http://marathon-host:8080/". Overrides default Marathon URL\'s provided in config files',
                       default=os.environ.get('MARATHON_URL', ''))
     deploy_parser.add_argument('-f', '--force', dest='force', help='Force deployment even if the service is already affected by a running deployment [default: %(default)s]',
                       action='store_true', default=False)
@@ -249,16 +250,16 @@ if __name__ == '__main__':
                        help='Service files to expand and deploy')
     
     # Create the parser for the "verify" command
-    deploy_parser = subparsers.add_parser('verify', 
+    verify_parser = subparsers.add_parser('verify', 
         prog='lighter',
         usage='%(prog)s verify YMLFILE...',
         help='Verify and generate Marathon configuration files',
         description='Verify and generate Marathon configuration files')
     
-    deploy_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
+    verify_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
                        help='Service files to expand and deploy')
     
-    deploy_parser.add_argument('--verify-secrets', dest='verifySecrets', help='Fail verification if unencrypted secrets are found [default: %(default)s]',
+    verify_parser.add_argument('--verify-secrets', dest='verifySecrets', help='Fail verification if unencrypted secrets are found [default: %(default)s]',
                       action='store_true', default=False)
 
     args = parser.parse_args()
