@@ -20,14 +20,17 @@ usage: lighter COMMAND [OPTIONS]...
 Marathon deployment tool
 
 positional arguments:
-  {deploy,verify}  Available commands
-    deploy         Deploy services to Marathon
-    verify         Verify and generate Marathon configuration files
+  {deploy,verify}       Available commands
+    deploy              Deploy services to Marathon
+    verify              Verify and generate Marathon configuration files
 
 optional arguments:
-  -h, --help       show this help message and exit
-  -n, --noop       Execute dry-run without modifying Marathon [default: False]
-  -v, --verbose    Increase logging verbosity [default: False]
+  -h, --help            show this help message and exit
+  -n, --noop            Execute dry-run without modifying Marathon [default:
+                        False]
+  -v, --verbose         Increase logging verbosity [default: False]
+  -t TARGETDIR, --targetdir TARGETDIR
+                        Directory to output rendered config files
 ```
 
 ### Deploy Command
@@ -42,7 +45,9 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -m MARATHON, --marathon MARATHON
-                        Marathon url, e.g. "http://marathon-host:8080/"
+                        Marathon URL like "http://marathon-host:8080/".
+                        Overrides default Marathon URL's provided in config
+                        files
   -f, --force           Force deployment even if the service is already
                         affected by a running deployment [default: False]
 ```
@@ -64,12 +69,22 @@ my-config-repo/
            myservice.yml
 ```
 
-Running `lighter deploy -m http://marathon-host:8080 staging/services/myservice.yml` will
+Running `lighter deploy staging/services/myservice.yml` will
 
 * Merge *myservice.yml* with environment defaults from *my-config-repo/staging/globals.yml* and *my-config-repo/globals.yml*
 * Fetch the *json* template for this service and version from the Maven repository
 * Expand the *json* template with variables and overrides from the *yml* files
 * Post the resulting *json* configuration into Marathon
+
+## Marathon
+Yaml files may contain a `marathon:` section with a default URL to reach Marathon at. The `-m/--marathon`
+parameter will override this setting when given on the command-line.
+
+*globals.yml*
+```
+marathon:
+  url: 'http://marathon-host:8080/'
+```
 
 ## Maven
 The `maven:` section specifies where to fetch *json* templates from which are 
@@ -223,15 +238,6 @@ facts:
   environment: 'staging'
 ```
 
-## Marathon Defaults
-Yaml files may contain a `marathon:` section with a default URL to reach Marathon at
-
-*globals.yml*
-```
-marathon:
-  url: 'http://marathon-host:8080/'
-```
-
 ## Installation
 Place a `lighter` script in the root of your configuration repo. Replace the LIGHTER_VERSION with 
 a version from the [releases page](https://github.com/meltwater/lighter/releases).
@@ -258,10 +264,10 @@ Use the script like
 cd my-config-repo
 
 # Deploy/sync all services (from Jenkins or other CI/CD server)
-./lighter deploy -f -m http://marathon-host:8080 $(find staging -name \*.yml -not -name globals.yml)
+./lighter deploy $(find staging -name \*.yml -not -name globals.yml)
 
 # Deploy single services
-./lighter deploy -m http://marathon-host:8080 staging/myservice.yml staging/myservice2.yml
+./lighter deploy staging/myservice.yml staging/myservice2.yml
 ```
 
 ## Integrations

@@ -242,7 +242,7 @@ if __name__ == '__main__':
         help='Deploy services to Marathon',
         description='Deploy services to Marathon')
     
-    deploy_parser.add_argument('-m', '--marathon', required=True, dest='marathon', help='Marathon url, e.g. "http://marathon-host:8080/"',
+    deploy_parser.add_argument('-m', '--marathon', required=True, dest='marathon', help='Marathon URL like "http://marathon-host:8080/". Overrides default Marathon URL\'s provided in config files',
                       default=os.environ.get('MARATHON_URL', ''))
     deploy_parser.add_argument('-f', '--force', dest='force', help='Force deployment even if the service is already affected by a running deployment [default: %(default)s]',
                       action='store_true', default=False)
@@ -250,16 +250,16 @@ if __name__ == '__main__':
                        help='Service files to expand and deploy')
     
     # Create the parser for the "verify" command
-    deploy_parser = subparsers.add_parser('verify', 
+    verify_parser = subparsers.add_parser('verify', 
         prog='lighter',
         usage='%(prog)s verify YMLFILE...',
         help='Verify and generate Marathon configuration files',
         description='Verify and generate Marathon configuration files')
     
-    deploy_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
+    verify_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
                        help='Service files to expand and deploy')
     
-    deploy_parser.add_argument('--verify-secrets', dest='verifySecrets', help='Fail verification if unencrypted secrets are found [default: %(default)s]',
+    verify_parser.add_argument('--verify-secrets', dest='verifySecrets', help='Fail verification if unencrypted secrets are found [default: %(default)s]',
                       action='store_true', default=False)
 
     args = parser.parse_args()
