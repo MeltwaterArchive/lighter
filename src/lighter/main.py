@@ -127,13 +127,12 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
 
     # Check for unencrypted secrets
     if 'env' in config:
-        for item in config['env'].iteritems():
-            key = item[0].lower()
-            if (('password' in key or 'pwd' in key or 'key' in key) and not 'public' in key) and not item[0].startswith('ENC['):
+        for key, value in config['env'].iteritems():
+            if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower()) and not 'public' in key.lower()) and not secretary.isEnvelope(value):
                 if verifySecrets:
-                    raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, item[0]))
+                    raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, key))
                 else:
-                    logging.warn('Found unencrypted secret in %s: %s' % (filename, item[0]))
+                    logging.warn('Found unencrypted secret in %s: %s' % (filename, key))
                 
 
     # Generate deploy keys and encrypt secrets 
