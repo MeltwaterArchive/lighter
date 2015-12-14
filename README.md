@@ -248,9 +248,6 @@ secretary:
   url: 'https://secretary-daemon-loadbalancer:5070'
   master:
     publickey: 'someenv/keys/master-public-key.pem'
-  config:
-    publickey: 'someenv/keys/config-public-key.pem'
-    privatekey: 'someenv/keys/config-private-key.pem'
 ```
 
 *someenv/myservice.yml*

@@ -14,8 +14,5 @@ docker:
       auth: 'dXNlcm5hbWU6cGFzc3dvcmQ='
 secretary:
   url: "http://secretary:5070"
-  config:
-    publickey: 'src/resources/yaml/staging/keys/config-public-key.pem'
-    privatekey: 'src/resources/yaml/staging/keys/config-private-key.pem'
   master:
     publickey: 'src/resources/yaml/staging/keys/master-public-key.pem'
