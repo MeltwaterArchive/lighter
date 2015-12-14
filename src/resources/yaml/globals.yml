@@ -12,3 +12,7 @@ docker:
   registries:
     'authregistrywithport:5000':
       auth: 'dXNlcm5hbWU6cGFzc3dvcmQ='
+secretary:
+  url: "http://secretary:5070"
+  master:
+    publickey: 'src/resources/yaml/staging/keys/master-public-key.pem'

@@ -7,6 +7,7 @@ from lighter.hipchat import HipChat
 import lighter.util as util
 import lighter.maven as maven
 import lighter.docker as docker
+import lighter.secretary as secretary
 from lighter.newrelic import NewRelic
 from lighter.datadog import Datadog
 
@@ -32,26 +33,27 @@ def parseint(value):
 def parselist(value):
     return filter(bool, value.split(','))
 
-def compare_service_versions(nextVersion, prevConfig, path=''):
+def compare_service_versions(nextVersion, prevVersion, path=''):
     if isinstance(nextVersion, dict):
         for key, value in nextVersion.items():
             keypath = path + '/' + key
-            if key not in prevConfig:
+            if key not in prevVersion:
                 logging.debug("New key found %s", keypath)
                 return False
-            if not compare_service_versions(value, prevConfig[key], keypath):
+            if not compare_service_versions(value, prevVersion[key], keypath):
                 return False
     elif isinstance(nextVersion, list):
-        if len(nextVersion) != len(prevConfig):
+        if len(nextVersion) != len(prevVersion):
             logging.debug("List have changed at %s", path)
             return False
-        for nextValue, prevValue in zip(nextVersion, prevConfig):
+        for nextValue, prevValue in zip(nextVersion, prevVersion):
             if not compare_service_versions(nextValue, prevValue, path):
                 return False
-    elif nextVersion != prevConfig:
-        if isinstance(nextVersion, int) and isinstance(prevConfig, int) and nextVersion == 0 and path == '/ports':
+    elif isinstance(nextVersion, util.Value) and not nextVersion.same(prevVersion) or \
+         not isinstance(nextVersion, util.Value) and nextVersion != prevVersion:
+        if isinstance(nextVersion, int) and isinstance(prevVersion, int) and nextVersion == 0 and path == '/ports':
             return True
-        logging.debug("Value has changed at %s (%s != %s)", path, nextVersion, prevConfig)
+        logging.debug("Value has changed at %s (%s != %s)", path, nextVersion, prevVersion)
         return False
     return True
 
@@ -125,14 +127,16 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
 
     # Check for unencrypted secrets
     if 'env' in config:
-        for item in config['env'].iteritems():
-            key = item[0].lower()
-            if (('password' in key or 'pwd' in key or 'key' in key) and not 'public' in key) and not item[0].startswith('ENC['):
+        for key, value in config['env'].iteritems():
+            if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower()) and not 'public' in key.lower()) and not secretary.isEnvelope(value):
                 if verifySecrets:
-                    raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, item[0]))
+                    raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, key))
                 else:
-                    logging.warn('Found unencrypted secret in %s: %s' % (filename, item[0]))
+                    logging.warn('Found unencrypted secret in %s: %s' % (filename, key))
                 
+
+    # Generate deploy keys and encrypt secrets 
+    config = secretary.apply(document, config)
 
     # Write json file to disk for logging purposes
     if targetdir:
@@ -145,7 +149,7 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
             pass
 
         with open(outputfile, 'w') as fd:
-            fd.write(json.dumps(config, indent=4))
+            fd.write(util.toJson(config, indent=4))
 
     return Service(filename, document, config)
 
@@ -176,8 +180,8 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             appurl = get_marathon_url(targetMarathonUrl, service.config['id'], force)
 
             # See if service config has changed
-            prevConfig = get_marathon_app(appurl)
-            if compare_service_versions(service.config, prevConfig):
+            prevVersion = get_marathon_app(appurl)
+            if compare_service_versions(service.config, prevVersion):
                 logging.debug("Service already deployed with same config: %s", service.filename)
                 continue
 

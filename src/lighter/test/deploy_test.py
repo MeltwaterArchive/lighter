@@ -107,3 +107,12 @@ class DeployTest(unittest.TestCase):
     def testPasswordCheckFail(self):
         with self.assertRaises(RuntimeError):
             lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', verifySecrets=True)
+           
+    def testPasswordCheckSucceed(self):
+        lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-password.yml', verifySecrets=True)
+    
+    @patch('logging.warn')
+    def testPasswordCheckWarning(self, mock_warn):
+        lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', verifySecrets=False)
+        self.assertEqual(mock_warn.call_count, 1)
+        mock_warn.assert_called_with('Found unencrypted secret in src/resources/yaml/staging/myservice-password.yml: DATABASE_PASSWORD')

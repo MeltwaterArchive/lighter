@@ -1,5 +1,5 @@
-import os, sys, urlparse, base64, json, urllib2, logging, itertools, types, re
-import urllib
+import os, sys, logging, itertools, types, re
+import urllib, urllib2, urlparse, base64, json
 import xml.dom.minidom as minidom
 from copy import copy
 
@@ -46,6 +46,41 @@ class FixedVariables(object):
         if name not in self._variables:
             raise KeyError('Variable %%{%s} not found' % name)
         return self._variables.pop(name)
+
+class Value(object):
+    """
+    Allows to override the test when service.config is compared
+    against the previous version to see if it needs redeployment.
+    """
+    def __init__(self, value):
+        self._value = value
+
+    def __str__(self):
+        return str(self._value)
+
+    def __repr__(self):
+        return repr(self._value)
+
+    def __cmp__(self, other):
+        return cmp(self._value, str(other))
+
+    def __getitem__(self, a):
+        return self._value[a]
+
+    def __getslice__(self, a, b):
+        return self._value[a:b]
+
+    def same(self, other):
+        return self == other
+
+class ValueEncoder(json.JSONEncoder):
+    def default(self, value):
+        if isinstance(value, Value):
+            return str(value)
+        return value
+
+def toJson(value, *args, **kwargs):
+    return json.dumps(value, cls=ValueEncoder, *args, **kwargs)
 
 def replace(template, variables):
     result = copy(template)
@@ -97,9 +132,11 @@ def buildRequest(url, data=None, headers={}, method='GET', contentType='applicat
     parts[1] = ('@' in parts[1]) and parts[1].split('@')[1] or parts[1]
 
     body = None
+    headers = copy(headers)
+
     if data is not None:
         if contentType == 'application/json':
-            body = json.dumps(data)
+            body = toJson(data)
             headers['Content-Type'] = 'application/json'
         elif contentType == 'application/x-www-form-urlencoded':
             body = urllib.urlencode(data)

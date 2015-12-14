@@ -86,15 +86,24 @@ class UtilTest(unittest.TestCase):
 
         self.assertEquals(actual, expected)
 
-    def test_get_marathon_url(self):
+    def testGetMarathonUrl(self):
         self.assertEqual(lighter.get_marathon_url('myurl', 'myid'), 'myurl/v2/apps/myid')
         self.assertEqual(lighter.get_marathon_url('myurl/', '/myid/'), 'myurl/v2/apps/myid')
         self.assertEqual(lighter.get_marathon_url('myurl/', '/myid/', True), 'myurl/v2/apps/myid?force=true')
 
-    def test_buildRequest(self):
+    def testBuildRequest(self):
         url = "https://user:pass@maven.example.com/path/to/my/repo"
         req = util.buildRequest(url)
         self.assertTrue(req.get_header('Authorization').startswith('Basic '))
+
+        req = util.buildRequest(url, data={'a':'b'})
+        self.assertTrue(req.get_header('Authorization').startswith('Basic '))
+        self.assertEqual('application/json', req.get_header('Content-type'))
+        self.assertEqual('{"a": "b"}', req.get_data())
+
+        req = util.buildRequest(url, data={'a':'b'}, contentType='application/x-www-form-urlencoded')
+        self.assertEqual('application/x-www-form-urlencoded', req.get_header('Content-type'))
+        self.assertEqual('a=b', req.get_data())
 
     def testRGet(self):
         self.assertEqual('c', util.rget({'a': [{'b': 'c'}]}, 'a', 0, 'b'))
