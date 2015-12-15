@@ -49,11 +49,11 @@ def apply(document, config):
     """
     Generates a deploy key, injects config/master keys and performs the extra deployment time encryption of secrets.
     """
-    result = deepcopy(config)
     url = util.rget(document, 'secretary', 'url')
     if not url:
-        return
+        return config
 
+    result = deepcopy(config)
     masterKey = decodePublicKey(util.rget(document, 'secretary', 'master', 'publickey'))
 
     result['env'] = result.get('env', {})

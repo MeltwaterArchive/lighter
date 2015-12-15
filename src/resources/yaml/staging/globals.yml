@@ -6,3 +6,7 @@ variables:
 hipchat:
   rooms:
     - "456"
+secretary:
+  url: "http://secretary:5070"
+  master:
+    publickey: 'src/resources/yaml/staging/keys/master-public-key.pem'
