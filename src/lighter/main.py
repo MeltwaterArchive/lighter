@@ -225,6 +225,41 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
 def verify(filenames, targetdir=None, verifySecrets=False):
     parse_services(filenames, targetdir, verifySecrets)
 
+def check(marathonurl, filenames, targetdir=None, verifySecrets=False):
+    # disable logging so we can output proper Nagios style output only
+    logging.getLogger().setLevel(logging.ERROR)
+    
+    failures=[]
+
+    services = parse_services(filenames, targetdir, verifySecrets)
+    
+    for service in services:
+        try:
+            targetMarathonUrl = marathonurl or util.rget(service.document, 'marathon', 'url')
+            if not targetMarathonUrl:
+                raise RuntimeError("No Marathon URL defined for service %s" % service.filename)
+    
+            parsedMarathonUrl = urlparse(targetMarathonUrl)
+            appurl = get_marathon_url(targetMarathonUrl, service.config['id'], False)
+    
+            # See if there's a difference between the service config and Marathon
+            prevVersion = get_marathon_app(appurl)
+            if not compare_service_versions(service.config, prevVersion):
+                failures.insert(0, service.filename)
+
+        except urllib2.HTTPError, e:
+            raise RuntimeError("Failed to check %s HTTP %d (%s)" % (service.filename, e.code, e)), None, sys.exc_info()[2]
+        except urllib2.URLError, e:
+            raise RuntimeError("Failed to check %s (%s)" % (service.filename, e)), None, sys.exc_info()[2]
+    
+    if len(failures) > 0:
+        print "CRITICAL Some services are not deployed according to the configuraton:\n"
+        for failure in failures:
+            print failure
+        sys.exit(2)
+    else:
+        print "OK All services deployed according to the configuration"
+          
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='lighter',
@@ -265,6 +300,18 @@ if __name__ == '__main__':
     
     verify_parser.add_argument('--verify-secrets', dest='verifySecrets', help='Fail verification if unencrypted secrets are found [default: %(default)s]',
                       action='store_true', default=False)
+    
+    # Create the parser for the "check" command
+    check_parser = subparsers.add_parser('check', 
+        prog='lighter',
+        usage='%(prog)s check YMLFILE...',
+        help='Check if services are running correctly in Marathon',
+        description='Check if services are running correctly in Marathon')
+    
+    check_parser.add_argument('-m', '--marathon', required=True, dest='marathon', help='Marathon URL like "http://marathon-host:8080/". Overrides default Marathon URL\'s provided in config files',
+                      default=os.environ.get('MARATHON_URL', ''))
+    check_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
+                       help='Service files to check if they are running in Marathon')
 
     args = parser.parse_args()
 
@@ -278,6 +325,8 @@ if __name__ == '__main__':
             deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames, targetdir=args.targetdir)
         elif args.command == 'verify':
             verify(args.filenames, targetdir=args.targetdir, verifySecrets=args.verifySecrets)
+        elif args.command == 'check':
+            check(args.marathon, filenames=args.filenames, targetdir=args.targetdir)
     except RuntimeError, e:
         logging.error(str(e))
         sys.exit(1)
