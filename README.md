@@ -240,7 +240,7 @@ facts:
 ```
 
 ## Secrets Management
-Lighter has support for [Secretary](https://github.com/mikljohansson/secretary) which can
+Lighter has support for [Secretary](https://github.com/meltwater/secretary) which can
 securely distribute secrets to containers.
 
 *someenv/globals.yml *
