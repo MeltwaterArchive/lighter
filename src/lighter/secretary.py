@@ -53,6 +53,10 @@ def apply(document, config):
     if not url:
         return config
 
+    # Avoid adding public keys if no secrets present
+    if not [value for value in config.get('env', {}).itervalues() if isEnvelope(value)]:
+        return config
+
     result = deepcopy(config)
     masterKey = decodePublicKey(util.rget(document, 'secretary', 'master', 'publickey'))
 

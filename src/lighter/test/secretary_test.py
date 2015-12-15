@@ -25,3 +25,10 @@ class SecretaryTest(unittest.TestCase):
 
         self.assertNotEqual(service1.config['env']['DEPLOY_PUBLIC_KEY'], service2.config['env']['DEPLOY_PUBLIC_KEY'])
         self.assertNotEqual(service1.config['env']['DEPLOY_PRIVATE_KEY'], service2.config['env']['DEPLOY_PRIVATE_KEY'])
+
+    def testServiceWithoutSecrets(self):
+        service = lighter.parse_service('src/resources/yaml/staging/myservice-nosecret.yml')
+        self.assertFalse('SECRETARY_URL' in service.config['env'])
+        self.assertFalse('MASTER_PRIVATE_KEY' in service.config['env'])
+        self.assertFalse('DEPLOY_PUBLIC_KEY' in service.config['env'])
+        self.assertFalse('DEPLOY_PRIVATE_KEY' in service.config['env'])
