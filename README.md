@@ -266,7 +266,9 @@ a version from the [releases page](https://github.com/meltwater/lighter/releases
 set -e
 
 LIGHTER_VERSION="x.y.z"
-LIGHTER="`dirname $0`/target/lighter-`uname -s`-`uname -m`-${LIGHTER_VERSION}"
+
+BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+LIGHTER="$BASEDIR/target/lighter-`uname -s`-`uname -m`-${LIGHTER_VERSION}"
 
 if [ ! -x "$LIGHTER" ]; then
     mkdir -p $(dirname "$LIGHTER")
