@@ -128,7 +128,7 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     # Check for unencrypted secrets
     if 'env' in config:
         for key, value in config['env'].iteritems():
-            if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower()) and not 'public' in key.lower()) and not secretary.isEnvelope(value):
+            if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower() or 'token' in key.lower()) and not 'public' in key.lower()) and not secretary.isEnvelope(value):
                 if verifySecrets:
                     raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, key))
                 else:
