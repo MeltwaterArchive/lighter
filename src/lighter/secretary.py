@@ -37,7 +37,7 @@ class KeyValue(util.Value):
         return len(self._value) == len(str(other))
 
 def isEnvelope(value):
-    return str(value).startswith('ENC[NACL,') and str(value).endswith(']')
+    return str(value).strip().startswith('ENC[NACL,') and str(value).strip().endswith(']')
 
 def decodePublicKey(key):
     return PublicKey(str(key), encoder=KeyEncoder)
