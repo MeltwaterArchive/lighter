@@ -56,22 +56,23 @@ optional arguments:
 Given a directory structure like
 
 ```
-my-config-repo/
+config-repo/
 |   globals.yml
 └─ production/
 |   |   globals.yml
-|   └─ services/
-|          myservice.yml
-|          myservice2.yml
+|   |   myfrontend.yml
+|   └─ mysubsystem/
+|          globals.yml
+|          myservice-api.yml
+|          myservice-database.yml
 └─ staging/
     |   globals.yml
-    └─ services/
-           myservice.yml
+    |   myfrontend.yml
 ```
 
-Running `lighter deploy staging/services/myservice.yml` will
+Running `lighter deploy staging/myfrontend.yml` will
 
-* Merge *myservice.yml* with environment defaults from *my-config-repo/staging/globals.yml* and *my-config-repo/globals.yml*
+* Merge *myfrontend.yml* with environment defaults from *config-repo/staging/globals.yml* and *config-repo/globals.yml*
 * Fetch the *json* template for this service and version from the Maven repository
 * Expand the *json* template with variables and overrides from the *yml* files
 * Post the resulting *json* configuration into Marathon
@@ -295,7 +296,7 @@ cd my-config-repo
 Lighter can push deployment notifications to a number of services.
 
 ### HipChat
-Yaml files may contain an `hipchat:` section that specifies where to announce deployments. Create a [HipChat V2 token](https://www.hipchat.com/docs/apiv2) that is allowed to post to rooms. 
+Yaml files may contain an `hipchat:` section that specifies where to announce deployments. Create a [HipChat V2 token](https://www.hipchat.com/docs/apiv2) that is allowed to post to rooms. The numeric room ID can be found in the room preferences in the HipChat web interface.
 
 ```
 hipchat:
