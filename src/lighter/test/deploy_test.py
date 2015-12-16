@@ -111,6 +111,9 @@ class DeployTest(unittest.TestCase):
     def testPasswordCheckSucceed(self):
         lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-password.yml', verifySecrets=True)
     
+    def testPasswordCheckSubstringsSucceed(self):
+        lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-substrings.yml', verifySecrets=True)
+    
     @patch('logging.warn')
     def testPasswordCheckWarning(self, mock_warn):
         lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', verifySecrets=False)

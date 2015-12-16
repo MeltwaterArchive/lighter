@@ -5,6 +5,7 @@ import lighter.util as util
 
 # Regexp to parse simple PEM files
 _PEM_RE = re.compile(u"-----BEGIN (.+?)-----\r?\n(.+?)\r?\n-----END \\1-----")
+_ENVELOPES_RE = re.compile(u"ENC\[NACL,[a-zA-Z0-9+/=\s]+\]")
 
 class KeyEncoder(object):
     """
@@ -38,6 +39,9 @@ class KeyValue(util.Value):
 
 def isEnvelope(value):
     return str(value).strip().startswith('ENC[NACL,') and str(value).strip().endswith(']')
+
+def extractEnvelopes(payload):
+    return _ENVELOPES_RE.findall(payload)
 
 def decodePublicKey(key):
     return PublicKey(str(key), encoder=KeyEncoder)
