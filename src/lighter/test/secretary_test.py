@@ -32,3 +32,24 @@ class SecretaryTest(unittest.TestCase):
         self.assertFalse('MASTER_PRIVATE_KEY' in service.config['env'])
         self.assertFalse('DEPLOY_PUBLIC_KEY' in service.config['env'])
         self.assertFalse('DEPLOY_PRIVATE_KEY' in service.config['env'])
+
+    def testExtractEnvelopes(self):
+        envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,uSr123+/=]:ENC[NACL,pWd123+/=]@rabbit:5672/")
+        self.assertEqual(2, len(envelopes))
+        self.assertEqual([ "ENC[NACL,uSr123+/=]", "ENC[NACL,pWd123+/=]" ], envelopes)
+    
+        envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,]:ENC[NACL,pWd123+/=]@rabbit:5672/")
+        self.assertEqual(1, len(envelopes))
+        self.assertEqual([ "ENC[NACL,pWd123+/=]" ], envelopes)
+    
+        envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,:ENC[NACL,pWd123+/=]@rabbit:5672/")
+        self.assertEqual(1, len(envelopes))
+        self.assertEqual([ "ENC[NACL,pWd123+/=]" ], envelopes)
+    
+        envelopes = secretary.extractEnvelopes("amqp://NC[NACL,]:ENC[NACL,pWd123+/=]@rabbit:5672/")
+        self.assertEqual(1, len(envelopes))
+        self.assertEqual([ "ENC[NACL,pWd123+/=]" ], envelopes)
+    
+        envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,abc:ENC[NACL,pWd123+/=]@rabbit:5672/")
+        self.assertEqual(1, len(envelopes))
+        self.assertEqual([ "ENC[NACL,pWd123+/=]" ], envelopes)

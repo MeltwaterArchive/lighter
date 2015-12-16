@@ -1,0 +1,28 @@
+maven:
+  groupid: 'com.meltwater'
+  artifactid: 'myservice'
+  version: '1.0.0'
+override:
+  cpus: 1.0
+  env:
+    SERVICE_VERSION: '%{lighter.version}'
+    SERVICE_BUILD: '%{lighter.uniqueVersion}'
+    DATABASE_PASSWORD: 'ENC[NACL,deadbeef]'
+    CVAR: '%{cvar}'
+    NEW_RELIC_APP_NAME: '%{newrelic.appname.prefix} MyService'
+    SSH_PRIVATE_KEY: |
+      ENC[NACL,egFSuFDkZxsmv9w7bWyZyxCBQQeykctG2H6UTiK7EHRdQI3E3NsZBP8 
+      4Gqy8c5kh8BYErki6F0eqKAxd3u/QcOuMD17YgqTGiE/PMlO75yCuBzCnZNW7Y4b
+      5Ww03v6uo1Fr/ew==]randompaddingENC[NACL,egFSuFDkZxsmv9w7bWyZyxCBQQeykctG2H6UTiK7EHRdQI3E3NsZBP8 
+      4Gqy8c5kh8BYErki6F0eqKAxd3u/QcOuMD17YgqTGiE/PMlO75yCuBzCnZNW7Y4b
+      5Ww03v6uo1Fr/ew==]
+  upgradeStrategy:
+    maximumOverCapacity: 0.0
+hipchat:
+  rooms:
+    - '456'
+    - '789'
+variables:
+  avar: '123'
+  bvar: '%{avar}'
+  cvar: '%{avar}'
