@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Corrected [Secretary](https://github.com/meltwater/secretary) link to use the [meltwater/secretary](https://github.com/meltwater/secretary) repo
 - Clarified directory structure
 - Add warnings when 'token' is the env var name
+- Add support for variable interpolation when you want it
 - Your contribution here.
 
 ## [0.6.3] - 2015.12.15
