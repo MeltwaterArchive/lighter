@@ -2,14 +2,14 @@
 [![Travis CI](https://img.shields.io/travis/meltwater/lighter/master.svg)](https://travis-ci.org/meltwater/lighter)
 [![Coverage Status](https://codecov.io/github/meltwater/lighter/coverage.svg?branch=master)](https://codecov.io/github/meltwater/lighter?branch=master&view=all)
 
-[Lighter](https://en.wikipedia.org/wiki/Lighter_(barge)) solves the problem of automating 
+[Lighter](https://en.wikipedia.org/wiki/Lighter_(barge)) solves the problem of automating
 deployments to [Marathon](https://github.com/mesosphere/marathon) and handling of differences
 between multiple environments. Given a hierachy of yaml files and environments, Lighter can
-expand service config files and deploy them to Marathon. 
+expand service config files and deploy them to Marathon.
 
 For even tighter integration into the development process, Lighter can resolve Marathon config files
-from Maven and merge these with environment specific overrides. This enables continuous deployment 
-whenever new releases or snapshots appear in the Maven repository. Optional version range constraints 
+from Maven and merge these with environment specific overrides. This enables continuous deployment
+whenever new releases or snapshots appear in the Maven repository. Optional version range constraints
 allows patches/minor versions to be rolled out continuously, while requiring a config change to roll
 out major versions.
 
@@ -88,7 +88,7 @@ marathon:
 ```
 
 ## Maven
-The `maven:` section specifies where to fetch *json* templates from which are 
+The `maven:` section specifies where to fetch *json* templates from which are
 merged into the configuration. For example
 
 *globals.yml*
@@ -133,9 +133,9 @@ Expression | Resolve To
 [,]-SNAPSHOT | Latest *SNAPSHOT* version
 
 ## Freestyle Services
-Yaml files may contain a `service:` tag which specifies a Marathon *json* fragment 
+Yaml files may contain a `service:` tag which specifies a Marathon *json* fragment
 to use as the service configuration base for further merging. This allows for
-services which aren't based on a *json* template but rather defined exclusively 
+services which aren't based on a *json* template but rather defined exclusively
 in *yaml*.
 
 *myservice.yml*
@@ -153,8 +153,8 @@ service:
 ```
 
 ## Overrides
-Yaml files may contain an `override:` section that will be merged directly into the Marathon json. The 
-structure contained in the `override:` section must correspond to the [Marathon REST API](https://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps). For example 
+Yaml files may contain an `override:` section that will be merged directly into the Marathon json. The
+structure contained in the `override:` section must correspond to the [Marathon REST API](https://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps). For example
 
 ```
 override:
@@ -167,8 +167,8 @@ override:
 ```
 
 ## Variables
-Yaml files may contain an `variables:` section containing key/value pairs that will be substituted into the *json* template. All 
-variables in a templates must be resolved or it's considered an error. This can be used to ensure that some parameters are 
+Yaml files may contain an `variables:` section containing key/value pairs that will be substituted into the *json* template. All
+variables in a templates must be resolved or it's considered an error. This can be used to ensure that some parameters are
 guaranteed to be provided to a service. For example
 ```
 variables:
@@ -190,6 +190,8 @@ And used from the *json* template like
     }
 }
 ```
+
+To avoid interpolating some string like ``%{id}`` when you really want it, use ``%%{id}``
 
 ### Predefined Variables
 
@@ -216,7 +218,7 @@ override:
 ### Docker Registry
 Lighter calls the Docker Registry API to resolve `%{lighter.uniqueVersion}` when it's used
 in a non-Maven based service. This is only enabled if the `%{lighter.uniqueVersion}` variable
-is actually referenced from the service config. 
+is actually referenced from the service config.
 
 For authenticated reprositories you must supply read-access credentials to be used when calling
 the registry API. You can find the base64 encoded credentials in your *~/.docker/config.json* or
@@ -259,7 +261,7 @@ override:
 ```
 
 ## Installation
-Place a `lighter` script in the root of your configuration repo. Replace the LIGHTER_VERSION with 
+Place a `lighter` script in the root of your configuration repo. Replace the LIGHTER_VERSION with
 a version from the [releases page](https://github.com/meltwater/lighter/releases).
 
 ```
@@ -277,7 +279,7 @@ if [ ! -x "$LIGHTER" ]; then
     chmod +x "$LIGHTER"
 fi
 
-# Ligher will write the expanded json files to /tmp/output 
+# Ligher will write the expanded json files to /tmp/output
 exec "$LIGHTER" -t "`dirname $0`/target" $@
 ```
 
@@ -306,7 +308,7 @@ hipchat:
 ```
 
 ### New Relic
-To send [New Relic deployment notifications](https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/deployment-notifications) supply your [New Relic REST API key](https://docs.newrelic.com/docs/apis/rest-api-v2/requirements/api-keys) (different from the license key given to the agent). 
+To send [New Relic deployment notifications](https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/deployment-notifications) supply your [New Relic REST API key](https://docs.newrelic.com/docs/apis/rest-api-v2/requirements/api-keys) (different from the license key given to the agent).
 
 *globals.yml*
 ```

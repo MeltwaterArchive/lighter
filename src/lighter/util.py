@@ -94,12 +94,19 @@ def replace(template, variables):
         if isinstance(result, (str, unicode)):
             remaining = variables.clone()
             while True:
-                names = re.findall(r"%\{([\w\.]+)\}", result)
+                names = re.findall(r"(?<!%)%\{([\w\.]+)\}", result)
                 if not names:
                     break
                 for name in names:
                     value = unicode(remaining.pop(name))
                     result = result.replace('%{' + name + '}', value)
+            while True:
+                names = re.findall(r"%%\{([\w\.]+)\}", result)
+                if not names:
+                    break
+                for name in names:
+                    value = unicode(remaining.pop(name))
+                    result = result.replace('%%{' + name + '}', '%{' + name + '}')
 
     return result
 
