@@ -9,6 +9,9 @@ if [[ "$(uname -s)" == 'Darwin' ]]; then
         brew outdated openssl || brew upgrade openssl
     fi
 
+    brew outdated libffi || brew upgrade libffi
+    [[ -f "/usr/local/opt/libffi/lib/libffi.6.dylib" ]] || brew unlink pkg-config && brew install pkg-config libffi
+
     # install pyenv
     git clone https://github.com/yyuu/pyenv.git ~/.pyenv
     PYENV_ROOT="$HOME/.pyenv"

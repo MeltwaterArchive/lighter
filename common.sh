@@ -25,5 +25,7 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
         export TOX_FLAGS="--backend=openssl"
     fi
 
+    export DYLD_FALLBACK_LIBRARY_PATH=/opt/local/lib
+
     source ~/.venv/bin/activate
 fi
