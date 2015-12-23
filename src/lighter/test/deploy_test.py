@@ -119,3 +119,12 @@ class DeployTest(unittest.TestCase):
         lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', verifySecrets=False)
         self.assertEqual(mock_warn.call_count, 1)
         mock_warn.assert_called_with('Found unencrypted secret in src/resources/yaml/staging/myservice-password.yml: DATABASE_PASSWORD')
+
+    def testConfigHash(self):
+        service1 = lighter.parse_service('src/resources/yaml/staging/myservice.yml')
+        service2 = lighter.parse_service('src/resources/yaml/staging/myservice.yml')
+        self.assertEqual(32, len(service1.config['labels']['com.meltwater.lighter.checksum']))
+        self.assertEqual(service1.config['labels']['com.meltwater.lighter.checksum'], service2.config['labels']['com.meltwater.lighter.checksum'])
+
+        service3 = lighter.parse_service('src/resources/yaml/staging/myservice-classifier.yml')
+        self.assertNotEqual(service1.config['labels']['com.meltwater.lighter.checksum'], service3.config['labels']['com.meltwater.lighter.checksum'])
