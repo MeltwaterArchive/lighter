@@ -137,6 +137,11 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
 
     # Generate deploy keys and encrypt secrets 
     config = secretary.apply(document, config)
+    checksum = util.checksum(config)
+
+    # Include hash of config to detect if an element has been removed
+    config['labels'] = config.get('labels', {})
+    config['labels']['com.meltwater.lighter.checksum'] = checksum
 
     # Write json file to disk for logging purposes
     if targetdir:

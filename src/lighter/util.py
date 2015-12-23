@@ -1,5 +1,5 @@
 import os, sys, logging, itertools, types, re
-import urllib, urllib2, urlparse, base64, json
+import urllib, urllib2, urlparse, base64, json, hashlib
 import xml.dom.minidom as minidom
 from copy import copy
 
@@ -73,11 +73,24 @@ class Value(object):
     def same(self, other):
         return self == other
 
+    def hashstr(self):
+        return str(self)
+
 class ValueEncoder(json.JSONEncoder):
     def default(self, value):
         if isinstance(value, Value):
             return str(value)
         return value
+
+class HashEncoder(json.JSONEncoder):
+    def default(self, value):
+        if isinstance(value, Value):
+            return value.hashstr()
+        return value
+
+def checksum(value):
+    jsonvalue = json.dumps(value, cls=HashEncoder)
+    return hashlib.md5(jsonvalue).hexdigest()
 
 def toJson(value, *args, **kwargs):
     return json.dumps(value, cls=ValueEncoder, *args, **kwargs)

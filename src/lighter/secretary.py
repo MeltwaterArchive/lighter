@@ -37,6 +37,12 @@ class KeyValue(util.Value):
     def same(self, other):
         return len(self._value) == len(str(other))
 
+    def hashstr(self):
+        """
+        Avoid including the deploy keys in the config checksum
+        """
+        return 'secretary-deploy-key'
+
 def isEnvelope(value):
     return str(value).strip().startswith('ENC[NACL,') and str(value).strip().endswith(']')
 
