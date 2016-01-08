@@ -119,6 +119,9 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     # Merge overrides into json template
     config = util.merge(config, document.get('override', {}))
 
+    # Environment variables has the highest precedence
+    variables = util.EnvironmentVariables(variables)
+
     # Substitute variables into the config
     try:
         config = util.replace(config, variables)
@@ -251,7 +254,7 @@ if __name__ == '__main__':
         help='Deploy services to Marathon',
         description='Deploy services to Marathon')
     
-    deploy_parser.add_argument('-m', '--marathon', required=True, dest='marathon', help='Marathon URL like "http://marathon-host:8080/". Overrides default Marathon URL\'s provided in config files',
+    deploy_parser.add_argument('-m', '--marathon', dest='marathon', help='Marathon URL like "http://marathon-host:8080/". Overrides default Marathon URL\'s provided in config files',
                       default=os.environ.get('MARATHON_URL', ''))
     deploy_parser.add_argument('-f', '--force', dest='force', help='Force deployment even if the service is already affected by a running deployment [default: %(default)s]',
                       action='store_true', default=False)
