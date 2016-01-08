@@ -39,7 +39,7 @@ class DeployTest(unittest.TestCase):
     def testParseSnapshot(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice-snapshot.yml')
         self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.1.1-SNAPSHOT')
-        self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.1.1-20151105011659-4')
+        self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.1.1-20151105011659')
 
     def testParseUniqueSnapshot(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice-unique-snapshot.yml')

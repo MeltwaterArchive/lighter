@@ -86,12 +86,7 @@ class UtilTest(unittest.TestCase):
                     'timestamp': '20151102.035053',
                     'buildNumber': '8'
                 },
-                'lastUpdated': '20151102035120',
-                'snapshotVersions': {
-                    'snapshotVersion': {
-                        'classifier': 'marathon', 'extension': 'json', 'value': '1.1.1-20151102.035053-8', 'updated': '20151102035120'
-                    }
-                }
+                'lastUpdated': '20151102035120'
             }
         }
 

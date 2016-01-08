@@ -82,7 +82,8 @@ class ArtifactResolver(object):
         return self.fetch(version).body
 
     def fetch(self, version):
-        if not version.endswith('-SNAPSHOT'):
+        trailer = '-SNAPSHOT'
+        if not version.endswith(trailer):
             return self._fetch(version)
 
         # Try to resolve unique/timestamped snapshot versions from maven-metadata.xml
@@ -96,12 +97,10 @@ class ArtifactResolver(object):
             logging.debug('Failed to fetch %s', url)
 
         # Find a matching snapshot version (Gradle doesn't create <snapshotVersions> but Maven does)
-        snapshot = util.find(
-            util.rget(metadata,'versioning','snapshotVersions','snapshotVersion'), 
-            lambda v: isinstance(v, dict) and v.get('extension') == 'json' and v.get('classifier') == self._classifier,
-            {})
-        
-        return self._fetch(version, snapshot.get('value'), metadata)
+        timestamp = util.rget(metadata, 'versioning', 'snapshot', 'timestamp')
+        buildNumber = util.rget(metadata, 'versioning', 'snapshot', 'buildNumber')
+        snapshot = '-'.join(filter(bool, [version[0:len(version)-len(trailer)], timestamp, buildNumber])) if (timestamp is not None or buildNumber is not None) else None
+        return self._fetch(version, snapshot, metadata)
 
     def _fetch(self, version, uniqueVersion=None, metadata={}):
         url = '{0}/{1}/{2}/{3}/{2}-{4}'.format(self._url, self._groupid.replace('.', '/'), self._artifactid, version, uniqueVersion or version)
@@ -114,7 +113,7 @@ class ArtifactResolver(object):
             timestamp = util.rget(metadata,'versioning','snapshot','timestamp') or util.rget(metadata,'versioning','lastUpdated')
             buildNumber = util.rget(metadata,'versioning','snapshot','buildNumber')
             if timestamp or buildNumber:
-                uniqueVersion = '%s-%s-%s' % (version.replace('-SNAPSHOT',''), timestamp, buildNumber)
+                uniqueVersion = '-'.join(filter(bool, [version.replace('-SNAPSHOT',''), timestamp, buildNumber]))
 
         try:
             return Artifact(version, uniqueVersion, self._classifier, util.jsonRequest(url))

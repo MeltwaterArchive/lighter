@@ -5,13 +5,5 @@
             <buildNumber>8</buildNumber>
         </snapshot>
         <lastUpdated>20151102035120</lastUpdated>
-        <snapshotVersions>
-            <snapshotVersion>
-                <classifier>marathon</classifier>
-                <extension>json</extension>
-                <value>1.1.1-20151102.035053-8</value>
-                <updated>20151102035120</updated>
-            </snapshotVersion>
-        </snapshotVersions>
     </versioning>
 </metadata>
