@@ -1,4 +1,4 @@
-import unittest
+import os, unittest
 import lighter.main as lighter
 import lighter.util as util
 
@@ -33,7 +33,7 @@ class UtilTest(unittest.TestCase):
         x = {'a':'%{env.ES_PORT}'}
         m = {'a':'9300'}
         os.environ['ES_PORT'] = '9300'
-        self.assertEquals(util.replace(x, util.FixedVariables({})), m)
+        self.assertEquals(util.replace(x, util.EnvironmentVariables(util.FixedVariables({}))), m)
 
     def testCompare(self):
         x = {'a': 1, 'b': 2}

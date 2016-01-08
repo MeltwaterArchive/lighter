@@ -119,6 +119,9 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     # Merge overrides into json template
     config = util.merge(config, document.get('override', {}))
 
+    # Environment variables has the highest precedence
+    variables = util.EnvironmentVariables(variables)
+
     # Substitute variables into the config
     try:
         config = util.replace(config, variables)

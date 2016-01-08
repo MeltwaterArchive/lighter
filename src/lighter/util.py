@@ -47,6 +47,18 @@ class FixedVariables(object):
             raise KeyError('Variable %%{%s} not found' % name)
         return self._variables.pop(name)
 
+class EnvironmentVariables(object):
+    def __init__(self, wrappedResolver):
+        self._wrappedResolver = wrappedResolver
+
+    def clone(self):
+        return EnvironmentVariables(self._wrappedResolver.clone())
+
+    def pop(self, name):
+        if name.startswith('env.'):
+            return os.environ[name[4:]]
+        return self._wrappedResolver.pop(name)
+
 class Value(object):
     """
     Allows to override the test when service.config is compared
@@ -111,14 +123,11 @@ def replace(template, variables):
                 if not names:
                     break
                 for name in names:
-                    value = name.startswith('env.') ? os.environ[name[4:]] : unicode(remaining.pop(name))
+                    value = unicode(remaining.pop(name))
                     result = result.replace('%{' + name + '}', value)
-            while True:
-                names = re.findall(r"%%\{([\w\.]+)\}", result)
-                if not names:
-                    break
-                for name in names:
-                    result = result.replace('%%{' + name + '}', '%{' + name + '}')
+
+            # Replace double %%{foo} with %{foo}
+            result = re.sub(r"%%\{([\w\.]+)\}", "%{\\1}", result)
 
     return result
 
