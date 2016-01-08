@@ -99,7 +99,7 @@ class ArtifactResolver(object):
         # Find a matching snapshot version (Gradle doesn't create <snapshotVersions> but Maven does)
         timestamp = util.rget(metadata, 'versioning', 'snapshot', 'timestamp')
         buildNumber = util.rget(metadata, 'versioning', 'snapshot', 'buildNumber')
-        snapshot = '-'.join(filter(bool, [version[0:len(version)-len(trailer)], timestamp, buildNumber])) if (timestamp is not None or buildNumber is not None) else None
+        snapshot = '-'.join(filter(bool, [version[0:len(version)-len(trailer)], timestamp, buildNumber])) if (timestamp is not None and buildNumber is not None) else None
         return self._fetch(version, snapshot, metadata)
 
     def _fetch(self, version, uniqueVersion=None, metadata={}):
