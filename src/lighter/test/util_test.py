@@ -29,6 +29,12 @@ class UtilTest(unittest.TestCase):
         m = {'a':'abc%{var}def', 'b':'abc1def'}
         self.assertEquals(util.replace(x, util.FixedVariables({'var':'1'})), m)
 
+    def testReplaceEnv(self):
+        x = {'a':'%{env.ES_PORT}'}
+        m = {'a':'9300'}
+        os.environ['ES_PORT'] = '9300'
+        self.assertEquals(util.replace(x, util.FixedVariables({})), m)
+
     def testCompare(self):
         x = {'a': 1, 'b': 2}
         y = {'b': 3, 'c': 4}

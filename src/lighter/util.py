@@ -111,14 +111,13 @@ def replace(template, variables):
                 if not names:
                     break
                 for name in names:
-                    value = unicode(remaining.pop(name))
+                    value = name.startswith('env.') ? os.environ[name[4:]] : unicode(remaining.pop(name))
                     result = result.replace('%{' + name + '}', value)
             while True:
                 names = re.findall(r"%%\{([\w\.]+)\}", result)
                 if not names:
                     break
                 for name in names:
-                    value = unicode(remaining.pop(name))
                     result = result.replace('%%{' + name + '}', '%{' + name + '}')
 
     return result

@@ -191,6 +191,26 @@ And used from the *json* template like
 }
 ```
 
+Lighter also allows specifying environment variables as values in the configuration yaml files.
+
+With the following configuration:
+*myservice.yml*
+```
+service:
+  id: '/myproduct/myservice'
+  container:
+    docker:
+      image: 'meltwater/myservice:%{env.VERSION}'
+  env:
+    DATABASE: 'database:3306'
+  cpus: 1.0
+  mem: 1200
+  instances: 1
+```
+
+And Running `VERSION=1.1.1 lighter deploy myservice.yml`, lighter will deploy the docker image ``meltwater/myservice:1.1.1`` to marathon.
+
+
 To avoid interpolating some string like ``%{id}`` when you really want it, use ``%%{id}``
 
 ### Predefined Variables
