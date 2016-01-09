@@ -1,8 +1,9 @@
 #!/bin/sh
-set -e
+set -e -x
+. "`dirname $0`/common.sh"
 
 export PYTHONPATH=".:`dirname $0`/src"
-python "`dirname $0`/src/lighter/main.py" $@
+python "`dirname $0`/src/lighter/main.py" -t "`dirname $0`/target" $@
 
 # Make sure the output files are writable outside the Docker container
 if [ -e "/tmp/lighter" ]; then

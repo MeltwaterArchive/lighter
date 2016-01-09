@@ -3,6 +3,7 @@
 \#*
 build/
 dist/
+target/
 lighter*.spec
 travis.log
 .coverage
