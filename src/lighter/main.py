@@ -195,7 +195,7 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             # See if service config has changed
             prevVersion = get_marathon_app(appurl)
             if compare_service_versions(service.config, prevVersion):
-                logging.debug("Service already deployed with same config: %s", service.filename)
+                logging.info("Service already deployed with same config: %s", service.filename)
                 continue
 
             # Skip deployment if noop flag is given
@@ -231,7 +231,7 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
                 tags=["environment:%s" % service.environment, "service:%s" % service.id])
 
         except urllib2.HTTPError, e:
-            raise RuntimeError("Failed to deploy %s HTTP %d (%s)" % (service.filename, e.code, e)), None, sys.exc_info()[2]
+            raise RuntimeError("Failed to deploy %s HTTP %d (%s) - Response: %s" % (service.filename, e.code, e, e.read())), None, sys.exc_info()[2]
         except urllib2.URLError, e:
             raise RuntimeError("Failed to deploy %s (%s)" % (service.filename, e)), None, sys.exc_info()[2]
 
