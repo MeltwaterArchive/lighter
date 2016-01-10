@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copied from https://github.com/pyca/cryptography/blob/master/.travis/run.sh
 set -e -x
 
