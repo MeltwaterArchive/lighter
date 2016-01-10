@@ -25,6 +25,12 @@ class DeployTest(unittest.TestCase):
         self.assertEquals(service.config['upgradeStrategy']['minimumHealthCapacity'], 0.0)
         self.assertEquals(service.config['upgradeStrategy']['maximumOverCapacity'], 0.0)
 
+    def testParseEnvVariable(self):
+        import os
+        os.environ['VERSION'] = '1.1.1'
+        service = lighter.parse_service('src/resources/yaml/staging/myservice-env-variable.yml')
+        self.assertEquals(service.config['container']['docker']['image'], 'meltwater/myservice:1.1.1')
+
     def testParseClassifier(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice-classifier.yml')
         self.assertEquals(service.config['env']['isclassifier'], 'marathon')

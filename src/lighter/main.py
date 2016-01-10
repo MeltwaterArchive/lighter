@@ -97,6 +97,8 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
                 document = util.merge(yaml.load(fd2), document)
         path = path[0:path.rindex('/')]
 
+    # Environment variables has the highest precedence
+    document = util.replaceEnv(document)
     # Start from a service section if it exists
     config = document.get('service', {})
     variables = util.FixedVariables(document.get('variables', {}))
@@ -118,9 +120,6 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     
     # Merge overrides into json template
     config = util.merge(config, document.get('override', {}))
-
-    # Environment variables has the highest precedence
-    variables = util.EnvironmentVariables(variables)
 
     # Substitute variables into the config
     try:

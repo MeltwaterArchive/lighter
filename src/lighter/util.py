@@ -119,15 +119,35 @@ def replace(template, variables):
         if isinstance(result, (str, unicode)):
             remaining = variables.clone()
             while True:
-                names = re.findall(r"(?<!%)%\{([\w\.]+)\}", result)
+                names = re.findall(r"(?<!%)%\{(\s*[\w\.]+\s*)\}", result)
                 if not names:
                     break
                 for name in names:
-                    value = unicode(remaining.pop(name))
+                    value = unicode(remaining.pop(name.strip()))
                     result = result.replace('%{' + name + '}', value)
 
             # Replace double %%{foo} with %{foo}
             result = re.sub(r"%%\{([\w\.]+)\}", "%{\\1}", result)
+
+    return result
+
+def replaceEnv(template):
+    result = copy(template)
+
+    if isinstance(result, dict):
+        for key, value in result.items():
+            result[key] = replaceEnv(value)
+    elif isinstance(result, (list, tuple)):
+        result = [replaceEnv(elem) for elem in result]
+    else:
+        if isinstance(result, (str, unicode)):
+            while True:
+                names = re.findall(r"(?<!%)%\{(\s*env\.[\w\.]+\s*)\}", result)
+                if not names:
+                    break
+                for name in names:
+                    value = unicode(os.environ[name.strip()[4:]])
+                    result = result.replace('%{' + name + '}', value)
 
     return result
 
