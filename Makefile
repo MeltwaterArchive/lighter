@@ -10,6 +10,6 @@ clean:
 	rm -rf ./build ./dist
 
 format:
-	autopep8 -a -i -r .
+	./format
 
 .PHONY: build test clean format
