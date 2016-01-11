@@ -5,7 +5,6 @@ import argparse
 import logging
 import yaml
 import urllib2
-import json
 from urlparse import urlparse
 from joblib import Parallel, delayed
 from lighter.hipchat import HipChat
@@ -141,8 +140,8 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     # Check for unencrypted secrets
     if 'env' in config:
         for key, value in config['env'].iteritems():
-            if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower() or 'token' in key.lower())
-                    and not 'public' in key.lower()) and len(secretary.extractEnvelopes(value)) == 0:
+            if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower() or 'token' in key.lower()) and
+                    'public' not in key.lower()) and len(secretary.extractEnvelopes(value)) == 0:
                 if verifySecrets:
                     raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, key))
                 else:
@@ -264,9 +263,14 @@ if __name__ == '__main__':
                                           help='Deploy services to Marathon',
                                           description='Deploy services to Marathon')
 
-    deploy_parser.add_argument('-m', '--marathon', dest='marathon', help='Marathon URL like "http://marathon-host:8080/". Overrides default Marathon URL\'s provided in config files',
+    deploy_parser.add_argument('-m',
+                               '--marathon',
+                               dest='marathon',
+                               help='Marathon URL like "http://marathon-host:8080/". Overrides default Marathon URL\'s provided in config files',
                                default=os.environ.get('MARATHON_URL', ''))
-    deploy_parser.add_argument('-f', '--force', dest='force', help='Force deployment even if the service is already affected by a running deployment [default: %(default)s]',
+    deploy_parser.add_argument('-f', '--force',
+                               dest='force',
+                               help='Force deployment even if the service is already affected by a running deployment [default: %(default)s]',
                                action='store_true', default=False)
     deploy_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
                                help='Service files to expand and deploy')

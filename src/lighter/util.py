@@ -1,8 +1,6 @@
 import os
 import sys
 import logging
-import itertools
-import types
 import re
 import urllib
 import urllib2
@@ -143,7 +141,7 @@ def replace(template, variables, raiseError=True):
                         replacements += 1
                     except KeyError as e:
                         if raiseError:
-                            raise e, None, sys.exc_info()[2]
+                            raise KeyError(e.message), None, sys.exc_info()[2]
 
             # Replace double %%{foo} with %{foo}
             result = re.sub(r"%%\{(\s*[\w\.]+\s*)\}", "%{\\1}", result)

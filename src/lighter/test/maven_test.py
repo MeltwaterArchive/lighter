@@ -56,7 +56,7 @@ class MavenTest(unittest.TestCase):
 
         try:
             resolver.get('0.0.0')
-        except RuntimeError as e:
+        except RuntimeError:
             pass
         else:
             self.fail("Expected RuntimeError")

@@ -4,7 +4,6 @@ import urllib2
 import logging
 import base64
 import json
-import md5
 import lighter.util as util
 
 class ImageVariables(object):

@@ -10,6 +10,6 @@ clean:
 	rm -rf ./build ./dist
 
 format:
-	autopep8 -a -i -r --max-line-length=160 --ignore E301,E302,E309 .
+	autopep8 -a -i -r .
 
 .PHONY: build test clean format

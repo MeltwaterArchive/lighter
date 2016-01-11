@@ -1,9 +1,5 @@
 import unittest
-import yaml
-import nacl
 import json
-from mock import patch, ANY
-from nacl.public import Box, PrivateKey
 import lighter.main as lighter
 import lighter.secretary as secretary
 import lighter.util as util

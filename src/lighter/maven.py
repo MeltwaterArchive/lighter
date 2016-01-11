@@ -96,7 +96,7 @@ class ArtifactResolver(object):
 
         try:
             metadata = util.xmlRequest(url)
-        except urllib2.URLError as e:
+        except urllib2.URLError:
             logging.debug('Failed to fetch %s', url)
 
         # Find a matching snapshot version (Gradle doesn't create <snapshotVersions> but Maven does)
