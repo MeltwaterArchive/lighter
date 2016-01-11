@@ -1,0 +1,10 @@
+service:
+  id: '/myproduct/myservice-nomaven'
+  container:
+    docker:
+      image: 'meltwater/myservice:%{env.VERSION}'
+  env:
+    DATABASE: '%{env.DATABASE}'
+  cpus: 1.0
+  mem: 1200
+  instances: 1

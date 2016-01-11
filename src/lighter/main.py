@@ -98,8 +98,16 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
         path = path[0:path.rindex('/')]
 
     # Start from a service section if it exists
-    config = document.get('service', {})
     variables = util.FixedVariables(document.get('variables', {}))
+
+    # Environment variables has higher precedence
+    variables = util.EnvironmentVariables(variables)
+
+    # Replace variables in entire document
+    document = util.replace(document, variables, raiseError=False)
+
+    # Start from a service section if it exists
+    config = document.get('service', {})
     
     # Allow resolving version/uniqueVersion variables from docker registry
     variables = docker.ImageVariables.create(
@@ -118,9 +126,6 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     
     # Merge overrides into json template
     config = util.merge(config, document.get('override', {}))
-
-    # Environment variables has the highest precedence
-    variables = util.EnvironmentVariables(variables)
 
     # Substitute variables into the config
     try:

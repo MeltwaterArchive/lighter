@@ -1,4 +1,4 @@
-import unittest, yaml
+import unittest, yaml, os
 from mock import patch, ANY
 import lighter.main as lighter
 from lighter.util import jsonRequest
@@ -24,6 +24,19 @@ class DeployTest(unittest.TestCase):
         # Check that zero are translated correctly
         self.assertEquals(service.config['upgradeStrategy']['minimumHealthCapacity'], 0.0)
         self.assertEquals(service.config['upgradeStrategy']['maximumOverCapacity'], 0.0)
+
+    def testParseEnvVariable(self):
+        os.environ['VERSION'] = '1.0.0'
+        os.environ['DATABASE'] = 'hostname:3306'
+        os.environ['RABBITMQ_URL'] = 'amqp://hostname:5672/%2F'
+        service = lighter.parse_service('src/resources/yaml/staging/myservice-env-variable.yml')
+        self.assertEquals(service.config['container']['docker']['image'], 'meltwater/myservice:1.0.0')
+        self.assertEquals(service.config['env']['DATABASE'], 'hostname:3306')
+
+        service = lighter.parse_service('src/resources/yaml/staging/myservice-env-maven.yml')
+        self.assertEquals(service.config['container']['docker']['image'], 'meltwater/myservice:1.0.0')
+        self.assertEquals(service.config['env']['DATABASE'], 'hostname:3306')
+        self.assertEquals(service.config['env']['RABBITMQ_URL'], 'amqp://hostname:5672/%2F')
 
     def testParseClassifier(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice-classifier.yml')

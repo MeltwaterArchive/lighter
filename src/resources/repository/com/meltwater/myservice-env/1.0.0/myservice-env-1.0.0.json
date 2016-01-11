@@ -1,0 +1,12 @@
+{
+    "id": "/myproduct/myservice",
+    "container": {
+        "type": "DOCKER",
+        "docker": {
+            "image": "meltwater/myservice:1.0.0"
+        }
+    },
+    "env": {
+        "DATABASE": "%{env.DATABASE}"
+    }
+}

@@ -20,13 +20,13 @@ class UtilTest(unittest.TestCase):
         self.assertEquals(util.merge(x, y), m)
 
     def testReplace(self):
-        x = {'a':'abc%{var}def', 'b':['%{var} %{var2} %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
-        m = {'a':'abc1def', 'b':['1 2 3'], 'c': {'d': '2 3'}}
+        x = {'a':'abc%{var}def %{var}', 'b':['%{var} %{ var2 } %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
+        m = {'a':'abc1def 1', 'b':['1 2 3'], 'c': {'d': '2 3'}}
         self.assertEquals(util.replace(x, util.FixedVariables({'var':'1', 'var2':2, 'var3': '3'})), m)
 
     def testReplaceEscape(self):
-        x = {'a':'abc%%{var}def', 'b':'abc%{var}def'}
-        m = {'a':'abc%{var}def', 'b':'abc1def'}
+        x = {'a':'abc%%{var}def %%{var}def', 'b':'abc%{var}def %{var}'}
+        m = {'a':'abc%{var}def %{var}def', 'b':'abc1def 1'}
         self.assertEquals(util.replace(x, util.FixedVariables({'var':'1'})), m)
 
     def testReplaceEnv(self):
