@@ -1,6 +1,7 @@
-pyyaml
-mock
-pyinstaller
-requests
 joblib
+mock
+flake8
+pyinstaller
 pynacl
+pyyaml
+requests
