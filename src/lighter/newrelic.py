@@ -40,8 +40,7 @@ class NewRelic(object):
 
             return util.xmlRequest(self._url, method='POST', data=data, headers=headers, contentType='application/x-www-form-urlencoded')
 
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             logging.warn(str(e))
             print traceback.format_exc()
             return {}
-

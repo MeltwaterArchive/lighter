@@ -1,6 +1,5 @@
-import unittest, yaml, nacl, json
-from mock import patch, ANY
-from nacl.public import Box, PrivateKey
+import unittest
+import json
 import lighter.main as lighter
 import lighter.secretary as secretary
 import lighter.util as util
@@ -36,20 +35,20 @@ class SecretaryTest(unittest.TestCase):
     def testExtractEnvelopes(self):
         envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,uSr123+/=]:ENC[NACL,pWd123+/=]@rabbit:5672/")
         self.assertEqual(2, len(envelopes))
-        self.assertEqual([ "ENC[NACL,uSr123+/=]", "ENC[NACL,pWd123+/=]" ], envelopes)
-    
+        self.assertEqual(["ENC[NACL,uSr123+/=]", "ENC[NACL,pWd123+/=]"], envelopes)
+
         envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,]:ENC[NACL,pWd123+/=]@rabbit:5672/")
         self.assertEqual(1, len(envelopes))
-        self.assertEqual([ "ENC[NACL,pWd123+/=]" ], envelopes)
-    
+        self.assertEqual(["ENC[NACL,pWd123+/=]"], envelopes)
+
         envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,:ENC[NACL,pWd123+/=]@rabbit:5672/")
         self.assertEqual(1, len(envelopes))
-        self.assertEqual([ "ENC[NACL,pWd123+/=]" ], envelopes)
-    
+        self.assertEqual(["ENC[NACL,pWd123+/=]"], envelopes)
+
         envelopes = secretary.extractEnvelopes("amqp://NC[NACL,]:ENC[NACL,pWd123+/=]@rabbit:5672/")
         self.assertEqual(1, len(envelopes))
-        self.assertEqual([ "ENC[NACL,pWd123+/=]" ], envelopes)
-    
+        self.assertEqual(["ENC[NACL,pWd123+/=]"], envelopes)
+
         envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,abc:ENC[NACL,pWd123+/=]@rabbit:5672/")
         self.assertEqual(1, len(envelopes))
-        self.assertEqual([ "ENC[NACL,pWd123+/=]" ], envelopes)
+        self.assertEqual(["ENC[NACL,pWd123+/=]"], envelopes)

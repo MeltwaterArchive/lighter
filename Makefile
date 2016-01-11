@@ -1,4 +1,4 @@
-all: build test
+all: format test build
 
 build:
 	./build.sh
@@ -9,4 +9,7 @@ test:
 clean:
 	rm -rf ./build ./dist
 
-.PHONY: build test clean
+format:
+	./format
+
+.PHONY: build test clean format

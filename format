@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e -x
+. ./common.sh
+
+cd "`dirname $0`"
+export PYTHONPATH=".:`pwd`/src"
+
+echo "==> Reformat code to conform to PEP8 style guide"
+autopep8 -a -i -r .

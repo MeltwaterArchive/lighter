@@ -1,5 +1,13 @@
-import os, sys, logging, itertools, types, re
-import urllib, urllib2, urlparse, base64, json, hashlib
+import os
+import sys
+import logging
+import re
+import urllib
+import urllib2
+import urlparse
+import base64
+import json
+import hashlib
 import xml.dom.minidom as minidom
 from copy import copy
 
@@ -131,9 +139,9 @@ def replace(template, variables, raiseError=True):
                         value = unicode(remaining.pop(name))
                         result = re.sub('%{\s*' + re.escape(name) + '\s*}', value, result)
                         replacements += 1
-                    except KeyError, e:
+                    except KeyError as e:
                         if raiseError:
-                           raise e, None, sys.exc_info()[2] 
+                            raise KeyError(e.message), None, sys.exc_info()[2]
 
             # Replace double %%{foo} with %{foo}
             result = re.sub(r"%%\{(\s*[\w\.]+\s*)\}", "%{\\1}", result)
@@ -239,7 +247,7 @@ def rget(root, *args):
     node = root
     default = {}
     for arg, i in zip(args, range(len(args))):
-        if i+1 >= len(args):
+        if i + 1 >= len(args):
             default = None
         if isinstance(node, (list, tuple)):
             node = node[arg] if (arg >= 0 and arg < len(node)) else default

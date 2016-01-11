@@ -1,4 +1,5 @@
-import os, unittest
+import os
+import unittest
 import lighter.main as lighter
 import lighter.util as util
 
@@ -9,9 +10,9 @@ class UtilTest(unittest.TestCase):
         z = {'c': 5, 'd': 6}
 
         m = {'a': 1, 'b': 3, 'c': 5, 'd': 6}
-        self.assertEqual(util.merge(x, y, z),m)
+        self.assertEqual(util.merge(x, y, z), m)
         m = {'a': 1, 'b': 2, 'c': 4, 'd': 6}
-        self.assertEqual(util.merge(z, y, x),m)
+        self.assertEqual(util.merge(z, y, x), m)
 
     def testMergeLists(self):
         x = {'a': [1, 2]}
@@ -20,18 +21,18 @@ class UtilTest(unittest.TestCase):
         self.assertEquals(util.merge(x, y), m)
 
     def testReplace(self):
-        x = {'a':'abc%{var}def %{var}', 'b':['%{var} %{ var2 } %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
-        m = {'a':'abc1def 1', 'b':['1 2 3'], 'c': {'d': '2 3'}}
-        self.assertEquals(util.replace(x, util.FixedVariables({'var':'1', 'var2':2, 'var3': '3'})), m)
+        x = {'a': 'abc%{var}def %{var}', 'b': ['%{var} %{ var2 } %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
+        m = {'a': 'abc1def 1', 'b': ['1 2 3'], 'c': {'d': '2 3'}}
+        self.assertEquals(util.replace(x, util.FixedVariables({'var': '1', 'var2': 2, 'var3': '3'})), m)
 
     def testReplaceEscape(self):
-        x = {'a':'abc%%{var}def %%{var}def', 'b':'abc%{var}def %{var}'}
-        m = {'a':'abc%{var}def %{var}def', 'b':'abc1def 1'}
-        self.assertEquals(util.replace(x, util.FixedVariables({'var':'1'})), m)
+        x = {'a': 'abc%%{var}def %%{var}def', 'b': 'abc%{var}def %{var}'}
+        m = {'a': 'abc%{var}def %{var}def', 'b': 'abc1def 1'}
+        self.assertEquals(util.replace(x, util.FixedVariables({'var': '1'})), m)
 
     def testReplaceEnv(self):
-        x = {'a':'%{env.ES_PORT}'}
-        m = {'a':'9300'}
+        x = {'a': '%{env.ES_PORT}'}
+        m = {'a': '9300'}
         os.environ['ES_PORT'] = '9300'
         self.assertEquals(util.replace(x, util.EnvironmentVariables(util.FixedVariables({}))), m)
 
@@ -48,19 +49,19 @@ class UtilTest(unittest.TestCase):
         self.assertTrue(lighter.compare_service_versions(x, x))
 
         x = {'a': [1], 'b': 2}
-        y = {'a': [2,1], 'b': 2}
+        y = {'a': [2, 1], 'b': 2}
         self.assertFalse(lighter.compare_service_versions(x, y))
         self.assertFalse(lighter.compare_service_versions(y, x))
         self.assertTrue(lighter.compare_service_versions(x, x))
 
-        x = {'a': {'c':2}, 'b': 2}
-        y = {'a': {'c':1}, 'b': 2}
+        x = {'a': {'c': 2}, 'b': 2}
+        y = {'a': {'c': 1}, 'b': 2}
         self.assertFalse(lighter.compare_service_versions(x, y))
         self.assertFalse(lighter.compare_service_versions(y, x))
         self.assertTrue(lighter.compare_service_versions(x, x))
 
-        x = {'a': {'c':2, 'd':4}, 'b': 2}
-        y = {'a': {'c':1}, 'b':2}
+        x = {'a': {'c': 2, 'd': 4}, 'b': 2}
+        y = {'a': {'c': 1}, 'b': 2}
         self.assertFalse(lighter.compare_service_versions(x, y))
         self.assertFalse(lighter.compare_service_versions(y, x))
         self.assertTrue(lighter.compare_service_versions(x, x))
@@ -102,12 +103,12 @@ class UtilTest(unittest.TestCase):
         req = util.buildRequest(url)
         self.assertTrue(req.get_header('Authorization').startswith('Basic '))
 
-        req = util.buildRequest(url, data={'a':'b'})
+        req = util.buildRequest(url, data={'a': 'b'})
         self.assertTrue(req.get_header('Authorization').startswith('Basic '))
         self.assertEqual('application/json', req.get_header('Content-type'))
         self.assertEqual('{"a": "b"}', req.get_data())
 
-        req = util.buildRequest(url, data={'a':'b'}, contentType='application/x-www-form-urlencoded')
+        req = util.buildRequest(url, data={'a': 'b'}, contentType='application/x-www-form-urlencoded')
         self.assertEqual('application/x-www-form-urlencoded', req.get_header('Content-type'))
         self.assertEqual('a=b', req.get_data())
 

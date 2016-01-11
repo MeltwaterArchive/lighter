@@ -5,7 +5,7 @@ class MavenTest(unittest.TestCase):
     def testResolve(self):
         resolver = maven.ArtifactResolver('file:./src/resources/repository/', 'com.meltwater', 'myservice')
         self.assertEquals(resolver.resolve('[1.0.0,2.0.0)'), '1.1.0')
-        
+
     def testSelectVersionInclusive(self):
         resolver = maven.ArtifactResolver('file:./src/resources/repository/', 'com.meltwater', 'myservice')
         def select(expression, versions):
@@ -56,7 +56,7 @@ class MavenTest(unittest.TestCase):
 
         try:
             resolver.get('0.0.0')
-        except RuntimeError, e:
+        except RuntimeError:
             pass
         else:
             self.fail("Expected RuntimeError")

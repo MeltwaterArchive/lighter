@@ -1,4 +1,7 @@
-import sys, re, urllib2, logging
+import sys
+import re
+import urllib2
+import logging
 import lighter.util as util
 
 class VersionRange(object):
@@ -18,7 +21,7 @@ class VersionRange(object):
         parsed = self.parseVersion(version)
         return (self._lversion is None or self._lbound == '[' and self._lversion <= parsed or self._lbound == '(' and self._lversion < parsed) and \
                (self._rversion is None or self._rbound == ']' and parsed <= self._rversion or self._rbound == ')' and parsed < self._rversion) and \
-               VersionRange.suffix(version) == self._suffix
+            VersionRange.suffix(version) == self._suffix
 
     @staticmethod
     def suffix(version):
@@ -40,7 +43,7 @@ class VersionRange(object):
         av = VersionRange.parseVersion(a)
         bv = VersionRange.parseVersion(b)
         result = cmp(av, bv)
-        
+
         # Snapshots are less than a release with the same version number
         if result == 0:
             if VersionRange.issnapshot(a) and not VersionRange.issnapshot(b):
@@ -93,13 +96,14 @@ class ArtifactResolver(object):
 
         try:
             metadata = util.xmlRequest(url)
-        except urllib2.URLError, e:
+        except urllib2.URLError:
             logging.debug('Failed to fetch %s', url)
 
         # Find a matching snapshot version (Gradle doesn't create <snapshotVersions> but Maven does)
         timestamp = util.rget(metadata, 'versioning', 'snapshot', 'timestamp')
         buildNumber = util.rget(metadata, 'versioning', 'snapshot', 'buildNumber')
-        snapshot = '-'.join(filter(bool, [version[0:len(version)-len(trailer)], timestamp, buildNumber])) if (timestamp is not None and buildNumber is not None) else None
+        snapshot = '-'.join(filter(bool, [version[0:len(version) - len(trailer)], timestamp, buildNumber])
+                            ) if (timestamp is not None and buildNumber is not None) else None
         return self._fetch(version, snapshot, metadata)
 
     def _fetch(self, version, uniqueVersion=None, metadata={}):
@@ -110,21 +114,21 @@ class ArtifactResolver(object):
 
         # Extract unique version number from metadata
         if not uniqueVersion:
-            timestamp = util.rget(metadata,'versioning','snapshot','timestamp') or util.rget(metadata,'versioning','lastUpdated')
-            buildNumber = util.rget(metadata,'versioning','snapshot','buildNumber')
+            timestamp = util.rget(metadata, 'versioning', 'snapshot', 'timestamp') or util.rget(metadata, 'versioning', 'lastUpdated')
+            buildNumber = util.rget(metadata, 'versioning', 'snapshot', 'buildNumber')
             if timestamp or buildNumber:
-                uniqueVersion = '-'.join(filter(bool, [version.replace('-SNAPSHOT',''), timestamp, buildNumber]))
+                uniqueVersion = '-'.join(filter(bool, [version.replace('-SNAPSHOT', ''), timestamp, buildNumber]))
 
         try:
             return Artifact(version, uniqueVersion, self._classifier, util.jsonRequest(url))
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             raise RuntimeError("Failed to retrieve %s HTTP %d (%s)" % (url, e.code, e)), None, sys.exc_info()[2]
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             raise RuntimeError("Failed to retrieve %s (%s)" % (url, e)), None, sys.exc_info()[2]
 
     def resolve(self, expression):
         metadata = util.xmlRequest('{0}/{1}/{2}/maven-metadata.xml'.format(self._url, self._groupid.replace('.', '/'), self._artifactid))
-        versions = util.toList(util.rget(metadata,'versioning','versions','version'))
+        versions = util.toList(util.rget(metadata, 'versioning', 'versions', 'version'))
         logging.debug('%s:%s candidate versions %s', self._groupid, self._artifactid, versions)
         return self.selectVersion(expression, versions)
 

@@ -1,6 +1,10 @@
 #!/usr/bin/env python
-import os, sys, argparse, logging
-import yaml, urllib2, json
+import os
+import sys
+import argparse
+import logging
+import yaml
+import urllib2
 from urlparse import urlparse
 from joblib import Parallel, delayed
 from lighter.hipchat import HipChat
@@ -50,7 +54,7 @@ def compare_service_versions(nextVersion, prevVersion, path=''):
             if not compare_service_versions(nextValue, prevValue, path):
                 return False
     elif isinstance(nextVersion, util.Value) and not nextVersion.same(prevVersion) or \
-         not isinstance(nextVersion, util.Value) and nextVersion != prevVersion:
+            not isinstance(nextVersion, util.Value) and nextVersion != prevVersion:
         if isinstance(nextVersion, int) and isinstance(prevVersion, int) and nextVersion == 0 and path == '/ports':
             return True
         logging.debug("Value has changed at %s (%s != %s)", path, nextVersion, prevVersion)
@@ -69,23 +73,23 @@ class Service(object):
 
     @property
     def image(self):
-        return util.rget(self.config,'container','docker','image') or ''
-    
+        return util.rget(self.config, 'container', 'docker', 'image') or ''
+
     @property
     def environment(self):
-        return util.rget(self.document,'facts','environment') or 'default'
+        return util.rget(self.document, 'facts', 'environment') or 'default'
 
     @property
     def uniqueVersion(self):
         return util.rget(self.document, 'variables', 'lighter.uniqueVersion') or \
-               (self.image.split(':')[1] if ':' in self.image else 'latest')
+            (self.image.split(':')[1] if ':' in self.image else 'latest')
 
 def parse_service(filename, targetdir=None, verifySecrets=False):
     logging.info("Processing %s", filename)
     with open(filename, 'r') as fd:
         try:
             document = yaml.load(fd)
-        except yaml.YAMLError, e:
+        except yaml.YAMLError as e:
             raise RuntimeError("Error parsing file %s: %s" % (filename, e))
 
     # Merge globals.yml files into document
@@ -108,42 +112,42 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
 
     # Start from a service section if it exists
     config = document.get('service', {})
-    
+
     # Allow resolving version/uniqueVersion variables from docker registry
     variables = docker.ImageVariables.create(
-        variables, document, util.rget(config,'container','docker','image'))
+        variables, document, util.rget(config, 'container', 'docker', 'image'))
 
     # Fetch and merge json template from maven
-    if util.rget(document,'maven','version') or util.rget(document,'maven','resolve'):
+    if util.rget(document, 'maven', 'version') or util.rget(document, 'maven', 'resolve'):
         coord = document['maven']
-        
+
         resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'], coord.get('classifier'))
         version = coord.get('version') or resolver.resolve(coord['resolve'])
-        
+
         artifact = resolver.fetch(version)
         config = util.merge(config, artifact.body)
         variables = maven.ArtifactVariables(variables, artifact)
-    
+
     # Merge overrides into json template
     config = util.merge(config, document.get('override', {}))
 
     # Substitute variables into the config
     try:
         config = util.replace(config, variables)
-    except KeyError, e:
+    except KeyError as e:
         raise RuntimeError('Failed to parse %s with the following message: %s' % (filename, str(e.message)))
 
     # Check for unencrypted secrets
     if 'env' in config:
         for key, value in config['env'].iteritems():
-            if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower() or 'token' in key.lower()) and not 'public' in key.lower()) and len(secretary.extractEnvelopes(value)) == 0:
+            if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower() or 'token' in key.lower()) and
+                    'public' not in key.lower()) and len(secretary.extractEnvelopes(value)) == 0:
                 if verifySecrets:
                     raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, key))
                 else:
                     logging.warn('Found unencrypted secret in %s: %s' % (filename, key))
-                
 
-    # Generate deploy keys and encrypt secrets 
+    # Generate deploy keys and encrypt secrets
     config = secretary.apply(document, config)
     checksum = util.checksum(config)
 
@@ -158,7 +162,7 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
         # Exception if directory exists, e.g. because another thread created it concurrently
         try:
             os.makedirs(os.path.dirname(outputfile))
-        except OSError, e:
+        except OSError as e:
             pass
 
         with open(outputfile, 'w') as fd:
@@ -167,7 +171,7 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     return Service(filename, document, config)
 
 def parse_services(filenames, targetdir=None, verifySecrets=False):
-    #return [parse_service(filename, targetdir) for filename in filenames]
+    # return [parse_service(filename, targetdir) for filename in filenames]
     return Parallel(n_jobs=8, backend="threading")(delayed(parse_service)(filename, targetdir, verifySecrets) for filename in filenames)
 
 def get_marathon_url(url, id, force=False):
@@ -176,7 +180,7 @@ def get_marathon_url(url, id, force=False):
 def get_marathon_app(url):
     try:
         return util.jsonRequest(url)['app']
-    except urllib2.URLError, e:
+    except urllib2.URLError as e:
         logging.debug(str(e))
         return {}
 
@@ -208,11 +212,11 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
 
             # Send HipChat notification
             hipchat = HipChat(
-                util.rget(service.document,'hipchat','token'), 
-                util.rget(service.document,'hipchat','url'),
-                util.rget(service.document,'hipchat','rooms'))
-            hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" % 
-                (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
+                util.rget(service.document, 'hipchat', 'token'),
+                util.rget(service.document, 'hipchat', 'url'),
+                util.rget(service.document, 'hipchat', 'rooms'))
+            hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" %
+                           (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
 
             # Send NewRelic deployment notification
             newrelic = NewRelic(util.rget(service.document, 'newrelic', 'token'))
@@ -230,9 +234,9 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
                     service.id, service.image, service.environment, parsedMarathonUrl.netloc),
                 tags=["environment:%s" % service.environment, "service:%s" % service.id])
 
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             raise RuntimeError("Failed to deploy %s HTTP %d (%s) - Response: %s" % (service.filename, e.code, e, e.read())), None, sys.exc_info()[2]
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             raise RuntimeError("Failed to deploy %s (%s)" % (service.filename, e)), None, sys.exc_info()[2]
 
 def verify(filenames, targetdir=None, verifySecrets=False):
@@ -246,38 +250,43 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(help='Available commands', dest='command')
 
     parser.add_argument('-n', '--noop', dest='noop', help='Execute dry-run without modifying Marathon [default: %(default)s]',
-                      action='store_true', default=False)
+                        action='store_true', default=False)
     parser.add_argument('-v', '--verbose', dest='verbose', help='Increase logging verbosity [default: %(default)s]',
-                      action="store_true", default=False)
+                        action="store_true", default=False)
     parser.add_argument('-t', '--targetdir', dest='targetdir', help='Directory to output rendered config files',
-                      default=None)
+                        default=None)
 
     # Create the parser for the "deploy" command
-    deploy_parser = subparsers.add_parser('deploy', 
-        prog='lighter',
-        usage='%(prog)s deploy [OPTIONS]... YMLFILE...',
-        help='Deploy services to Marathon',
-        description='Deploy services to Marathon')
-    
-    deploy_parser.add_argument('-m', '--marathon', dest='marathon', help='Marathon URL like "http://marathon-host:8080/". Overrides default Marathon URL\'s provided in config files',
-                      default=os.environ.get('MARATHON_URL', ''))
-    deploy_parser.add_argument('-f', '--force', dest='force', help='Force deployment even if the service is already affected by a running deployment [default: %(default)s]',
-                      action='store_true', default=False)
+    deploy_parser = subparsers.add_parser('deploy',
+                                          prog='lighter',
+                                          usage='%(prog)s deploy [OPTIONS]... YMLFILE...',
+                                          help='Deploy services to Marathon',
+                                          description='Deploy services to Marathon')
+
+    deploy_parser.add_argument('-m',
+                               '--marathon',
+                               dest='marathon',
+                               help='Marathon URL like "http://marathon-host:8080/". Overrides default Marathon URL\'s provided in config files',
+                               default=os.environ.get('MARATHON_URL', ''))
+    deploy_parser.add_argument('-f', '--force',
+                               dest='force',
+                               help='Force deployment even if the service is already affected by a running deployment [default: %(default)s]',
+                               action='store_true', default=False)
     deploy_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
-                       help='Service files to expand and deploy')
-    
+                               help='Service files to expand and deploy')
+
     # Create the parser for the "verify" command
-    verify_parser = subparsers.add_parser('verify', 
-        prog='lighter',
-        usage='%(prog)s verify YMLFILE...',
-        help='Verify and generate Marathon configuration files',
-        description='Verify and generate Marathon configuration files')
-    
+    verify_parser = subparsers.add_parser('verify',
+                                          prog='lighter',
+                                          usage='%(prog)s verify YMLFILE...',
+                                          help='Verify and generate Marathon configuration files',
+                                          description='Verify and generate Marathon configuration files')
+
     verify_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
-                       help='Service files to expand and deploy')
-    
+                               help='Service files to expand and deploy')
+
     verify_parser.add_argument('--verify-secrets', dest='verifySecrets', help='Fail verification if unencrypted secrets are found [default: %(default)s]',
-                      action='store_true', default=False)
+                               action='store_true', default=False)
 
     args = parser.parse_args()
 
@@ -291,6 +300,6 @@ if __name__ == '__main__':
             deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames, targetdir=args.targetdir)
         elif args.command == 'verify':
             verify(args.filenames, targetdir=args.targetdir, verifySecrets=args.verifySecrets)
-    except RuntimeError, e:
+    except RuntimeError as e:
         logging.error(str(e))
         sys.exit(1)

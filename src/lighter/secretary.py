@@ -1,5 +1,8 @@
-import os, re, nacl, logging, base64
-from nacl.public import PublicKey, PrivateKey, Box
+import os
+import re
+import nacl
+import logging
+from nacl.public import PublicKey, PrivateKey
 from copy import deepcopy
 import lighter.util as util
 
@@ -22,12 +25,12 @@ class KeyEncoder(object):
                 contents = f.read()
                 matches = _PEM_RE.match(contents)
                 if not matches.group(2):
-                    raise ValueError("Failed to parse PEM file %s (is absolute path %s readable?)" % (data, path))
+                    raise ValueError("Failed to parse PEM file %s (is absolute path %s readable?)" % (data, data))
                 data = matches.group(2)
-        
+
         try:
             return nacl.encoding.Base64Encoder.decode(data)
-        except TypeError, e:
+        except TypeError as e:
             logging.error("Failed to decode key %s (%s)", data, e)
 
 class KeyValue(util.Value):
