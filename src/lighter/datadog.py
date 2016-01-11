@@ -1,4 +1,5 @@
-import logging, urllib2
+import logging
+import urllib2
 import lighter.util as util
 
 class Datadog(object):
@@ -10,7 +11,7 @@ class Datadog(object):
         if not title or not message or not id:
             logging.warn('Datadog title, message and id required')
             return
-        
+
         logging.debug("Sending Datadog event: %s", message)
         self._call('/api/v1/events', {
             'title': title,
@@ -30,6 +31,6 @@ class Datadog(object):
             url = self._url.rstrip('/') + endpoint + '?api_key=' + self._token
             logging.debug('Calling Datadog endpoint %s', endpoint)
             util.jsonRequest(url, data=data, method='POST')
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             logging.warn(str(e))
             return {}

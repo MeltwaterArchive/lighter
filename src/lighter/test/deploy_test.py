@@ -1,4 +1,6 @@
-import unittest, yaml, os
+import unittest
+import yaml
+import os
 from mock import patch, ANY
 import lighter.main as lighter
 from lighter.util import jsonRequest
@@ -10,7 +12,7 @@ class DeployTest(unittest.TestCase):
     def testParseService(self):
         service = lighter.parse_service('src/resources/yaml/staging/myservice.yml')
         self.assertEquals(service.document['hipchat']['token'], 'abc123')
-        self.assertEquals(sorted(service.document['hipchat']['rooms']), ['123','456','456','789'])
+        self.assertEquals(sorted(service.document['hipchat']['rooms']), ['123', '456', '456', '789'])
         self.assertEquals(service.environment, 'staging')
 
         self.assertEquals(service.config['id'], '/myproduct/myservice')
@@ -68,7 +70,7 @@ class DeployTest(unittest.TestCase):
         with patch('lighter.util.jsonRequest', wraps=self._parseErrorPost) as mock_jsonRequest:
             with self.assertRaises(RuntimeError):
                 lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/staging/myservice.yml', 'src/resources/yaml/staging/myservice-broken.yml'])
-            
+
     def _createJsonRequestWrapper(self, marathonurl='http://localhost:1'):
         appurl = '%s/v2/apps/myproduct/myservice' % marathonurl
 
@@ -99,12 +101,12 @@ class DeployTest(unittest.TestCase):
             with self.assertRaises(RuntimeError) as cm:
                 lighter.deploy(marathonurl=None, filenames=['src/resources/yaml/staging/myservice.yml'])
             self.assertEqual("No Marathon URL defined for service src/resources/yaml/staging/myservice.yml", cm.exception.message)
-    
+
     def testUnresolvedVariable(self):
         service_yaml = 'src/resources/yaml/integration/myservice-unresolved-variable.yml'
         try:
             lighter.parse_service(service_yaml)
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.assertEquals(e.message, 'Failed to parse %s with the following message: Variable %%{bvar} not found' % service_yaml)
         else:
             self.fail('Expected ValueError')
@@ -120,13 +122,13 @@ class DeployTest(unittest.TestCase):
     def testPasswordCheckFail(self):
         with self.assertRaises(RuntimeError):
             lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', verifySecrets=True)
-           
+
     def testPasswordCheckSucceed(self):
         lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-password.yml', verifySecrets=True)
-    
+
     def testPasswordCheckSubstringsSucceed(self):
         lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-substrings.yml', verifySecrets=True)
-    
+
     @patch('logging.warn')
     def testPasswordCheckWarning(self, mock_warn):
         lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', verifySecrets=False)

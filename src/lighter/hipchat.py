@@ -1,4 +1,5 @@
-import logging, urllib2
+import logging
+import urllib2
 import lighter.util as util
 
 class HipChat(object):
@@ -27,6 +28,6 @@ class HipChat(object):
             url = self._url.rstrip('/') + endpoint + '?auth_token=' + self._token
             logging.debug('Calling HipChat endpoint %s', endpoint)
             util.jsonRequest(url, data=data, method='POST')
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             logging.warn(str(e))
             return {}
