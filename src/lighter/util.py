@@ -1,20 +1,32 @@
-import os, sys, logging, itertools, types, re
-import urllib, urllib2, urlparse, base64, json, hashlib
+import os
+import sys
+import logging
+import re
+import urllib
+import urllib2
+import urlparse
+import base64
+import json
+import hashlib
 import xml.dom.minidom as minidom
 from copy import copy
 
+
 def hashable(a):
     return not isinstance(a, (dict, list, tuple))
+
 
 def unique(a):
     result = list(set(value for value in a if hashable(value)))
     result.extend([value for value in a if not hashable(value)])
     return result
 
+
 def toList(a):
     if isinstance(a, (list, tuple)):
         return a
     return [a] if (a is not None) else []
+
 
 def merge(*args):
     args = list(args)
@@ -35,7 +47,9 @@ def merge(*args):
 
     return result
 
+
 class FixedVariables(object):
+
     def __init__(self, variables):
         self._variables = variables
 
@@ -47,7 +61,9 @@ class FixedVariables(object):
             raise KeyError('Variable %%{%s} not found' % name)
         return self._variables.pop(name)
 
+
 class EnvironmentVariables(object):
+
     def __init__(self, wrappedResolver):
         self._wrappedResolver = wrappedResolver
 
@@ -59,11 +75,13 @@ class EnvironmentVariables(object):
             return os.environ[name[4:]]
         return self._wrappedResolver.pop(name)
 
+
 class Value(object):
     """
     Allows to override the test when service.config is compared
     against the previous version to see if it needs redeployment.
     """
+
     def __init__(self, value):
         self._value = value
 
@@ -88,24 +106,31 @@ class Value(object):
     def hashstr(self):
         return str(self)
 
+
 class ValueEncoder(json.JSONEncoder):
+
     def default(self, value):
         if isinstance(value, Value):
             return str(value)
         return value
 
+
 class HashEncoder(json.JSONEncoder):
+
     def default(self, value):
         if isinstance(value, Value):
             return value.hashstr()
         return value
 
+
 def checksum(value):
     jsonvalue = json.dumps(value, cls=HashEncoder)
     return hashlib.md5(jsonvalue).hexdigest()
 
+
 def toJson(value, *args, **kwargs):
     return json.dumps(value, cls=ValueEncoder, *args, **kwargs)
+
 
 def replace(template, variables, raiseError=True):
     result = copy(template)
@@ -129,22 +154,25 @@ def replace(template, variables, raiseError=True):
                 for name in set([name.strip() for name in names]):
                     try:
                         value = unicode(remaining.pop(name))
-                        result = re.sub('%{\s*' + re.escape(name) + '\s*}', value, result)
+                        result = re.sub(
+                            '%{\s*' + re.escape(name) + '\s*}', value, result)
                         replacements += 1
-                    except KeyError, e:
+                    except KeyError as e:
                         if raiseError:
-                           raise e, None, sys.exc_info()[2] 
+                            raise KeyError(e.message), None, sys.exc_info()[2]
 
             # Replace double %%{foo} with %{foo}
             result = re.sub(r"%%\{(\s*[\w\.]+\s*)\}", "%{\\1}", result)
 
     return result
 
+
 def find(collection, condition, default=None):
     for item in toList(collection):
         if condition(item):
             return item
     return default
+
 
 def urlunparse(data):
     """
@@ -163,7 +191,13 @@ def urlunparse(data):
         url = url + '#' + fragment
     return url
 
-def buildRequest(url, data=None, headers={}, method='GET', contentType='application/json'):
+
+def buildRequest(
+        url,
+        data=None,
+        headers={},
+        method='GET',
+        contentType='application/json'):
     parsed_url = urlparse.urlparse(url)
     parts = list(parsed_url[0:6])
     parts[1] = ('@' in parts[1]) and parts[1].split('@')[1] or parts[1]
@@ -185,29 +219,72 @@ def buildRequest(url, data=None, headers={}, method='GET', contentType='applicat
     if parsed_url.username is not None and parsed_url.password is not None:
         # You need the replace to handle encodestring adding a trailing newline
         # (https://docs.python.org/2/library/base64.html#base64.encodestring)
-        base64string = base64.encodestring('%s:%s' % (parsed_url.username, parsed_url.password)).replace('\n', '')
+        base64string = base64.encodestring(
+            '%s:%s' %
+            (parsed_url.username, parsed_url.password)).replace(
+            '\n', '')
         request.add_header("Authorization", "Basic %s" % base64string)
 
     return request
 
+
 def openRequest(request, timeout=None):
-    cafile = os.path.join(sys._MEIPASS, 'requests', 'cacert.pem') if getattr(sys, 'frozen', None) else None
+    cafile = os.path.join(
+        sys._MEIPASS,
+        'requests',
+        'cacert.pem') if getattr(
+        sys,
+        'frozen',
+        None) else None
     return urllib2.urlopen(request, cafile=cafile, timeout=timeout)
 
-def jsonRequest(url, data=None, headers={}, method='GET', contentType='application/json', timeout=None):
+
+def jsonRequest(
+        url,
+        data=None,
+        headers={},
+        method='GET',
+        contentType='application/json',
+        timeout=None):
     logging.debug('%sing url %s', method, url)
-    response = openRequest(buildRequest(url, data, headers, method, contentType), timeout=timeout)
+    response = openRequest(
+        buildRequest(
+            url,
+            data,
+            headers,
+            method,
+            contentType),
+        timeout=timeout)
     content = response.read()
-    if response.info().gettype() == 'application/json' or response.info().gettype() == 'text/plain':
+    if response.info().gettype(
+    ) == 'application/json' or response.info().gettype() == 'text/plain':
         return json.loads(content)
 
-    logging.debug('Content-Type %s is not json %s', response.info().gettype(), content)
+    logging.debug(
+        'Content-Type %s is not json %s',
+        response.info().gettype(),
+        content)
     return {}
 
-def xmlRequest(url, data=None, headers={}, method='GET', contentType='application/json', timeout=None):
+
+def xmlRequest(
+        url,
+        data=None,
+        headers={},
+        method='GET',
+        contentType='application/json',
+        timeout=None):
     logging.debug('%sing url %s', method, url)
-    response = openRequest(buildRequest(url, data, headers, method, contentType), timeout=timeout).read()
+    response = openRequest(
+        buildRequest(
+            url,
+            data,
+            headers,
+            method,
+            contentType),
+        timeout=timeout).read()
     return xmlTransform(minidom.parseString(response).documentElement)
+
 
 def xmlText(nodelist):
     result = ''
@@ -217,6 +294,7 @@ def xmlText(nodelist):
         else:
             result += xmlText(node.childNodes)
     return result
+
 
 def xmlTransform(node):
     result = {}
@@ -235,11 +313,12 @@ def xmlTransform(node):
 
     return result or xmlText(node.childNodes)
 
+
 def rget(root, *args):
     node = root
     default = {}
     for arg, i in zip(args, range(len(args))):
-        if i+1 >= len(args):
+        if i + 1 >= len(args):
             default = None
         if isinstance(node, (list, tuple)):
             node = node[arg] if (arg >= 0 and arg < len(node)) else default

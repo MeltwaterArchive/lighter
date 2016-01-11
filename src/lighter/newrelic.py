@@ -19,11 +19,16 @@ class NewRelic(object):
             return
 
         if not app_name:
-            logging.debug('No New Relic app name configured, app is most likely not on NewRelic')
+            logging.debug(
+                'No New Relic app name configured, app is most likely not on NewRelic')
             return
 
-        logging.debug("Sending deployment notification to New Relic: %s %s %s %s", app_name, version, description,
-                      changelog)
+        logging.debug(
+            "Sending deployment notification to New Relic: %s %s %s %s",
+            app_name,
+            version,
+            description,
+            changelog)
 
         try:
             headers = {
@@ -38,10 +43,11 @@ class NewRelic(object):
                 'deployment[user]': 'Lighter'
             }
 
-            return util.xmlRequest(self._url, method='POST', data=data, headers=headers, contentType='application/x-www-form-urlencoded')
+            return util.xmlRequest(
+                self._url, method='POST', data=data, headers=headers,
+                contentType='application/x-www-form-urlencoded')
 
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             logging.warn(str(e))
             print traceback.format_exc()
             return {}
-
