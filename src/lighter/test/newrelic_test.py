@@ -4,14 +4,22 @@ from lighter.newrelic import NewRelic
 
 
 class NewRelicTest(unittest.TestCase):
+
     @patch('lighter.util.xmlRequest')
     def testNotify(self, mock_xmlRequest):
 
         newrelic = NewRelic('iamanapitoken')
 
         newrelic.notify('FH Dev API SearchService', '1.2.3-test')
-        newrelic.notify('FH Dev API SearchService', '1.2.4-test', 'just testing')
-        newrelic.notify('FH Dev API SearchService', '1.2.5-test', 'just testing', 'changed something')
+        newrelic.notify(
+            'FH Dev API SearchService',
+            '1.2.4-test',
+            'just testing')
+        newrelic.notify(
+            'FH Dev API SearchService',
+            '1.2.5-test',
+            'just testing',
+            'changed something')
 
         self.assertEquals(mock_xmlRequest.call_count, 3)
 

@@ -1,11 +1,22 @@
-import sys, re, urllib2, logging, base64, json, md5
+import sys
+import re
+import urllib2
+import logging
+import base64
+import json
 import lighter.util as util
 
+
 class ImageVariables(object):
+
     def __init__(self, wrappedResolver, document, image):
-        m = re.search('^(?:([\w\-]+[\.:].[\w\.\-:]+)/)?(?:([\w\.\-]+)/)?([\w\.\-/]+)(?::([\w\.\-/]+))?$', image)
+        m = re.search(
+            '^(?:([\w\-]+[\.:].[\w\.\-:]+)/)?(?:([\w\.\-]+)/)?([\w\.\-/]+)(?::([\w\.\-/]+))?$',
+            image)
         if not m:
-            raise ValueError("Failed to parse Docker image coordinates '%s'" % image)
+            raise ValueError(
+                "Failed to parse Docker image coordinates '%s'" %
+                image)
 
         self._wrappedResolver = wrappedResolver
         self._document = document
@@ -15,12 +26,25 @@ class ImageVariables(object):
         self._organization = m.group(2)
         self._repository = m.group(3)
         self._tag = m.group(4) if m.group(4) else 'latest'
-        self._auth = util.rget(document, 'docker', 'registries', self._registry, 'auth')
+        self._auth = util.rget(
+            document,
+            'docker',
+            'registries',
+            self._registry,
+            'auth')
 
-        logging.debug("Parsed image '%s' as %s" % (self._image, (self._registry, self._organization, self._repository, self._tag)))
+        logging.debug(
+            "Parsed image '%s' as %s" %
+            (self._image,
+             (self._registry,
+              self._organization,
+              self._repository,
+              self._tag)))
 
     def clone(self):
-        return ImageVariables(self._wrappedResolver.clone(), self._document, self._image)
+        return ImageVariables(
+            self._wrappedResolver.clone(),
+            self._document, self._image)
 
     @staticmethod
     def create(wrappedResolver, document, image):
@@ -31,7 +55,7 @@ class ImageVariables(object):
     def pop(self, name):
         if name == 'lighter.version':
             return self._tag
-        
+
         if name == 'lighter.uniqueVersion':
             return \
                 self._tryRegistryV2('https://%s/v2/%s/manifests/%s') or \
@@ -49,12 +73,15 @@ class ImageVariables(object):
         try:
             expandedurl = self._expandurl(url, defaultrepo=True)
             response = util.jsonRequest(expandedurl, timeout=1)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             if e.code != 404:
-                obfuscatedurl = self._expandurl(url, defaultrepo=True, obfuscateauth=True)
-                raise RuntimeError("Failed to call %s (%s)" % (obfuscatedurl, e)), None, sys.exc_info()[2]
+                obfuscatedurl = self._expandurl(
+                    url, defaultrepo=True, obfuscateauth=True)
+                raise RuntimeError(
+                    "Failed to call %s (%s)" %
+                    (obfuscatedurl, e)), None, sys.exc_info()[2]
             return None
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             return None
 
         # Docker Registry v1 returns image id as a string
@@ -70,12 +97,14 @@ class ImageVariables(object):
         try:
             expandedurl = self._expandurl(url)
             response = util.jsonRequest(expandedurl, timeout=1)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             if e.code != 404:
                 obfuscatedurl = self._expandurl(url, obfuscateauth=True)
-                raise RuntimeError("Failed to call %s (%s)" % (obfuscatedurl, e)), None, sys.exc_info()[2]
+                raise RuntimeError(
+                    "Failed to call %s (%s)" %
+                    (obfuscatedurl, e)), None, sys.exc_info()[2]
             return None
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             return None
 
         # Extract the first compatibility image id if present
@@ -87,7 +116,9 @@ class ImageVariables(object):
         return None
 
     def _fail(self, url):
-        raise ValueError("Failed to resolve image version '%s' using URL like %s" % (self._image, self._expandurl(url, obfuscateauth=True)))
+        raise ValueError(
+            "Failed to resolve image version '%s' using URL like %s" %
+            (self._image, self._expandurl(url, obfuscateauth=True)))
 
     def _expandurl(self, url, defaultrepo=False, obfuscateauth=False):
         registry = self._registry
@@ -95,11 +126,12 @@ class ImageVariables(object):
             credentials = base64.b64decode(self._auth)
             if obfuscateauth:
                 username, password = credentials.split(':')
-                credentials = username + ':<hidden>' 
+                credentials = username + ':<hidden>'
             registry = '%s@%s' % (credentials, registry)
 
-        repository = self._repository 
+        repository = self._repository
         if self._organization or defaultrepo:
-            repository = '%s/%s' % (self._organization or 'library', repository)
+            repository = '%s/%s' % (self._organization or 'library',
+                                    repository)
 
         return url % (registry, repository, self._tag)
