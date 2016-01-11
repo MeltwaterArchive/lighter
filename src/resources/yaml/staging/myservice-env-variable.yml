@@ -4,7 +4,7 @@ service:
     docker:
       image: 'meltwater/myservice:%{env.VERSION}'
   env:
-    DATABASE: 'database:3306'
+    DATABASE: '%{env.DATABASE}'
   cpus: 1.0
   mem: 1200
   instances: 1

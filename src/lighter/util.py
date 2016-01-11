@@ -107,47 +107,36 @@ def checksum(value):
 def toJson(value, *args, **kwargs):
     return json.dumps(value, cls=ValueEncoder, *args, **kwargs)
 
-def replace(template, variables):
+def replace(template, variables, raiseError=True):
     result = copy(template)
 
     if isinstance(result, dict):
         for key, value in result.items():
-            result[key] = replace(value, variables)
+            result[key] = replace(value, variables, raiseError)
     elif isinstance(result, (list, tuple)):
-        result = [replace(elem, variables) for elem in result]
+        result = [replace(elem, variables, raiseError) for elem in result]
     else:
         if isinstance(result, (str, unicode)):
             remaining = variables.clone()
-            while True:
+            replacements = 1
+
+            while replacements > 0:
+                replacements = 0
                 names = re.findall(r"(?<!%)%\{(\s*[\w\.]+\s*)\}", result)
+
                 if not names:
                     break
-                for name in names:
-                    value = unicode(remaining.pop(name.strip()))
-                    result = result.replace('%{' + name + '}', value)
+                for name in set([name.strip() for name in names]):
+                    try:
+                        value = unicode(remaining.pop(name))
+                        result = re.sub('%{\s*' + re.escape(name) + '\s*}', value, result)
+                        replacements += 1
+                    except KeyError, e:
+                        if raiseError:
+                           raise e, None, sys.exc_info()[2] 
 
             # Replace double %%{foo} with %{foo}
-            result = re.sub(r"%%\{([\w\.]+)\}", "%{\\1}", result)
-
-    return result
-
-def replaceEnv(template):
-    result = copy(template)
-
-    if isinstance(result, dict):
-        for key, value in result.items():
-            result[key] = replaceEnv(value)
-    elif isinstance(result, (list, tuple)):
-        result = [replaceEnv(elem) for elem in result]
-    else:
-        if isinstance(result, (str, unicode)):
-            while True:
-                names = re.findall(r"(?<!%)%\{(\s*env\.[\w\.]+\s*)\}", result)
-                if not names:
-                    break
-                for name in names:
-                    value = unicode(os.environ[name.strip()[4:]])
-                    result = result.replace('%{' + name + '}', value)
+            result = re.sub(r"%%\{(\s*[\w\.]+\s*)\}", "%{\\1}", result)
 
     return result
 

@@ -1,0 +1,7 @@
+maven:
+  groupid: 'com.meltwater'
+  artifactid: 'myservice-env'
+  version: '%{env.VERSION}'
+override:
+  env:
+    RABBITMQ_URL: '%{env.RABBITMQ_URL}'
