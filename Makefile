@@ -1,4 +1,4 @@
-all: format test build
+all: test build
 
 build:
 	./build.sh
