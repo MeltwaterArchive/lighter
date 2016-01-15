@@ -9,7 +9,7 @@ class HipChat(object):
         self._rooms = util.unique(rooms or [])
         self._sender = 'Lighter'
         self._message_attribs = {
-            'color': 'green',
+            'color': 'purple',
             'notify': True,
             'message_format': 'html'
         }
