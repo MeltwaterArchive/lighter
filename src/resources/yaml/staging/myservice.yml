@@ -11,6 +11,7 @@ override:
     DATABASE_PASSWORD: 'ENC[NACL,01cKxvWaxe1BDZCTDgjX548fTUS5mtlBxdVR0dvrHNJDFJMK50N6d7/kkxi6lA==]'
     CVAR: '%{cvar}'
     NEW_RELIC_APP_NAME: '%{newrelic.appname.prefix} MyService'
+    MY_ESCAPED_VAR: "%%{id}"
   upgradeStrategy:
     maximumOverCapacity: 0.0
 hipchat:

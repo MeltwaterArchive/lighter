@@ -108,7 +108,7 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     variables = util.EnvironmentVariables(variables)
 
     # Replace variables in entire document
-    document = util.replace(document, variables, raiseError=False)
+    document = util.replace(document, variables, raiseError=False, escapeVar=False)
 
     # Start from a service section if it exists
     config = document.get('service', {})

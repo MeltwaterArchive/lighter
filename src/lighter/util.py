@@ -115,14 +115,14 @@ def checksum(value):
 def toJson(value, *args, **kwargs):
     return json.dumps(value, cls=ValueEncoder, *args, **kwargs)
 
-def replace(template, variables, raiseError=True):
+def replace(template, variables, raiseError=True, escapeVar=True):
     result = copy(template)
 
     if isinstance(result, dict):
         for key, value in result.items():
-            result[key] = replace(value, variables, raiseError)
+            result[key] = replace(value, variables, raiseError, escapeVar)
     elif isinstance(result, (list, tuple)):
-        result = [replace(elem, variables, raiseError) for elem in result]
+        result = [replace(elem, variables, raiseError, escapeVar) for elem in result]
     else:
         if isinstance(result, (str, unicode)):
             remaining = variables.clone()
@@ -144,7 +144,8 @@ def replace(template, variables, raiseError=True):
                             raise KeyError(e.message), None, sys.exc_info()[2]
 
             # Replace double %%{foo} with %{foo}
-            result = re.sub(r"%%\{(\s*[\w\.]+\s*)\}", "%{\\1}", result)
+            if escapeVar:
+                result = re.sub(r"%%\{(\s*[\w\.]+\s*)\}", "%{\\1}", result)
 
     return result
 
