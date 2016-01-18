@@ -21,6 +21,7 @@ class DeployTest(unittest.TestCase):
         self.assertEquals(service.config['instances'], 3)
         self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.0.0')
         self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.0.0')
+        self.assertEquals(service.config['env']['MY_ESCAPED_VAR'], '%{id}')
 
         # Check that zero are translated correctly
         self.assertEquals(service.config['upgradeStrategy']['minimumHealthCapacity'], 0.0)
