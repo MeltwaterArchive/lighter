@@ -3,13 +3,13 @@ import urllib2
 import lighter.util as util
 
 class HipChat(object):
-    def __init__(self, token, url=None, rooms=[]):
+    def __init__(self, token, url=None, rooms=[], color='purple'):
         self._token = token
         self._url = url or 'https://api.hipchat.com'
         self._rooms = util.unique(rooms or [])
         self._sender = 'Lighter'
         self._message_attribs = {
-            'color': 'purple',
+            'color': color,
             'notify': True,
             'message_format': 'html'
         }

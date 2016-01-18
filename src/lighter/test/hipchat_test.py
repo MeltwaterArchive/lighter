@@ -9,3 +9,10 @@ class HipChatTest(unittest.TestCase):
         mock_jsonRequest.assert_any_call('https://api.hipchat.com/v2/room/123/notification?auth_token=abc', data=ANY, method='POST')
         mock_jsonRequest.assert_any_call('https://api.hipchat.com/v2/room/456/notification?auth_token=abc', data=ANY, method='POST')
         self.assertEquals(mock_jsonRequest.call_count, 2)
+
+    @patch('lighter.util.jsonRequest')
+    def testNotifyWithColor(self, mock_jsonRequest):
+        HipChat(token='abc', rooms=['123', '123', '456'], color='green').notify("Test message")
+        mock_jsonRequest.assert_any_call('https://api.hipchat.com/v2/room/123/notification?auth_token=abc', data=ANY, method='POST')
+        mock_jsonRequest.assert_any_call('https://api.hipchat.com/v2/room/456/notification?auth_token=abc', data=ANY, method='POST')
+        self.assertEquals(mock_jsonRequest.call_count, 2)

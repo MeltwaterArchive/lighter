@@ -184,6 +184,34 @@ def get_marathon_app(url):
         logging.debug(str(e))
         return {}
 
+def notify(service, parsedMarathonUrl, success=True, msg=''):
+
+    # Send HipChat notification
+    hipchat = HipChat(
+        util.rget(service.document, 'hipchat', 'token'),
+        util.rget(service.document, 'hipchat', 'url'),
+        util.rget(service.document, 'hipchat', 'rooms'),
+        'purple' if success is True else 'red')
+    hipchat.notify(msg)
+
+    if success is True:
+        # Send NewRelic deployment notification
+        newrelic = NewRelic(util.rget(service.document, 'newrelic', 'token'))
+        newrelic.notify(
+            util.rget(service.config, 'env', 'NEW_RELIC_APP_NAME'),
+            service.uniqueVersion
+        )
+
+        # Send Datadog deployment notification
+        datadog = Datadog(util.rget(service.document, 'datadog', 'token'))
+        datadog.notify(
+            id=service.id,
+            title="Deployed %s to the %s environment" % (service.id, service.environment),
+            message="%%%%%% \n Lighter deployed **%s** with image **%s** to **%s** (%s) \n %%%%%%" % (
+                service.id, service.image, service.environment, parsedMarathonUrl.netloc),
+            tags=["environment:%s" % service.environment, "service:%s" % service.id])
+
+
 def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
     services = parse_services(filenames, targetdir)
 
@@ -210,34 +238,18 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             logging.info("Deploying %s", service.filename)
             util.jsonRequest(appurl, data=service.config, method='PUT')
 
-            # Send HipChat notification
-            hipchat = HipChat(
-                util.rget(service.document, 'hipchat', 'token'),
-                util.rget(service.document, 'hipchat', 'url'),
-                util.rget(service.document, 'hipchat', 'rooms'))
-            hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" %
-                           (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
-
-            # Send NewRelic deployment notification
-            newrelic = NewRelic(util.rget(service.document, 'newrelic', 'token'))
-            newrelic.notify(
-                util.rget(service.config, 'env', 'NEW_RELIC_APP_NAME'),
-                service.uniqueVersion
-            )
-
-            # Send Datadog deployment notification
-            datadog = Datadog(util.rget(service.document, 'datadog', 'token'))
-            datadog.notify(
-                id=service.id,
-                title="Deployed %s to the %s environment" % (service.id, service.environment),
-                message="%%%%%% \n Lighter deployed **%s** with image **%s** to **%s** (%s) \n %%%%%%" % (
-                    service.id, service.image, service.environment, parsedMarathonUrl.netloc),
-                tags=["environment:%s" % service.environment, "service:%s" % service.id])
+            # send notifications
+            msg = "Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" % (service.id, service.image, service.environment, parsedMarathonUrl.netloc)
+            notify(service, parsedMarathonUrl, True, msg)
 
         except urllib2.HTTPError as e:
-            raise RuntimeError("Failed to deploy %s HTTP %d (%s) - Response: %s" % (service.filename, e.code, e, e.read())), None, sys.exc_info()[2]
+            msg = "Failed to deploy %s HTTP %d (%s) - Response: %s" % (service.filename, e.code, e, e.read())
+            notify(service, parsedMarathonUrl, False, msg)
+            raise RuntimeError(msg), None, sys.exc_info()[2]
         except urllib2.URLError as e:
-            raise RuntimeError("Failed to deploy %s (%s)" % (service.filename, e)), None, sys.exc_info()[2]
+            msg = "Failed to deploy %s (%s)" % (service.filename, e)
+            notify(service, parsedMarathonUrl, False, msg)
+            raise RuntimeError(msg), None, sys.exc_info()[2]
 
 def verify(filenames, targetdir=None, verifySecrets=False):
     parse_services(filenames, targetdir, verifySecrets)
