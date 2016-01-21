@@ -6,3 +6,4 @@ pyinstaller
 pynacl
 pyyaml
 requests
+packaging
