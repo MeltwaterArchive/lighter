@@ -1,0 +1,22 @@
+maven:
+  groupid: 'com.meltwater'
+  artifactid: 'myservice'
+  version: '1.0.0'
+override:
+  cpus: 1.0
+  env:
+    SERVICE_VERSION: '%{lighter.version}'
+    SERVICE_BUILD: '%{lighter.uniqueVersion}'
+    DATABASE_URI: 'jdbc:mysql:root:ENC[NACL,01cKxvWaxe1BDZCTDgjX548fTUS5mtlBxdVR0dvrHNJDFJMK50N6d7/kkxi6lA==]//my-server:3306/comscore'
+    CVAR: '%{cvar}'
+    NEW_RELIC_APP_NAME: '%{newrelic.appname.prefix} MyService'
+  upgradeStrategy:
+    maximumOverCapacity: 0.0
+hipchat:
+  rooms:
+    - '456'
+    - '789'
+variables:
+  avar: '123'
+  bvar: '%{avar}'
+  cvar: '%{avar}'
