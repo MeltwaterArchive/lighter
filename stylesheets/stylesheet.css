@@ -73,19 +73,33 @@ a {
 
 .project-name {
   margin-top: 0;
-  margin-bottom: 0.1rem; }
+  margin-bottom: 0.1rem;
+	white-space: nowrap;}
+.project-name svg {
+  margin-top: -0.4rem;
+  vertical-align: middle;
+}
 
 @media screen and (min-width: 64em) {
   .project-name {
-    font-size: 3.25rem; } }
+    font-size: 3.25rem; }
+    .project-name svg {
+      height: 3.25rem;
+      width: 3.25rem;} }
 
 @media screen and (min-width: 42em) and (max-width: 64em) {
   .project-name {
-    font-size: 2.25rem; } }
+    font-size: 2.25rem; }
+    .project-name svg {
+      height: 2.25rem;
+      width: 2.25rem;} }
 
 @media screen and (max-width: 42em) {
   .project-name {
-    font-size: 1.75rem; } }
+    font-size: 1.75rem; }
+    .project-name svg {
+      height: 1.75rem;
+      width: 1.75rem;}}
 
 .project-tagline {
   margin-bottom: 2rem;
