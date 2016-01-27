@@ -7,3 +7,4 @@ pynacl
 pyyaml
 requests
 packaging
+cffi
