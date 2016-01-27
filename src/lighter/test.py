@@ -1,4 +1,5 @@
 import unittest
+import sys
 from lighter.test.deploy_test import DeployTest
 from lighter.test.hipchat_test import HipChatTest
 from lighter.test.maven_test import MavenTest
@@ -20,4 +21,6 @@ if __name__ == '__main__':
     suite.addTest(unittest.makeSuite(DockerTest))
     suite.addTest(unittest.makeSuite(SecretaryTest))
 
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    res = not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
+
+    sys.exit(res)
