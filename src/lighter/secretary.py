@@ -46,9 +46,6 @@ class KeyValue(util.Value):
         """
         return 'secretary-deploy-key'
 
-def isEnvelope(value):
-    return str(value).strip().startswith('ENC[NACL,') and str(value).strip().endswith(']')
-
 def extractEnvelopes(payload):
     return _ENVELOPES_RE.findall(payload)
 
@@ -67,7 +64,7 @@ def apply(document, config):
         return config
 
     # Avoid adding public keys if no secrets present
-    if not [value for value in config.get('env', {}).itervalues() if isEnvelope(value)]:
+    if not [value for value in config.get('env', {}).itervalues() if len(extractEnvelopes(value)) != 0]:
         return config
 
     result = deepcopy(config)
