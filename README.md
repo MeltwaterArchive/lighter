@@ -1,4 +1,4 @@
-# Lighter
+# ![Lighter](docs/logo.png)
 [![Travis CI](https://img.shields.io/travis/meltwater/lighter/master.svg)](https://travis-ci.org/meltwater/lighter)
 [![Coverage Status](https://codecov.io/github/meltwater/lighter/coverage.svg?branch=master)](https://codecov.io/github/meltwater/lighter?branch=master&view=all)
 
@@ -352,3 +352,9 @@ To send [Datadog deployment events](http://docs.datadoghq.com/guides/overview/#e
 datadog:
   token: '123abc'
 ```
+
+## Contributors
+
+* **[Giuliano Manno](https://github.com/xyden)**
+
+  * Lighter logo
