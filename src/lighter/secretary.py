@@ -8,7 +8,7 @@ import lighter.util as util
 
 # Regexp to parse simple PEM files
 _PEM_RE = re.compile(u"-----BEGIN (.+?)-----\r?\n(.+?)\r?\n-----END \\1-----")
-_ENVELOPES_RE = re.compile(u"ENC\[NACL,[a-zA-Z0-9+/=\s]+\]")
+_ENVELOPES_RE = re.compile(u"ENC\[\w+,[a-zA-Z0-9+/=\s]+\]")
 
 class KeyEncoder(object):
     """
