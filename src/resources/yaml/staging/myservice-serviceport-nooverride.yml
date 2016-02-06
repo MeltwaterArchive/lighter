@@ -1,0 +1,4 @@
+maven:
+  groupid: 'com.meltwater'
+  artifactid: 'myservice'
+  version: '1.1.1-SNAPSHOT'

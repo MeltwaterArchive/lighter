@@ -166,6 +166,48 @@ override:
     NEW_RELIC_LICENSE_KEY: '123abc'
 ```
 
+### Deep Merge
+An YAML and JSON file upwards-recursive deep merge is performed when parsing service definitions. Precedence is defined by the directory structure
+
+* myservice.yml has the highest precedence
+* globals.yml files are merged with decreasing precedency upwards in the directory structure
+* myservice-1.0.0-marathon.json if fetched from Maven has the lowest precedence
+
+Lists, dicts and scalar values are deep merged 
+
+ * Dicts are deep merged, the result containing the union of all keys
+ * Lists are appended together
+ * Scalar values coalesce to the not-null value with highest precedence
+
+The default behaviour is to append lists together, however specific list items can be overriden and deep merged using a dict with integer keys. For example
+
+*myservice-1.0.0-marathon.json*
+```
+{
+    "container": {
+        "docker": {
+            "portMappings": [
+                {"containerPort": 8080, "servicePort": 1234},
+                {"containerPort": 8081, "servicePort": 1235}
+            ]
+        }
+    }
+}
+```
+
+*myservice-override-serviceport.yml*
+```
+override:
+  container:
+    docker:
+      portMappings:
+        # Override service ports 1234,1235 with port 4000,4001
+        0: 
+          servicePort: 4000
+        1: 
+          servicePort: 4001
+```
+
 ## Variables
 Yaml files may contain an `variables:` section containing key/value pairs that will be substituted into the *json* template. All
 variables in a templates must be resolved or it's considered an error. This can be used to ensure that some parameters are

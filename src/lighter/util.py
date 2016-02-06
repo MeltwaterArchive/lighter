@@ -26,22 +26,30 @@ def toList(a):
 
 def merge(*args):
     args = list(args)
-    result = copy(args.pop(0))
+    aval = copy(args.pop(0))
 
     while args:
-        b = args.pop(0)
+        bval = args.pop(0)
 
-        for key in set(result.keys() + b.keys()):
-            aval = result.get(key)
-            bval = b.get(key)
-            if isinstance(aval, dict) or isinstance(bval, dict):
-                result[key] = merge(aval or {}, bval or {})
-            elif isinstance(aval, (list, tuple)) or isinstance(bval, (list, tuple)):
-                result[key] = toList(aval) + toList(bval)
-            else:
-                result[key] = bval if (bval is not None) else aval
+        if isinstance(aval, (list, tuple)) and isinstance(bval, (dict)):
+            # Override and deep merge specific list items
+            aval = toList(aval)
+            for key, value in bval.items():
+                aval[int(key)] = merge(aval[int(key)], value)
+        elif isinstance(aval, dict) and isinstance(bval, dict):
+            # Deep merge dicts
+            for key in set(aval.keys() + bval.keys()):
+                asubval = aval.get(key)
+                bsubval = bval.get(key)
+                aval[key] = merge(asubval, bsubval)
+        elif isinstance(aval, (list, tuple)) and isinstance(bval, (list, tuple)):
+            # Append lists
+            aval = toList(aval) + toList(bval)
+        elif bval is not None:
+            # Scalar values
+            aval = bval
 
-    return result
+    return aval
 
 class FixedVariables(object):
     def __init__(self, variables):
