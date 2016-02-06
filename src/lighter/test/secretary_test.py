@@ -43,6 +43,10 @@ class SecretaryTest(unittest.TestCase):
         self.assertEqual(2, len(envelopes))
         self.assertEqual(["ENC[NACL,uSr123+/=]", "ENC[NACL,pWd123+/=]"], envelopes)
 
+        envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,uSr123+/=]:ENC[NACL,pWd123+/=]@rabbit:5672/ENC[KMS,123abc+/=]")
+        self.assertEqual(3, len(envelopes))
+        self.assertEqual(["ENC[NACL,uSr123+/=]", "ENC[NACL,pWd123+/=]", "ENC[KMS,123abc+/=]"], envelopes)
+
         envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,]:ENC[NACL,pWd123+/=]@rabbit:5672/")
         self.assertEqual(1, len(envelopes))
         self.assertEqual(["ENC[NACL,pWd123+/=]"], envelopes)
