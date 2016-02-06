@@ -37,30 +37,6 @@ def parseint(value):
 def parselist(value):
     return filter(bool, value.split(','))
 
-def compare_service_versions(nextVersion, prevVersion, path=''):
-    if isinstance(nextVersion, dict):
-        for key, value in nextVersion.items():
-            keypath = path + '/' + key
-            if key not in prevVersion:
-                logging.debug("New key found %s", keypath)
-                return False
-            if not compare_service_versions(value, prevVersion[key], keypath):
-                return False
-    elif isinstance(nextVersion, list):
-        if len(nextVersion) != len(prevVersion):
-            logging.debug("List have changed at %s", path)
-            return False
-        for nextValue, prevValue in zip(nextVersion, prevVersion):
-            if not compare_service_versions(nextValue, prevValue, path):
-                return False
-    elif isinstance(nextVersion, util.Value) and not nextVersion.same(prevVersion) or \
-            not isinstance(nextVersion, util.Value) and nextVersion != prevVersion:
-        if isinstance(nextVersion, int) and isinstance(prevVersion, int) and nextVersion == 0 and path == '/ports':
-            return True
-        logging.debug("Value has changed at %s (%s != %s)", path, nextVersion, prevVersion)
-        return False
-    return True
-
 class Service(object):
     def __init__(self, filename, document, config):
         self.filename = filename
@@ -83,6 +59,10 @@ class Service(object):
     def uniqueVersion(self):
         return util.rget(self.document, 'variables', 'lighter.uniqueVersion') or \
             (self.image.split(':')[1] if ':' in self.image else 'latest')
+
+    @property
+    def checksum(self):
+        return self.config['labels']['com.meltwater.lighter.checksum']
 
 def parse_service(filename, targetdir=None, verifySecrets=False):
     logging.info("Processing %s", filename)
@@ -196,9 +176,9 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             parsedMarathonUrl = urlparse(targetMarathonUrl)
             appurl = get_marathon_url(targetMarathonUrl, service.config['id'], force)
 
-            # See if service config has changed
+            # See if service config has changed by comparing the checksum
             prevVersion = get_marathon_app(appurl)
-            if compare_service_versions(service.config, prevVersion):
+            if util.rget(prevVersion, 'labels', 'com.meltwater.lighter.checksum') == service.checksum:
                 logging.info("Service already deployed with same config: %s", service.filename)
                 continue
 

@@ -36,48 +36,6 @@ class UtilTest(unittest.TestCase):
         os.environ['ES_PORT'] = '9300'
         self.assertEquals(util.replace(x, util.EnvironmentVariables(util.FixedVariables({}))), m)
 
-    def testCompare(self):
-        x = {'a': 1, 'b': 2}
-        y = {'b': 3, 'c': 4}
-        self.assertFalse(lighter.compare_service_versions(x, y))
-        self.assertFalse(lighter.compare_service_versions(y, x))
-        self.assertTrue(lighter.compare_service_versions(x, x))
-
-        x = {'a': [1], 'b': 2}
-        y = {'a': [2], 'b': 2}
-        self.assertFalse(lighter.compare_service_versions(x, y))
-        self.assertTrue(lighter.compare_service_versions(x, x))
-
-        x = {'a': [1], 'b': 2}
-        y = {'a': [2, 1], 'b': 2}
-        self.assertFalse(lighter.compare_service_versions(x, y))
-        self.assertFalse(lighter.compare_service_versions(y, x))
-        self.assertTrue(lighter.compare_service_versions(x, x))
-
-        x = {'a': {'c': 2}, 'b': 2}
-        y = {'a': {'c': 1}, 'b': 2}
-        self.assertFalse(lighter.compare_service_versions(x, y))
-        self.assertFalse(lighter.compare_service_versions(y, x))
-        self.assertTrue(lighter.compare_service_versions(x, x))
-
-        x = {'a': {'c': 2, 'd': 4}, 'b': 2}
-        y = {'a': {'c': 1}, 'b': 2}
-        self.assertFalse(lighter.compare_service_versions(x, y))
-        self.assertFalse(lighter.compare_service_versions(y, x))
-        self.assertTrue(lighter.compare_service_versions(x, x))
-
-        x = {'foo': [0, 456]}
-        y = {'foo': [789, 456]}
-        self.assertFalse(lighter.compare_service_versions(x, y))
-
-        x = {'ports': [0, 456]}
-        y = {'ports': [789, 456]}
-        self.assertTrue(lighter.compare_service_versions(x, y))
-
-        x = {'ports': [0, 456]}
-        y = {'ports': [123, 456]}
-        self.assertTrue(lighter.compare_service_versions(x, y))
-
     def testGetXml(self):
         url = 'file:./src/resources/repository/com/meltwater/myservice-snapshot/1.1.1-SNAPSHOT/maven-metadata.xml'
         actual = util.xmlRequest(url)

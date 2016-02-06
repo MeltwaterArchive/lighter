@@ -1,5 +1,4 @@
 import unittest
-import json
 import lighter.main as lighter
 import lighter.secretary as secretary
 import lighter.util as util
@@ -19,8 +18,9 @@ class SecretaryTest(unittest.TestCase):
         service2 = lighter.parse_service('src/resources/yaml/staging/myservice-servicekey.yml')
         self.assertNotEqual(service1.config, service2.config)
 
-        self.assertTrue(lighter.compare_service_versions(service1.config, service2.config))
-        self.assertTrue(lighter.compare_service_versions(service1.config, json.loads(util.toJson(service2.config))))
+        checksum1 = util.rget(service1.config, 'labels', 'com.meltwater.lighter.checksum')
+        self.assertIsNotNone(checksum1)
+        self.assertEqual(checksum1, util.rget(service2.config, 'labels', 'com.meltwater.lighter.checksum'))
 
         self.assertNotEqual(service1.config['env']['DEPLOY_PUBLIC_KEY'], service2.config['env']['DEPLOY_PUBLIC_KEY'])
         self.assertNotEqual(service1.config['env']['DEPLOY_PRIVATE_KEY'], service2.config['env']['DEPLOY_PRIVATE_KEY'])
