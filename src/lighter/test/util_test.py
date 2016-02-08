@@ -10,25 +10,38 @@ class UtilTest(unittest.TestCase):
         z = {'c': 5, 'd': 6}
 
         m = {'a': 1, 'b': 3, 'c': 5, 'd': 6}
-        self.assertEqual(util.merge(x, y, z), m)
+        self.assertEqual(m, util.merge(x, y, z))
+
         m = {'a': 1, 'b': 2, 'c': 4, 'd': 6}
-        self.assertEqual(util.merge(z, y, x), m)
+        self.assertEqual(m, util.merge(z, y, x))
 
     def testMergeLists(self):
         x = {'a': [1, 2]}
         y = {'a': [2, 3]}
         m = {'a': [1, 2, 2, 3]}
-        self.assertEquals(util.merge(x, y), m)
+        self.assertEquals(m, util.merge(x, y))
+
+    def testMergeListOverride(self):
+        x = {'a': [1, 2]}
+        y = {'a': {1: 3}}
+        m = {'a': [1, 3]}
+        self.assertEquals(m, util.merge(x, y))
+
+    def testMergeListOverrideDeep(self):
+        x = {'a': [1, {'a': 2, 'b': 3}]}
+        y = {'a': {1: {'a': 4}}}
+        m = {'a': [1, {'a': 4, 'b': 3}]}
+        self.assertEquals(m, util.merge(x, y))
 
     def testReplace(self):
         x = {'a': 'abc%{var}def %{var}', 'b': ['%{var} %{ var2 } %{var3}'], 'c': {'d': '%{var2} %{var3}'}}
         m = {'a': 'abc1def 1', 'b': ['1 2 3'], 'c': {'d': '2 3'}}
-        self.assertEquals(util.replace(x, util.FixedVariables({'var': '1', 'var2': 2, 'var3': '3'})), m)
+        self.assertEquals(m, util.replace(x, util.FixedVariables({'var': '1', 'var2': 2, 'var3': '3'})))
 
     def testReplaceEscape(self):
         x = {'a': 'abc%%{var}def %%{var}def', 'b': 'abc%{var}def %{var}'}
         m = {'a': 'abc%{var}def %{var}def', 'b': 'abc1def 1'}
-        self.assertEquals(util.replace(x, util.FixedVariables({'var': '1'})), m)
+        self.assertEquals(m, util.replace(x, util.FixedVariables({'var': '1'})))
 
     def testReplaceEnv(self):
         x = {'a': '%{env.ES_PORT}'}

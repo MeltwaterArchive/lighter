@@ -61,6 +61,15 @@ class DeployTest(unittest.TestCase):
         self.assertEquals(service.config['env']['SERVICE_VERSION'], '1.1.1-SNAPSHOT')
         self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.1.1-20151102.035053-8-marathon')
 
+    def testParseListOverride(self):
+        # servicePort=1234 in json, no override in yaml
+        service = lighter.parse_service('src/resources/yaml/staging/myservice-serviceport-nooverride.yml')
+        self.assertEquals(service.config['container']['docker']['portMappings'][0]['servicePort'], 1234)
+
+        # servicePort=1234 in json, override with servicePort=4000 in yaml
+        service = lighter.parse_service('src/resources/yaml/staging/myservice-serviceport-override.yml')
+        self.assertEquals(service.config['container']['docker']['portMappings'][0]['servicePort'], 4000)
+
     def _parseErrorPost(self, url, *args, **kwargs):
         if url.startswith('file:'):
             return jsonRequest(url, *args, **kwargs)
