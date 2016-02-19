@@ -62,3 +62,13 @@ class SecretaryTest(unittest.TestCase):
         envelopes = secretary.extractEnvelopes("amqp://ENC[NACL,abc:ENC[NACL,pWd123+/=]@rabbit:5672/")
         self.assertEqual(1, len(envelopes))
         self.assertEqual(["ENC[NACL,pWd123+/=]"], envelopes)
+
+    def testServiceWithEnvvarDots(self):
+        try:
+            lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-dots.yml')
+        except RuntimeError, e:
+            self.assertEquals(
+                "The env var 'database.uri' is not a valid shell script identifier and not supported by Secretary. " +
+                "Only alphanumeric characters and underscores are supported, starting with an alphabetic or underscore character.", e.message)
+        else:
+            self.fail("Expected exception RuntimeError")

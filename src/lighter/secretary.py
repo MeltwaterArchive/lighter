@@ -9,6 +9,7 @@ import lighter.util as util
 # Regexp to parse simple PEM files
 _PEM_RE = re.compile(u"-----BEGIN (.+?)-----\r?\n(.+?)\r?\n-----END \\1-----")
 _ENVELOPES_RE = re.compile(u"ENC\[\w+,[a-zA-Z0-9+/=\s]+\]")
+_SHELL_IDENTIFIER_RE = re.compile(u"^[A-Za-z_][A-Za-z0-9_]*$")
 
 class KeyEncoder(object):
     """
@@ -63,8 +64,20 @@ def apply(document, config):
     if not url:
         return config
 
+    # Check for encrypted secrets
+    found = False
+    for key, value in config.get('env', {}).iteritems():
+        envelopes = extractEnvelopes(value)
+        found = found or envelopes
+
+        # e.g. dots aren't valid in a shell identifier, so `secretary decrypt -e` wouldn't work with them
+        if envelopes and not _SHELL_IDENTIFIER_RE.match(key):
+            raise RuntimeError(
+                ("The env var '%s' is not a valid shell script identifier and not supported by Secretary. " +
+                 "Only alphanumeric characters and underscores are supported, starting with an alphabetic or underscore character.") % key)
+
     # Avoid adding public keys if no secrets present
-    if not [value for value in config.get('env', {}).itervalues() if len(extractEnvelopes(value)) != 0]:
+    if not found:
         return config
 
     result = deepcopy(config)

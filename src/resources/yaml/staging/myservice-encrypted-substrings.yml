@@ -9,6 +9,7 @@ override:
     SERVICE_BUILD: '%{lighter.uniqueVersion}'
     DATABASE_PASSWORD: 'ENC[NACL,deadbeef]'
     CVAR: '%{cvar}'
+    variable.with.dots: 'foo'
     NEW_RELIC_APP_NAME: '%{newrelic.appname.prefix} MyService'
     SSH_PRIVATE_KEY: |
       ENC[NACL,egFSuFDkZxsmv9w7bWyZyxCBQQeykctG2H6UTiK7EHRdQI3E3NsZBP8 
