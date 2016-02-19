@@ -1,0 +1,7 @@
+maven:
+  groupid: 'com.meltwater'
+  artifactid: 'myservice'
+  version: '1.1.1-SNAPSHOT'
+override:
+  env:
+    database.uri: 'jdbc:mysql:root:ENC[NACL,01cKxvWaxe1BDZCTDgjX548fTUS5mtlBxdVR0dvrHNJDFJMK50N6d7/kkxi6lA==]//my-server:3306/comscore'
