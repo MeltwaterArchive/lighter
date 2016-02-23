@@ -1,6 +1,7 @@
 import unittest
 import os
-from mock import patch
+import urllib2
+from mock import patch, Mock
 import lighter.main as lighter
 from lighter.util import jsonRequest
 
@@ -99,6 +100,20 @@ class DeployTest(unittest.TestCase):
         with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper()):
             lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/myservice.yml'])
             self.assertTrue(self._called)
+
+    def testMarathonAppNot404(self):
+        with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper('http://defaultmarathon:2')) as m_urlopen:
+            resp = Mock()
+            resp.read.return_value = '{"message": "no app"}'
+            m_urlopen.side_effect = urllib2.HTTPError('', 504, 'no app', {'Content-Type': 'application/json'}, resp)
+            with self.assertRaises(RuntimeError):
+                lighter.deploy(marathonurl=None, filenames=['src/resources/yaml/integration/myservice.yml'])
+
+    def testMarathonAppURLError(self):
+        with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper('http://defaultmarathon:2')) as m_urlopen:
+            m_urlopen.side_effect = urllib2.URLError("hello")
+            with self.assertRaises(RuntimeError):
+                lighter.deploy(marathonurl=None, filenames=['src/resources/yaml/integration/myservice.yml'])
 
     def testDefaultMarathonUrl(self):
         with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper('http://defaultmarathon:2')):
