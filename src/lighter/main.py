@@ -160,9 +160,15 @@ def get_marathon_url(url, id, force=False):
 def get_marathon_app(url):
     try:
         return util.jsonRequest(url)['app']
+    except urllib2.HTTPError as e:
+        logging.debug(str(e))
+        if e.code == 404:
+            return {}
+        else:
+            raise RuntimeError("Failed to get app info %s HTTP %d (%s) - Response: %s" % (url, e.code, e, e.read())), None, sys.exc_info()[2]
     except urllib2.URLError as e:
         logging.debug(str(e))
-        return {}
+        raise RuntimeError("Failed to get app info %s (%s)" % (url, e)), None, sys.exc_info()[2]
 
 def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
     services = parse_services(filenames, targetdir)
