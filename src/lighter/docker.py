@@ -53,7 +53,7 @@ class ImageVariables(object):
         """
         try:
             expandedurl = self._expandurl(url, defaultrepo=True)
-            response = util.jsonRequest(expandedurl, timeout=1)
+            response = util.jsonRequest(expandedurl, timeout=15)
         except urllib2.HTTPError as e:
             if e.code != 404:
                 obfuscatedurl = self._expandurl(url, defaultrepo=True, obfuscateauth=True)
@@ -74,7 +74,7 @@ class ImageVariables(object):
         """
         try:
             expandedurl = self._expandurl(url)
-            response = util.jsonRequest(expandedurl, timeout=1)
+            response = util.jsonRequest(expandedurl, timeout=15)
         except urllib2.HTTPError as e:
             if e.code != 404:
                 obfuscatedurl = self._expandurl(url, obfuscateauth=True)
