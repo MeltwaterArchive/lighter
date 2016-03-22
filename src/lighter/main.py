@@ -5,6 +5,8 @@ import argparse
 import logging
 import yaml
 import urllib2
+import json
+from copy import copy
 from urlparse import urlparse
 from joblib import Parallel, delayed
 from lighter.hipchat import HipChat
@@ -64,6 +66,34 @@ class Service(object):
     def checksum(self):
         return self.config['labels']['com.meltwater.lighter.checksum']
 
+def process_env(filename, verifySecrets, env):
+    result = copy(env)
+    for key, value in env.iteritems():
+        # Can't support non-string keys consistently
+        if not isinstance(key, (str, unicode)):
+            raise ValueError("Only string dict keys are supported, please use quotes around the key '%s' in %s" % (key, filename))
+
+        # Coerce types to string and serialize non-scalars
+        if not isinstance(value, (str, unicode)):
+            if isinstance(value, bool):
+                value = 'true' if value else 'false'
+            elif isinstance(value, (int, float)):
+                value = str(value)
+            else:
+                value = json.dumps(value)
+
+            result[key] = value
+
+        # Check for unencrypted secrets
+        if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower() or 'token' in key.lower()) and
+                'public' not in key.lower()) and len(secretary.extractEnvelopes(value)) == 0:
+            if verifySecrets:
+                raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, key))
+            else:
+                logging.warn('Found unencrypted secret in %s: %s' % (filename, key))
+
+    return result
+
 def parse_service(filename, targetdir=None, verifySecrets=False):
     logging.info("Processing %s", filename)
     with open(filename, 'r') as fd:
@@ -117,15 +147,8 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     except KeyError as e:
         raise RuntimeError('Failed to parse %s with the following message: %s' % (filename, str(e.message)))
 
-    # Check for unencrypted secrets
     if 'env' in config:
-        for key, value in config['env'].iteritems():
-            if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower() or 'token' in key.lower()) and
-                    'public' not in key.lower()) and len(secretary.extractEnvelopes(value)) == 0:
-                if verifySecrets:
-                    raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, key))
-                else:
-                    logging.warn('Found unencrypted secret in %s: %s' % (filename, key))
+        config['env'] = process_env(filename, verifySecrets, config['env'])
 
     # Generate deploy keys and encrypt secrets
     config = secretary.apply(document, config)
