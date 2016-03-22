@@ -208,6 +208,34 @@ override:
           servicePort: 4001
 ```
 
+#### Non-string Environment Variables
+Booleans, integers and floats in the `env` section are converted to strings before being posted
+to Marathon. Non-scalar environment variables like dicts and lists are deep merged and automatically
+serialized to json strings.
+
+*myservice.yml*
+```
+override:
+  env:
+    intvar: 123
+    boolvar: TRUE
+    dictvar:
+      mykey:
+       - 1
+       - 'abc'
+```
+
+Would result in a rendered json like
+```
+{
+  "env": {
+    "intvar": "123",
+    "boolvar": "true",
+    "dictvar": "{\"mykey\": [1, \"abc\"]}"
+  }
+}
+```
+
 ## Variables
 Yaml files may contain an `variables:` section containing key/value pairs that will be substituted into the *json* template. All
 variables in a templates must be resolved or it's considered an error. This can be used to ensure that some parameters are

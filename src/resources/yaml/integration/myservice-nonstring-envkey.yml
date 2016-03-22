@@ -1,0 +1,11 @@
+maven:
+  groupid: 'com.meltwater'
+  artifactid: 'myservice'
+  resolve: '[1.0.0,1.1.0)'
+override:
+  env:
+    TRUE: '123'
+variables:
+  avar: '123'
+  bvar: '%{avar}'
+  cvar: '%{avar}'

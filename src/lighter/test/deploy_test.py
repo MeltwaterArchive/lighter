@@ -133,6 +133,23 @@ class DeployTest(unittest.TestCase):
         except RuntimeError as e:
             self.assertEquals(e.message, 'Failed to parse %s with the following message: Variable %%{bvar} not found' % service_yaml)
         else:
+            self.fail('Expected RuntimeError')
+
+    def testNonStringEnvvar(self):
+        service = lighter.parse_service('src/resources/yaml/integration/myservice-nonstring-envvar.yml')
+        self.assertEquals('123', service.config['env']['INTVAR'])
+        self.assertEquals('123.456', service.config['env']['FLOATVAR'])
+        self.assertEquals('true', service.config['env']['TRUEVAR'])
+        self.assertEquals('false', service.config['env']['FALSEVAR'])
+        self.assertEquals('{"foobar": [1, 2], "foo": "bar", "bar": 123}', service.config['env']['COMPLEXVAR'])
+
+    def testNonStringEnvkey(self):
+        service_yaml = 'src/resources/yaml/integration/myservice-nonstring-envkey.yml'
+        try:
+            lighter.parse_service(service_yaml)
+        except ValueError as e:
+            self.assertEquals(e.message, 'Only string dict keys are supported, please use quotes around the key \'True\' in %s' % service_yaml)
+        else:
             self.fail('Expected ValueError')
 
     def testParseNoMavenService(self):
