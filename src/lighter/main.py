@@ -132,7 +132,7 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
         coord = document['maven']
 
         resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'], coord.get('classifier'))
-        version = coord.get('version') or resolver.resolve(coord['resolve'])
+        version = resolver.resolve(coord.get('version') or coord['resolve'])
 
         artifact = resolver.fetch(version)
         config = util.merge(config, artifact.body)
