@@ -130,9 +130,13 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     # Fetch and merge json template from maven
     if util.rget(document, 'maven', 'version') or util.rget(document, 'maven', 'resolve'):
         coord = document['maven']
+        versionspec = coord.get('version')
+        if not versionspec:
+            versionspec = coord['resolve']
+            logging.warn("The 'resolve:' tag is deprecated, please switch to 'version:' which is a drop-in replacement in %s" % filename)
 
         resolver = maven.ArtifactResolver(coord['repository'], coord['groupid'], coord['artifactid'], coord.get('classifier'))
-        version = resolver.resolve(coord.get('version') or coord['resolve'])
+        version = resolver.resolve(versionspec)
 
         artifact = resolver.fetch(version)
         config = util.merge(config, artifact.body)

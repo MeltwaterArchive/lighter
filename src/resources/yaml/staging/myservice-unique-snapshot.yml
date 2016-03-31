@@ -1,7 +1,7 @@
 maven:
   groupid: 'com.meltwater'
   artifactid: 'myservice-snapshot'
-  resolve: '[,]-SNAPSHOT'
+  version: '[,]-SNAPSHOT'
   classifier: 'marathon'
 override:
   cpus: 1.0

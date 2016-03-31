@@ -101,7 +101,7 @@ class DeployTest(unittest.TestCase):
             lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/myservice.yml'])
             self.assertTrue(self._called)
 
-    def testRangeInVersionTag(self):
+    def testDeprecatedResolveTag(self):
         """
         Checks that version ranges can be resolved in the "version: " tag as well
         """
