@@ -101,14 +101,6 @@ class DeployTest(unittest.TestCase):
             lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/myservice.yml'])
             self.assertTrue(self._called)
 
-    def testRangeInVersionTag(self):
-        """
-        Checks that version ranges can be resolved in the "version: " tag as well
-        """
-        with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper()):
-            lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/myservice-version-range.yml'])
-            self.assertTrue(self._called)
-
     def testMarathonAppNot404(self):
         with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper('http://defaultmarathon:2')) as m_urlopen:
             resp = Mock()

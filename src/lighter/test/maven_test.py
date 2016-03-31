@@ -6,10 +6,6 @@ class MavenTest(unittest.TestCase):
         resolver = maven.ArtifactResolver('file:./src/resources/repository/', 'com.meltwater', 'myservice')
         self.assertEquals(resolver.resolve('[1.0.0,2.0.0)'), '1.1.0')
 
-    def testResolveSpecificVersion(self):
-        resolver = maven.ArtifactResolver('file:./src/resources/repository/', 'com.meltwater', 'myservice')
-        self.assertEquals(resolver.resolve('1.2.0'), '1.2.0')
-
     def testSelectVersionInclusive(self):
         resolver = maven.ArtifactResolver('file:./src/resources/repository/', 'com.meltwater', 'myservice')
         def select(expression, versions):

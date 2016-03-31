@@ -8,7 +8,7 @@ class VersionRange(object):
     SPLIT = re.compile('[^\d\w_]+')
 
     def __init__(self, expression):
-        result = VersionRange.parseExpression(expression)
+        result = re.match('([\(\[])\s*((?:\d+\.)*\d+)?\s*,\s*((?:\d+\.)*\d+)?\s*([\)\]])', expression)
         if not result:
             raise ValueError('%s is not a valid version range' % expression)
 
@@ -16,14 +16,6 @@ class VersionRange(object):
         self._lversion = VersionRange.parseVersion(lversion)
         self._rversion = VersionRange.parseVersion(rversion)
         self._suffix = VersionRange.suffix(expression)
-
-    @staticmethod
-    def parseExpression(expression):
-        return re.match('([\(\[])\s*((?:\d+\.)*\d+)?\s*,\s*((?:\d+\.)*\d+)?\s*([\)\]])', expression)
-
-    @staticmethod
-    def isExpression(expression):
-        return bool(VersionRange.parseExpression(expression))
 
     def accepts(self, version):
         parsed = self.parseVersion(version)
@@ -135,16 +127,9 @@ class ArtifactResolver(object):
             raise RuntimeError("Failed to retrieve %s (%s)" % (url, e)), None, sys.exc_info()[2]
 
     def resolve(self, expression):
-        # If it's not a valid version range expression, assume it's a specific version
-        if not VersionRange.isExpression(expression):
-            return expression
-
-        # Fetch the available versions for this artifact
         metadata = util.xmlRequest('{0}/{1}/{2}/maven-metadata.xml'.format(self._url, self._groupid.replace('.', '/'), self._artifactid))
         versions = util.toList(util.rget(metadata, 'versioning', 'versions', 'version'))
         logging.debug('%s:%s candidate versions %s', self._groupid, self._artifactid, versions)
-
-        # Select the version that best matches the version range expression
         return self.selectVersion(expression, versions)
 
     def selectVersion(self, expression, versions):
