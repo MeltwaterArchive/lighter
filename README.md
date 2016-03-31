@@ -115,7 +115,7 @@ Versions can be dynamically resolved from Maven using a range syntax.
 maven:
   groupid: 'com.example'
   artifactid: 'myservice'
-  resolve: '[1.0.0,2.0.0)'
+  version: '[1.0.0,2.0.0)'
 ```
 
 For example
