@@ -86,7 +86,7 @@ def process_env(filename, verifySecrets, env):
 
         # Check for unencrypted secrets
         if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower() or 'token' in key.lower()) and
-                'public' not in key.lower() and 'id' not in key.lower()) and len(secretary.extractEnvelopes(value)) == 0:
+                'public' not in key.lower() and 'id' not in key.lower() and 'routing' not in key.lower()) and len(secretary.extractEnvelopes(value)) == 0:
             if verifySecrets:
                 raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, key))
             else:
