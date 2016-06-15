@@ -31,6 +31,14 @@ class DeployTest(unittest.TestCase):
         self.assertEquals(service.config['upgradeStrategy']['minimumHealthCapacity'], 0.0)
         self.assertEquals(service.config['upgradeStrategy']['maximumOverCapacity'], 0.0)
 
+    def testParseNonDockerService(self):
+        service = lighter.parse_service('src/resources/yaml/staging/myservice-non-docker.yml')
+        self.assertEquals(service.config['id'], '/myservice/hello-play')
+
+        self.assertEquals(service.config['cpus'], 1)
+        self.assertEquals(service.config['instances'], 1)
+        self.assertFalse('container' in service.config)
+
     def testParseEnvVariable(self):
         os.environ['VERSION'] = '1.0.0'
         os.environ['DATABASE'] = 'hostname:3306'
