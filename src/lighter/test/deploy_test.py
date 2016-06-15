@@ -24,6 +24,9 @@ class DeployTest(unittest.TestCase):
         self.assertEquals(service.config['env']['SERVICE_BUILD'], '1.0.0')
         self.assertEquals(service.config['env']['MY_ESCAPED_VAR'], '%{id}')
 
+        self.assertEquals(service.config['container']['docker']['parameters'][0]['key'], 'label')
+        self.assertEquals(service.config['container']['docker']['parameters'][0]['value'], 'com.meltwater.lighter.appid='+service.config['id'])
+
         # Check that zero are translated correctly
         self.assertEquals(service.config['upgradeStrategy']['minimumHealthCapacity'], 0.0)
         self.assertEquals(service.config['upgradeStrategy']['maximumOverCapacity'], 0.0)
