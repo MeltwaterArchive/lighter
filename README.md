@@ -423,6 +423,44 @@ datadog:
   token: '123abc'
 ```
 
+For deployments of Docker containers, Lighter will add Marathon appid as a Docker container label in order for Datadog to tag services, [see: collect_labels_as_tags](https://github.com/DataDog/dd-agent/blob/master/conf.d/docker_daemon.yaml.example)
+ 
+```
+{
+    "upgradeStrategy": {
+        "maximumOverCapacity": 0.0, 
+        "minimumHealthCapacity": 0.0
+    }, 
+    "mem": 200.0, 
+    "labels": {
+        "com.meltwater.lighter.checksum": "58c7dd73636b957fca251dde3c80b0a8"
+    }, 
+    "cpus": 1.0, 
+    "instances": 3, 
+    "container": {
+        "docker": {
+            "portMappings": [
+                {
+                    "containerPort": 8080, 
+                    "servicePort": 1234
+                }
+            ], 
+            "image": "meltwater/myservice:1.0.0", 
+            "network": "BRIDGE", 
+            "parameters": [
+                {
+                    "value": "com.meltwater.lighter.appid=/myproduct/myservice", 
+                    "key": "label"
+                }
+            ]
+        }, 
+        "type": "DOCKER"
+    },
+    "id": "/myproduct/myservice"
+}
+    
+```
+
 ## Contributors
 
 * **[Giuliano Manno](https://github.com/xyden)**
