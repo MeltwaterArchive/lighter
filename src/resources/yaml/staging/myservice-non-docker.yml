@@ -1,0 +1,24 @@
+maven:
+  groupid: 'com.meltwater'
+  artifactid: 'myservice-non-docker'
+  version: '1.0.0'
+override:
+  cpus: 1.0
+  env:
+    SERVICE_VERSION: '%{lighter.version}'
+    SERVICE_BUILD: '%{lighter.uniqueVersion}'
+    DATABASE: 'database:3306'
+    DATABASE_PASSWORD: 'ENC[NACL,01cKxvWaxe1BDZCTDgjX548fTUS5mtlBxdVR0dvrHNJDFJMK50N6d7/kkxi6lA==]'
+    CVAR: '%{cvar}'
+    NEW_RELIC_APP_NAME: '%{newrelic.appname.prefix} MyService'
+    MY_ESCAPED_VAR: "%%{id}"
+  upgradeStrategy:
+    maximumOverCapacity: 0.0
+hipchat:
+  rooms:
+    - '456'
+    - '789'
+variables:
+  avar: '123'
+  bvar: '%{avar}'
+  cvar: '%{avar}'

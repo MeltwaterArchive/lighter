@@ -162,6 +162,11 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     config['labels'] = config.get('labels', {})
     config['labels']['com.meltwater.lighter.checksum'] = checksum
 
+    # Include a docker label to sort on
+    if util.rget(config, 'container', 'docker'):
+        config['container']['docker']['parameters'] = config['container']['docker'].get('parameters', [])
+        config['container']['docker']['parameters'].append({'key': 'label', 'value': 'com.meltwater.lighter.appid='+config['id']})
+
     # Write json file to disk for logging purposes
     if targetdir:
         outputfile = os.path.join(targetdir, filename + '.json')

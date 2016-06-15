@@ -1,0 +1,12 @@
+<metadata>
+    <groupId>com.meltwater</groupId>
+    <artifactId>myservice-non-docker</artifactId>
+    <versioning>
+        <latest>1.0.0</latest>
+        <release/>
+        <versions>
+            <version>1.0.0</version>
+        </versions>
+        <lastUpdated>20151026131234</lastUpdated>
+    </versioning>
+</metadata>
