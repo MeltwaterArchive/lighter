@@ -10,10 +10,10 @@ class UtilTest(unittest.TestCase):
         z = {'c': 5, 'd': 6}
 
         m = {'a': 1, 'b': 3, 'c': 5, 'd': 6}
-        self.assertEqual(m, util.merge(x, y, z))
+        self.assertEqual(m, util.merge(util.merge(x, y), z))
 
         m = {'a': 1, 'b': 2, 'c': 4, 'd': 6}
-        self.assertEqual(m, util.merge(z, y, x))
+        self.assertEqual(m, util.merge(util.merge(z, y), x))
 
     def testMergeLists(self):
         x = {'a': [1, 2]}
@@ -26,6 +26,15 @@ class UtilTest(unittest.TestCase):
         y = {'a': {1: 3}}
         m = {'a': [1, 3]}
         self.assertEquals(m, util.merge(x, y))
+
+    def testMergeListNonexisting(self):
+        x = {'a': {'b': [1, 2]}}
+        y = {'a': {'b': {1: 3, 4: 4}}}
+        try:
+            util.merge(x, y)
+            self.fail("Expected exception ValueError")
+        except IndexError, e:
+            self.assertEquals("The given list override index a.b[4] doesn't exist", e.message)
 
     def testMergeListOverrideDeep(self):
         x = {'a': [1, {'a': 2, 'b': 3}]}

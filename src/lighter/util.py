@@ -24,30 +24,28 @@ def toList(a):
         return a
     return [a] if (a is not None) else []
 
-def merge(*args):
-    args = list(args)
-    aval = copy(args.pop(0))
+def merge(aval, bval, path=''):
+    aval = copy(aval)
 
-    while args:
-        bval = args.pop(0)
-
-        if isinstance(aval, (list, tuple)) and isinstance(bval, (dict)):
-            # Override and deep merge specific list items
-            aval = toList(aval)
-            for key, value in bval.items():
-                aval[int(key)] = merge(aval[int(key)], value)
-        elif isinstance(aval, dict) and isinstance(bval, dict):
-            # Deep merge dicts
-            for key in set(aval.keys() + bval.keys()):
-                asubval = aval.get(key)
-                bsubval = bval.get(key)
-                aval[key] = merge(asubval, bsubval)
-        elif isinstance(aval, (list, tuple)) and isinstance(bval, (list, tuple)):
-            # Append lists
-            aval = toList(aval) + toList(bval)
-        elif bval is not None:
-            # Scalar values
-            aval = bval
+    if isinstance(aval, (list, tuple)) and isinstance(bval, (dict)):
+        # Override and deep merge specific list items
+        aval = toList(aval)
+        for key, value in bval.items():
+            if int(key) < 0 or int(key) >= len(aval):
+                raise IndexError("The given list override index %s[%d] doesn't exist" % (path.lstrip('.'), int(key)))
+            aval[int(key)] = merge(aval[int(key)], value, '%s[%d]' % (path, int(key)))
+    elif isinstance(aval, dict) and isinstance(bval, dict):
+        # Deep merge dicts
+        for key in set(aval.keys() + bval.keys()):
+            asubval = aval.get(key)
+            bsubval = bval.get(key)
+            aval[key] = merge(asubval, bsubval, '%s.%s' % (path, key))
+    elif isinstance(aval, (list, tuple)) and isinstance(bval, (list, tuple)):
+        # Append lists
+        aval = toList(aval) + toList(bval)
+    elif bval is not None:
+        # Scalar values
+        aval = bval
 
     return aval
 
