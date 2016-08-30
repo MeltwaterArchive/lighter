@@ -244,7 +244,9 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             )
 
             # Send Datadog deployment notification
-            datadog = Datadog(util.rget(service.document, 'datadog', 'token'))
+            datadog = Datadog(
+                util.rget(service.document, 'datadog', 'token'),
+                util.toList(util.rget(service.document, 'datadog', 'tags')))
             datadog.notify(
                 id=service.id,
                 title="Deployed %s to the %s environment" % (service.id, service.environment),
