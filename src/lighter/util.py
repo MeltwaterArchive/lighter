@@ -213,8 +213,10 @@ def jsonRequest(url, data=None, headers={}, method='GET', contentType='applicati
     logging.debug('%sing url %s', method, url)
     response = openRequest(buildRequest(url, data, headers, method, contentType), timeout=timeout)
     content = response.read()
+    logging.debug('Got response HTTP ' + str(response.getcode()) + ': ' + str(content)[0:250])
+
     contenttype = response.info().gettype()
-    if contenttype == 'application/json' or contenttype == 'text/plain' or 'docker.distribution.manifest' in contenttype:
+    if contenttype == 'application/json' or contenttype == 'text/json' or contenttype == 'text/plain' or 'docker.distribution.manifest' in contenttype:
         return json.loads(content)
 
     logging.debug('Content-Type %s is not json %s', response.info().gettype(), content)
