@@ -65,7 +65,8 @@ class DatadogTest(unittest.TestCase):
             expected = [
                 'environment:default',
                 u'service:/myproduct/myservice',
-                'source:lighter']
+                'source:lighter',
+                'type:change']
             self.assertEquals(expected, mock_jsonRequest.call_args[1]['data']['tags'])
 
     def testConfiguredTags(self):
@@ -79,7 +80,8 @@ class DatadogTest(unittest.TestCase):
                 'somekey:someval',
                 'anotherkey:anotherval',
                 'justakey',
-                'source:lighter']
+                'source:lighter',
+                'type:change']
             self.assertEquals(expected, mock_jsonRequest.call_args[1]['data']['tags'])
 
     def testDeploymentMetric(self):
@@ -93,7 +95,8 @@ class DatadogTest(unittest.TestCase):
                 'somekey:someval',
                 'anotherkey:anotherval',
                 'justakey',
-                'source:lighter']
+                'source:lighter',
+                'type:change']
             data = mock_jsonRequest.call_args_list[-2][1]['data']['series'][0]
             self.assertEquals('lighter.deployments', data['metric'])
             self.assertEquals(1, data['points'][0][1])
