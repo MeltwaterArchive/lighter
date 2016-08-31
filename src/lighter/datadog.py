@@ -9,7 +9,7 @@ class Datadog(object):
         self._url = 'https://app.datadoghq.com'
         self._tags = tags + ['source:lighter']
 
-    def notify(self, title, message, id, tags=[], priority='normal', alert_type='info'):
+    def notify(self, title, message, id, tags=[], priority='normal', alert_type='success'):
         if not title or not message or not id:
             logging.warn('Datadog title, message and id required')
             return
