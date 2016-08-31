@@ -3,9 +3,10 @@ import urllib2
 import lighter.util as util
 
 class Datadog(object):
-    def __init__(self, token):
+    def __init__(self, token, tags=[]):
         self._token = token
         self._url = 'https://app.datadoghq.com'
+        self._tags = tags + ['source:lighter']
 
     def notify(self, title, message, id, tags=[], priority='normal', alert_type='info'):
         if not title or not message or not id:
@@ -17,7 +18,7 @@ class Datadog(object):
             'title': title,
             'text': message,
             'aggregation_key': 'lighter_' + id,
-            'tags': tags,
+            'tags': list(tags) + self._tags,
             'priority': priority,
             'alert_type': alert_type
         })

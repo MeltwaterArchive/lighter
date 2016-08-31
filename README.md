@@ -421,6 +421,8 @@ To send [Datadog deployment events](http://docs.datadoghq.com/guides/overview/#e
 ```
 datadog:
   token: '123abc'
+  tags:
+    - subsystem:example
 ```
 
 For deployments of Docker containers, Lighter will add Marathon appid as a Docker container label in order for Datadog to tag services, [see: collect_labels_as_tags](https://github.com/DataDog/dd-agent/blob/master/conf.d/docker_daemon.yaml.example)
