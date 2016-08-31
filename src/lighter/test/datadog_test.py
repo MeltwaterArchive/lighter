@@ -10,7 +10,7 @@ class DatadogTest(unittest.TestCase):
         Datadog('abc').notify(
             title='test title',
             message='test message',
-            id='/jenkins/test',
+            aggregation_key='/jenkins/test',
             tags=['environment:test'],
             priority='normal',
             alert_type='info')
@@ -23,7 +23,7 @@ class DatadogTest(unittest.TestCase):
         Datadog('').notify(
             title='test title',
             message='test message',
-            id='/jenkins/test',
+            aggregation_key='/jenkins/test',
             tags=['environment:test'],
             priority='normal',
             alert_type='info')
@@ -31,17 +31,23 @@ class DatadogTest(unittest.TestCase):
 
     @patch('lighter.util.jsonRequest')
     def testNoTitle(self, mock_jsonRequest):
-        Datadog('abc').notify(title='', message='test message', id='/jenkins/test', tags=['environment:test'], priority='normal', alert_type='info')
+        Datadog('abc').notify(
+            title='',
+            message='test message',
+            aggregation_key='/jenkins/test',
+            tags=['environment:test'],
+            priority='normal',
+            alert_type='info')
         self.assertEquals(mock_jsonRequest.call_count, 0)
 
     @patch('lighter.util.jsonRequest')
     def testNoMessage(self, mock_jsonRequest):
-        Datadog('abc').notify(title='test title', message='', id='/jenkins/test', tags=['environment:test'], priority='normal', alert_type='info')
+        Datadog('abc').notify(title='test title', message='', aggregation_key='/jenkins/test', tags=['environment:test'], priority='normal', alert_type='info')
         self.assertEquals(mock_jsonRequest.call_count, 0)
 
     @patch('lighter.util.jsonRequest')
     def testNoID(self, mock_jsonRequest):
-        Datadog('abc').notify(title='test title', message='test message', id='', tags=['environment:test'], priority='normal', alert_type='info')
+        Datadog('abc').notify(title='test title', message='test message', aggregation_key='', tags=['environment:test'], priority='normal', alert_type='info')
         self.assertEquals(mock_jsonRequest.call_count, 0)
 
     def _createJsonRequestWrapper(self, marathonurl='http://localhost:1'):

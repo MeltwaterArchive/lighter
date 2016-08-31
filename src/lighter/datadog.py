@@ -9,9 +9,9 @@ class Datadog(object):
         self._url = 'https://app.datadoghq.com'
         self._tags = tags + ['source:lighter', 'type:change']
 
-    def notify(self, title, message, id, tags=[], priority='normal', alert_type='success'):
-        if not title or not message or not id:
-            logging.warn('Datadog title, message and id required')
+    def notify(self, title, message, aggregation_key, tags=[], priority='normal', alert_type='success'):
+        if not title or not message or not aggregation_key:
+            logging.warn('Datadog title, message and aggregation_key required')
             return
 
         merged_tags = list(tags) + self._tags
@@ -28,7 +28,7 @@ class Datadog(object):
         self._call('/api/v1/events', {
             'title': title,
             'text': message,
-            'aggregation_key': 'lighter_' + id,
+            'aggregation_key': 'lighter_' + aggregation_key,
             'tags': merged_tags,
             'priority': priority,
             'alert_type': alert_type,
