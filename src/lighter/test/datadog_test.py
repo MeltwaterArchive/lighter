@@ -14,8 +14,9 @@ class DatadogTest(unittest.TestCase):
             tags=['environment:test'],
             priority='normal',
             alert_type='info')
-        self.assertEquals(mock_jsonRequest.call_count, 1)
+        self.assertEquals(mock_jsonRequest.call_count, 2)
         mock_jsonRequest.assert_any_call('https://app.datadoghq.com/api/v1/events?api_key=abc', data=ANY, method='POST')
+        mock_jsonRequest.assert_any_call('https://app.datadoghq.com/api/v1/series?api_key=abc', data=ANY, method='POST')
 
     @patch('lighter.util.jsonRequest')
     def testNoApiKey(self, mock_jsonRequest):
@@ -80,3 +81,20 @@ class DatadogTest(unittest.TestCase):
                 'justakey',
                 'source:lighter']
             self.assertEquals(expected, mock_jsonRequest.call_args[1]['data']['tags'])
+
+    def testDeploymentMetric(self):
+        with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper()) as mock_jsonRequest:
+            lighter.deploy('http://localhost:1/', filenames=['src/resources/yaml/integration/datadog-config-tags.yml'])
+            mock_jsonRequest.assert_any_call('https://app.datadoghq.com/api/v1/series?api_key=abc', data=ANY, method='POST')
+
+            tags = [
+                'environment:default',
+                u'service:/myproduct/myservice',
+                'somekey:someval',
+                'anotherkey:anotherval',
+                'justakey',
+                'source:lighter']
+            data = mock_jsonRequest.call_args_list[-2][1]['data']['series'][0]
+            self.assertEquals('lighter.deployments', data['metric'])
+            self.assertEquals(1, data['points'][0][1])
+            self.assertEquals(tags, data['tags'])

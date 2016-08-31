@@ -1,5 +1,6 @@
 import logging
 import urllib2
+import time
 import lighter.util as util
 
 class Datadog(object):
@@ -13,14 +14,25 @@ class Datadog(object):
             logging.warn('Datadog title, message and id required')
             return
 
+        merged_tags = list(tags) + self._tags
+        now = int(time.time())
+
+        logging.debug("Sending Datadog deployment metric: %s", message)
+        self._call('/api/v1/series', {'series': [{
+            'metric': 'lighter.deployments',
+            'points': [[now, 1]],
+            'tags': merged_tags
+        }]})
+
         logging.debug("Sending Datadog event: %s", message)
         self._call('/api/v1/events', {
             'title': title,
             'text': message,
             'aggregation_key': 'lighter_' + id,
-            'tags': list(tags) + self._tags,
+            'tags': merged_tags,
             'priority': priority,
-            'alert_type': alert_type
+            'alert_type': alert_type,
+            'date_happened': now
         })
 
     def _call(self, endpoint, data):
