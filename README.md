@@ -355,7 +355,7 @@ Place a `lighter` script in the root of your configuration repo. Replace the LIG
 a version from the [releases page](https://github.com/meltwater/lighter/releases).
 
 ```
-#!/bin/sh
+#!/bin/bash
 set -e
 
 LIGHTER_VERSION="x.y.z"
