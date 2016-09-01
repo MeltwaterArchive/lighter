@@ -10,7 +10,7 @@ class DatadogTest(unittest.TestCase):
         Datadog('abc').notify(
             title='test title',
             message='test message',
-            id='/jenkins/test',
+            aggregation_key='/jenkins/test',
             tags=['environment:test'],
             priority='normal',
             alert_type='info')
@@ -23,7 +23,7 @@ class DatadogTest(unittest.TestCase):
         Datadog('').notify(
             title='test title',
             message='test message',
-            id='/jenkins/test',
+            aggregation_key='/jenkins/test',
             tags=['environment:test'],
             priority='normal',
             alert_type='info')
@@ -31,17 +31,23 @@ class DatadogTest(unittest.TestCase):
 
     @patch('lighter.util.jsonRequest')
     def testNoTitle(self, mock_jsonRequest):
-        Datadog('abc').notify(title='', message='test message', id='/jenkins/test', tags=['environment:test'], priority='normal', alert_type='info')
+        Datadog('abc').notify(
+            title='',
+            message='test message',
+            aggregation_key='/jenkins/test',
+            tags=['environment:test'],
+            priority='normal',
+            alert_type='info')
         self.assertEquals(mock_jsonRequest.call_count, 0)
 
     @patch('lighter.util.jsonRequest')
     def testNoMessage(self, mock_jsonRequest):
-        Datadog('abc').notify(title='test title', message='', id='/jenkins/test', tags=['environment:test'], priority='normal', alert_type='info')
+        Datadog('abc').notify(title='test title', message='', aggregation_key='/jenkins/test', tags=['environment:test'], priority='normal', alert_type='info')
         self.assertEquals(mock_jsonRequest.call_count, 0)
 
     @patch('lighter.util.jsonRequest')
     def testNoID(self, mock_jsonRequest):
-        Datadog('abc').notify(title='test title', message='test message', id='', tags=['environment:test'], priority='normal', alert_type='info')
+        Datadog('abc').notify(title='test title', message='test message', aggregation_key='', tags=['environment:test'], priority='normal', alert_type='info')
         self.assertEquals(mock_jsonRequest.call_count, 0)
 
     def _createJsonRequestWrapper(self, marathonurl='http://localhost:1'):
@@ -65,7 +71,8 @@ class DatadogTest(unittest.TestCase):
             expected = [
                 'environment:default',
                 u'service:/myproduct/myservice',
-                'source:lighter']
+                'source:lighter',
+                'type:change']
             self.assertEquals(expected, mock_jsonRequest.call_args[1]['data']['tags'])
 
     def testConfiguredTags(self):
@@ -79,7 +86,8 @@ class DatadogTest(unittest.TestCase):
                 'somekey:someval',
                 'anotherkey:anotherval',
                 'justakey',
-                'source:lighter']
+                'source:lighter',
+                'type:change']
             self.assertEquals(expected, mock_jsonRequest.call_args[1]['data']['tags'])
 
     def testDeploymentMetric(self):
@@ -93,7 +101,8 @@ class DatadogTest(unittest.TestCase):
                 'somekey:someval',
                 'anotherkey:anotherval',
                 'justakey',
-                'source:lighter']
+                'source:lighter',
+                'type:change']
             data = mock_jsonRequest.call_args_list[-2][1]['data']['series'][0]
             self.assertEquals('lighter.deployments', data['metric'])
             self.assertEquals(1, data['points'][0][1])
