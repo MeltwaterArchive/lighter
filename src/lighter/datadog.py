@@ -19,9 +19,10 @@ class Datadog(object):
 
         logging.debug("Sending Datadog deployment metric: %s", message)
         self._call('/api/v1/series', {'series': [{
-            'metric': 'lighter.deployments',
+            'metric': 'datadog.events',
             'points': [[now, 1]],
-            'tags': merged_tags
+            'type': 'count',
+            'tags': merged_tags + ['status:'+alert_type]
         }]})
 
         logging.debug("Sending Datadog event: %s", message)
