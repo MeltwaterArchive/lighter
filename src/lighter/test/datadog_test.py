@@ -102,8 +102,9 @@ class DatadogTest(unittest.TestCase):
                 'anotherkey:anotherval',
                 'justakey',
                 'source:lighter',
-                'type:change']
+                'type:change',
+                'status:success']
             data = mock_jsonRequest.call_args_list[-2][1]['data']['series'][0]
-            self.assertEquals('lighter.deployments', data['metric'])
+            self.assertEquals('datadog.events', data['metric'])
             self.assertEquals(1, data['points'][0][1])
             self.assertEquals(tags, data['tags'])
