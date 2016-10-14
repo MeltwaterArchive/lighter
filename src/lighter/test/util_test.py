@@ -79,9 +79,9 @@ class UtilTest(unittest.TestCase):
         self.assertEquals(actual, expected)
 
     def testGetMarathonUrl(self):
-        self.assertEqual(lighter.get_marathon_url('myurl', 'myid'), 'myurl/v2/apps/myid')
-        self.assertEqual(lighter.get_marathon_url('myurl/', '/myid/'), 'myurl/v2/apps/myid')
-        self.assertEqual(lighter.get_marathon_url('myurl/', '/myid/', True), 'myurl/v2/apps/myid?force=true')
+        self.assertEqual(lighter.get_marathon_appurl('myurl', 'myid'), 'myurl/v2/apps/myid')
+        self.assertEqual(lighter.get_marathon_appurl('myurl/', '/myid/'), 'myurl/v2/apps/myid')
+        self.assertEqual(lighter.get_marathon_appurl('myurl/', '/myid/', True), 'myurl/v2/apps/myid?force=true')
 
     def testBuildRequest(self):
         url = "https://user:pass@maven.example.com/path/to/my/repo"
@@ -102,3 +102,6 @@ class UtilTest(unittest.TestCase):
         self.assertEqual(None, util.rget({'a': [{'b': 'c'}]}, 'a', 0, 'd'))
         self.assertEqual(None, util.rget({'a': [{'b': 'c'}]}, 'a', 1, 'b'))
         self.assertEqual(None, util.rget({'a': [{'b': 'c'}]}, 'a', -1, 'b'))
+
+    def testMangle(self):
+        self.assertEqual('ab_c_', util.mangle('$!ab{c%'))

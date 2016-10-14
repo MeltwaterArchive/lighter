@@ -1,5 +1,6 @@
 import unittest
 import sys
+from lighter.test.canary_test import CanaryTest
 from lighter.test.deploy_test import DeployTest
 from lighter.test.hipchat_test import HipChatTest
 from lighter.test.maven_test import MavenTest
@@ -13,6 +14,7 @@ from lighter.test.secretary_test import SecretaryTest
 if __name__ == '__main__':
     suite = unittest.TestSuite()
 
+    suite.addTest(unittest.makeSuite(CanaryTest))
     suite.addTest(unittest.makeSuite(DeployTest))
     suite.addTest(unittest.makeSuite(HipChatTest))
     suite.addTest(unittest.makeSuite(MavenTest))

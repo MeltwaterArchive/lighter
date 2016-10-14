@@ -3,7 +3,9 @@ import os
 import sys
 import argparse
 import logging
+import hashlib
 import yaml
+import urllib
 import urllib2
 import json
 from copy import copy
@@ -67,7 +69,7 @@ class Service(object):
     def checksum(self):
         return self.config['labels']['com.meltwater.lighter.checksum']
 
-def process_env(filename, verifySecrets, env):
+def process_env(filename, env):
     result = copy(env)
     for key, value in env.iteritems():
         # Can't support non-string keys consistently
@@ -85,17 +87,71 @@ def process_env(filename, verifySecrets, env):
 
             result[key] = value
 
-        # Check for unencrypted secrets
-        if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower() or 'token' in key.lower()) and
-                'public' not in key.lower() and 'id' not in key.lower() and 'routing' not in key.lower()) and len(secretary.extractEnvelopes(value)) == 0:
-            if verifySecrets:
-                raise RuntimeError('Found unencrypted secret in %s: %s' % (filename, key))
-            else:
-                logging.warn('Found unencrypted secret in %s: %s' % (filename, key))
-
     return result
 
-def parse_service(filename, targetdir=None, verifySecrets=False, profiles=[]):
+def verify_secrets(services, enforce):
+    for service in services:
+        # Check for unencrypted secrets
+        for key, value in service.config.get('env', {}).iteritems():
+            # Skip secretary keys
+            if isinstance(value, secretary.KeyValue):
+                continue
+
+            if (('password' in key.lower() or 'pwd' in key.lower() or 'key' in key.lower() or 'token' in key.lower()) and
+                    'public' not in key.lower() and 'id' not in key.lower() and 'routing' not in key.lower()) and len(secretary.extractEnvelopes(value)) == 0:
+                if enforce:
+                    raise RuntimeError('Found unencrypted secret in %s: %s' % (service.filename, key))
+                else:
+                    logging.warn('Found unencrypted secret in %s: %s' % (service.filename, key))
+
+def apply_canary(canaryGroup, service):
+    if not canaryGroup:
+        return
+
+    mangledGroup = util.mangle(canaryGroup)
+    config = service.config
+    config['id'] = '%s-canary-%s-%s' % (config.get('id', ''), mangledGroup, hashlib.md5('%s-%s' % (canaryGroup, service.filename)).hexdigest())
+    config['instances'] = 1
+
+    # Rewrite service ports and add label for meltwater/proxymatic to read
+    config['labels'] = config.get('labels', {})
+    ports = config.get('ports', [])
+    for port, i in zip(ports, range(len(ports))):
+        config['labels']['com.meltwater.proxymatic.port.%d.servicePort' % i] = str(port)
+        config['ports'][i] = 0
+
+    mappings = util.toList(util.rget(config, 'container', 'docker', 'portMappings'))
+    for mapping, i in zip(mappings, range(len(mappings))):
+        config['labels']['com.meltwater.proxymatic.port.%d.servicePort' % i] = str(mapping['servicePort'])
+        mapping['servicePort'] = 0
+
+    # Apply canary label to task so old canaries can be destroyed
+    config['labels']['com.meltwater.lighter.filename'] = service.filename
+    config['labels']['com.meltwater.lighter.canary.group'] = mangledGroup
+
+    # Apply canary label to container so container metrics can be aggregated
+    if util.rget(config, 'container', 'docker'):
+        config['container']['docker']['parameters'] = config['container']['docker'].get('parameters', [])
+        config['container']['docker']['parameters'].append({'key': 'label', 'value': 'com.meltwater.lighter.canary.group='+mangledGroup})
+
+def cleanup_canaries(marathonurl, canaryGroup, keepServices, noop=False):
+    mangledGroup = util.mangle(canaryGroup)
+
+    # Fetch list of current canaries
+    apps = get_marathon_apps(marathonurl, 'com.meltwater.lighter.canary.group==' + mangledGroup)
+
+    # Destroy canaries that are no longer present
+    keep = set([service.config['id'] for service in keepServices])
+    for app in apps:
+        if app['labels']['com.meltwater.lighter.canary.group'] != mangledGroup:
+            raise RuntimeError("Got canary %s not matching group %s" % (app['id'], mangledGroup))
+
+        if app['id'] not in keep:
+            if not noop:
+                get_marathon_app(get_marathon_appurl(marathonurl, app['id']), method='DELETE')
+            logging.info("Destroyed old canary %s", app['id'])
+
+def parse_service(filename, canaryGroup=None, profiles=[]):
     logging.info("Processing %s", filename)
     # Start from a service section if it exists
     with open(filename, 'r') as fd:
@@ -154,7 +210,7 @@ def parse_service(filename, targetdir=None, verifySecrets=False, profiles=[]):
         raise RuntimeError('Failed to parse %s with the following message: %s' % (filename, str(e.message)))
 
     if 'env' in config:
-        config['env'] = process_env(filename, verifySecrets, config['env'])
+        config['env'] = process_env(filename, config['env'])
 
     # Generate deploy keys and encrypt secrets
     config = secretary.apply(document, config)
@@ -164,32 +220,40 @@ def parse_service(filename, targetdir=None, verifySecrets=False, profiles=[]):
     config['labels'] = config.get('labels', {})
     config['labels']['com.meltwater.lighter.checksum'] = checksum
 
-    # Include a docker label to sort on
+    # Add docker labels to aggregate container metrics on
     if util.rget(config, 'container', 'docker'):
         config['container']['docker']['parameters'] = config['container']['docker'].get('parameters', [])
         config['container']['docker']['parameters'].append({'key': 'label', 'value': 'com.meltwater.lighter.appid='+config['id']})
 
-    # Write json file to disk for logging purposes
-    if targetdir:
-        outputfile = os.path.join(targetdir, filename + '.json')
+    service = Service(filename, document, config)
+
+    # Apply canarying to avoid collisions on id and servicePort
+    apply_canary(canaryGroup, service)
+
+    return service
+
+def parse_services(filenames, canaryGroup=None, profiles=[]):
+    # return [parse_service(filename) for filename in filenames]
+    return Parallel(n_jobs=8, backend="threading")(delayed(parse_service)(filename, canaryGroup, profiles) for filename in filenames) if filenames else []
+
+def write_services(targetdir, services):
+    for service in services:
+        # Write json file to disk for logging purposes
+        outputfile = os.path.join(targetdir, service.filename + '.json')
 
         # Exception if directory exists, e.g. because another thread created it concurrently
         try:
             os.makedirs(os.path.dirname(outputfile))
-        except OSError as e:
+        except OSError:
             pass
 
         with open(outputfile, 'w') as fd:
-            fd.write(util.toJson(config, indent=4))
-
-    return Service(filename, document, config)
-
+            fd.write(util.toJson(service.config, indent=4))
 
 def merge_with_profiles(document, profiles):
     for profile in profiles:
         document = merge_with_service(profile, document)
     return document
-
 
 def merge_with_service(override_file, document):
     if not os.path.exists(override_file):
@@ -199,26 +263,39 @@ def merge_with_service(override_file, document):
         document = util.merge(yaml.load(fd2), document)
     return document
 
-
-def parse_services(filenames, targetdir=None, verifySecrets=False, profiles=[]):
-    # return [parse_service(filename, targetdir) for filename in filenames]
-    return Parallel(n_jobs=8, backend="threading")(delayed(parse_service)(filename, targetdir, verifySecrets, profiles) for filename in filenames)
-
-def get_marathon_url(url, id, force=False):
+def get_marathon_appurl(url, id, force=False):
     return url.rstrip('/') + '/v2/apps/' + id.strip('/') + (force and '?force=true' or '')
 
-def get_marathon_app(url):
+def get_marathon_app(url, method='GET'):
     try:
-        return util.jsonRequest(url)['app']
+        response = util.jsonRequest(url, method=method)
+        if method == 'GET':
+            return response['app']
+        return response
     except urllib2.HTTPError as e:
         logging.debug(str(e))
         if e.code == 404:
             return {}
         else:
-            raise RuntimeError("Failed to get app info %s HTTP %d (%s) - Response: %s" % (url, e.code, e, e.read())), None, sys.exc_info()[2]
+            raise RuntimeError("Failed to %s app %s HTTP %d (%s) - Response: %s" % (method, url, e.code, e, e.read())), None, sys.exc_info()[2]
     except urllib2.URLError as e:
         logging.debug(str(e))
-        raise RuntimeError("Failed to get app info %s (%s)" % (url, e)), None, sys.exc_info()[2]
+        raise RuntimeError("Failed to %s app %s (%s)" % (method, url, e)), None, sys.exc_info()[2]
+
+def get_marathon_apps(url, labelFilter):
+    appsurl = url.rstrip('/') + '/v2/apps?' + urllib.urlencode({'label': labelFilter})
+
+    try:
+        return util.jsonRequest(appsurl)['apps']
+    except urllib2.HTTPError as e:
+        logging.debug(str(e))
+        if e.code == 404:
+            return {}
+        else:
+            raise RuntimeError("Failed to fetch apps %s HTTP %d (%s) - Response: %s" % (url, e.code, e, e.read())), None, sys.exc_info()[2]
+    except urllib2.URLError as e:
+        logging.debug(str(e))
+        raise RuntimeError("Failed to fetch apps %s (%s)" % (url, e)), None, sys.exc_info()[2]
 
 def notify(targetMarathonUrl, service):
     parsedMarathonUrl = urlparse(targetMarathonUrl)
@@ -267,8 +344,8 @@ def notify(targetMarathonUrl, service):
             service.id, service.image, service.environment, parsedMarathonUrl.netloc),
         tags=tags)
 
-def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None, profiles=[]):
-    services = parse_services(filenames, targetdir, profiles=profiles)
+def deploy(marathonurl, filenames, noop=False, force=False, canaryGroup=None, profiles=[]):
+    services = parse_services(filenames, canaryGroup, profiles)
 
     for service in services:
         try:
@@ -277,7 +354,7 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None, prof
                 raise RuntimeError("No Marathon URL defined for service %s" % service.filename)
 
             # See if service config has changed by comparing the checksum
-            appurl = get_marathon_url(targetMarathonUrl, service.config['id'], force)
+            appurl = get_marathon_appurl(targetMarathonUrl, service.config['id'], force)
             prevVersion = get_marathon_app(appurl)
             if util.rget(prevVersion, 'labels', 'com.meltwater.lighter.checksum') == service.checksum:
                 logging.info("Service already deployed with same config: %s", service.filename)
@@ -298,8 +375,10 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None, prof
         except urllib2.URLError as e:
             raise RuntimeError("Failed to deploy %s (%s)" % (service.filename, e)), None, sys.exc_info()[2]
 
-def verify(filenames, targetdir=None, verifySecrets=False, profiles=[]):
-    parse_services(filenames, targetdir, verifySecrets, profiles)
+    return services
+
+def verify(filenames, canaryGroup=None, profiles=[]):
+    return parse_services(filenames, canaryGroup, profiles)
 
 
 if __name__ == '__main__':
@@ -329,11 +408,18 @@ if __name__ == '__main__':
                                dest='marathon',
                                help='Marathon URL like "http://marathon-host:8080/". Overrides default Marathon URL\'s provided in config files',
                                default=os.environ.get('MARATHON_URL', ''))
+
     deploy_parser.add_argument('-f', '--force',
                                dest='force',
                                help='Force deployment even if the service is already affected by a running deployment [default: %(default)s]',
                                action='store_true', default=False)
-    deploy_parser.add_argument('filenames', metavar='YMLFILE', nargs='+',
+
+    deploy_parser.add_argument('--canary-group', dest='canaryGroup', help='Unique name for this group of canaries [default: %(default)s]',
+                               default=None)
+    deploy_parser.add_argument('--canary-cleanup', dest='canaryCleanup', help='Destroy canaries that are no longer present [default: %(default)s]',
+                               action='store_true', default=False)
+
+    deploy_parser.add_argument('filenames', metavar='YMLFILE', nargs='*',
                                help='Service files to expand and deploy')
 
     # Create the parser for the "verify" command
@@ -357,10 +443,24 @@ if __name__ == '__main__':
         logging.getLogger().setLevel(logging.INFO)
 
     try:
+        services = []
         if args.command == 'deploy':
-            deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames, targetdir=args.targetdir, profiles=args.profiles)
+            services = deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames, canaryGroup=args.canaryGroup, profiles=args.profiles)
+
+            # Destroy canaries that are no longer rendered
+            if args.canaryGroup and args.canaryCleanup:
+                if not args.marathon:
+                    raise RuntimeError("Canary cleanup requires Marathon URL to be given on the command line")
+                cleanup_canaries(args.marathon, args.canaryGroup, services, args.noop)
         elif args.command == 'verify':
-            verify(args.filenames, targetdir=args.targetdir, verifySecrets=args.verifySecrets, profiles=args.profiles)
+            services = verify(args.filenames, profiles=args.profiles)
+
+            # Check for unencrypted secrets
+            verify_secrets(services, args.verifySecrets)
+
+        # Dump rendered files to disk
+        if args.targetdir:
+            write_services(args.targetdir, services)
     except RuntimeError as e:
         logging.error(str(e))
         sys.exit(1)

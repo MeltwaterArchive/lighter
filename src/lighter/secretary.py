@@ -48,6 +48,9 @@ class KeyValue(util.Value):
         return 'secretary-deploy-key'
 
 def extractEnvelopes(payload):
+    if not isinstance(payload, (str, unicode)):
+        raise ValueError("Input must be str or unicode, was %s(%s)" % (type(payload).__name__, payload))
+
     return _ENVELOPES_RE.findall(payload)
 
 def decodePublicKey(key):
