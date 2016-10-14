@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e -x
 . ./common.sh
 
@@ -6,11 +6,11 @@ cd "`dirname $0`"
 export PYTHONPATH=".:`pwd`/src"
 
 echo "==> Static Code Analysis for PEP8 style guide and various errors"
-flake8 --statistics --count .
+flake8 --statistics --count src/
 
 if [ "$TRAVIS_TAG" == "" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then
     echo "==> Executing tests with code coverage collection"
-    coverage run "`dirname $0`/src/lighter/test.py" $@
+    coverage run "src/lighter/test.py" $@
 else
-    python "`dirname $0`/src/lighter/test.py" $@
+    python "src/lighter/test.py" $@
 fi

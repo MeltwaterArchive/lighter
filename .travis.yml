@@ -21,7 +21,7 @@ deploy:
   on:
     tags: true
 
-# Code coverage for master branch using https://codecov.io/github/mikljohansson/secretary
+# Code coverage for master branch using https://codecov.io/github/meltwater/lighter
 before_install:
   - if [ "$TRAVIS_TAG" == "" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install codecov; fi
 after_success:
