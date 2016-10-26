@@ -471,7 +471,7 @@ To send [Graphite deployment events](http://docs.grafana.org/reference/annotatio
 graphite:
   address: 'graphite-host:2003'
   url: 'http://graphite-host:80/'
-  metric: 'lighter.deployments'
+  prefix: 'lighter'
   tags:
     - subsystem:example
 ```

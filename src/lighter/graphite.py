@@ -5,18 +5,16 @@ import time
 import lighter.util as util
 
 class Graphite(object):
-    def __init__(self, address, url, metricname, tags=[]):
+    def __init__(self, address, url, tags=[]):
         """
         @param  address    hostname:port where the Graphite listens for the plaintext protocol, usually port 2003
         @param  url         URL where Graphite's API is, usually port 80
-        @param  metricname  Name of deployment metric, e.g. lighter.deployments
         """
         self._address = address
         self._url = url
-        self._metricname = metricname
         self._tags = tags + ['source:lighter', 'type:change']
 
-    def notify(self, title, message, tags=[]):
+    def notify(self, metricname, title, message, tags=[]):
         if not title or not message:
             logging.warn('Graphite event title and message')
             return
@@ -24,8 +22,8 @@ class Graphite(object):
         merged_tags = list(tags) + self._tags
         now = int(time.time())
 
-        logging.debug("Sending Graphite deployment event %s", message)
-        self._send(self._address, "%s 1 %s\n" % (self._metricname, now))
+        logging.debug('Sending Graphite deployment event %s', message)
+        self._send(self._address, '%s 1 %s\n' % (metricname, now))
 
         self._call('/events/', {
             'what': title,
@@ -35,7 +33,7 @@ class Graphite(object):
         })
 
     def _send(self, address, data):
-        if not self._address or not self._url or not self._metricname:
+        if not self._address or not self._url:
             logging.debug('Graphite is not enabled')
             return
 
@@ -50,7 +48,7 @@ class Graphite(object):
             logging.warn(str(e))
 
     def _call(self, endpoint, data):
-        if not self._address or not self._url or not self._metricname:
+        if not self._address or not self._url:
             logging.debug('Graphite is not enabled')
             return
 

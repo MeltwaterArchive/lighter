@@ -234,12 +234,17 @@ def notify(targetMarathonUrl, service):
         tags=tags)
 
     # Send Graphite deployment notification
+    prefix = (util.rget(service.document, 'graphite', 'prefix') or 'lighter').strip('.')
+    metricname = '%s.%s.%s.deployments' % (
+        prefix, service.environment,
+        '.'.join(filter(bool, service.id.split('/'))))
+
     graphite = Graphite(
         util.rget(service.document, 'graphite', 'address'),
         util.rget(service.document, 'graphite', 'url'),
-        util.rget(service.document, 'graphite', 'metric') or 'lighter.deployments',
         util.toList(util.rget(service.document, 'graphite', 'tags')))
     graphite.notify(
+        metricname=metricname,
         title=title,
         message="Lighter deployed %s with image %s to %s (%s)" % (
             service.id, service.image, service.environment, parsedMarathonUrl.netloc),
