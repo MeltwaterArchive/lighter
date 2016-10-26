@@ -16,6 +16,7 @@ import lighter.docker as docker
 import lighter.secretary as secretary
 from lighter.newrelic import NewRelic
 from lighter.datadog import Datadog
+from lighter.graphite import Graphite
 
 def parsebool(value):
     truevals = set(['true', '1'])
@@ -202,6 +203,48 @@ def get_marathon_app(url):
         logging.debug(str(e))
         raise RuntimeError("Failed to get app info %s (%s)" % (url, e)), None, sys.exc_info()[2]
 
+def notify(targetMarathonUrl, service):
+    parsedMarathonUrl = urlparse(targetMarathonUrl)
+    tags = ["environment:%s" % service.environment, "service:%s" % service.id]
+    title = "Deployed %s to the %s environment" % (service.id, service.environment)
+
+    # Send HipChat notification
+    hipchat = HipChat(
+        util.rget(service.document, 'hipchat', 'token'),
+        util.rget(service.document, 'hipchat', 'url'),
+        util.rget(service.document, 'hipchat', 'rooms'))
+    hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" %
+                   (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
+
+    # Send NewRelic deployment notification
+    newrelic = NewRelic(util.rget(service.document, 'newrelic', 'token'))
+    newrelic.notify(
+        util.rget(service.config, 'env', 'NEW_RELIC_APP_NAME'),
+        service.uniqueVersion)
+
+    # Send Datadog deployment notification
+    datadog = Datadog(
+        util.rget(service.document, 'datadog', 'token'),
+        util.toList(util.rget(service.document, 'datadog', 'tags')))
+    datadog.notify(
+        aggregation_key="%s_%s" % (service.environment, service.id),
+        title=title,
+        message="%%%%%% \n Lighter deployed **%s** with image **%s** to **%s** (%s) \n %%%%%%" % (
+            service.id, service.image, service.environment, parsedMarathonUrl.netloc),
+        tags=tags)
+
+    # Send Graphite deployment notification
+    graphite = Graphite(
+        util.rget(service.document, 'graphite', 'address'),
+        util.rget(service.document, 'graphite', 'url'),
+        util.rget(service.document, 'graphite', 'metric') or 'lighter.deployments',
+        util.toList(util.rget(service.document, 'graphite', 'tags')))
+    graphite.notify(
+        title=title,
+        message="Lighter deployed %s with image %s to %s (%s)" % (
+            service.id, service.image, service.environment, parsedMarathonUrl.netloc),
+        tags=tags)
+
 def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
     services = parse_services(filenames, targetdir)
 
@@ -211,10 +254,8 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             if not targetMarathonUrl:
                 raise RuntimeError("No Marathon URL defined for service %s" % service.filename)
 
-            parsedMarathonUrl = urlparse(targetMarathonUrl)
-            appurl = get_marathon_url(targetMarathonUrl, service.config['id'], force)
-
             # See if service config has changed by comparing the checksum
+            appurl = get_marathon_url(targetMarathonUrl, service.config['id'], force)
             prevVersion = get_marathon_app(appurl)
             if util.rget(prevVersion, 'labels', 'com.meltwater.lighter.checksum') == service.checksum:
                 logging.info("Service already deployed with same config: %s", service.filename)
@@ -228,32 +269,8 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
             logging.info("Deploying %s", service.filename)
             util.jsonRequest(appurl, data=service.config, method='PUT')
 
-            # Send HipChat notification
-            hipchat = HipChat(
-                util.rget(service.document, 'hipchat', 'token'),
-                util.rget(service.document, 'hipchat', 'url'),
-                util.rget(service.document, 'hipchat', 'rooms'))
-            hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" %
-                           (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
-
-            # Send NewRelic deployment notification
-            newrelic = NewRelic(util.rget(service.document, 'newrelic', 'token'))
-            newrelic.notify(
-                util.rget(service.config, 'env', 'NEW_RELIC_APP_NAME'),
-                service.uniqueVersion
-            )
-
-            # Send Datadog deployment notification
-            datadog = Datadog(
-                util.rget(service.document, 'datadog', 'token'),
-                util.toList(util.rget(service.document, 'datadog', 'tags')))
-            datadog.notify(
-                aggregation_key="%s_%s" % (service.environment, service.id),
-                title="Deployed %s to the %s environment" % (service.id, service.environment),
-                message="%%%%%% \n Lighter deployed **%s** with image **%s** to **%s** (%s) \n %%%%%%" % (
-                    service.id, service.image, service.environment, parsedMarathonUrl.netloc),
-                tags=["environment:%s" % service.environment, "service:%s" % service.id])
-
+            # Send deployment notifications
+            notify(targetMarathonUrl, service)
         except urllib2.HTTPError as e:
             raise RuntimeError("Failed to deploy %s HTTP %d (%s) - Response: %s" % (service.filename, e.code, e, e.read())), None, sys.exc_info()[2]
         except urllib2.URLError as e:

@@ -463,6 +463,19 @@ For deployments of Docker containers, Lighter will add Marathon appid as a Docke
     
 ```
 
+### Graphite
+To send [Graphite deployment events](http://docs.grafana.org/reference/annotations/) supply your Graphite plaintext and HTTP endpoints.
+
+*globals.yml*
+```
+graphite:
+  address: 'graphite-host:2003'
+  url: 'http://graphite-host:80/'
+  metric: 'lighter.deployments'
+  tags:
+    - subsystem:example
+```
+
 ## Contributors
 
 * **[Giuliano Manno](https://github.com/xyden)**
