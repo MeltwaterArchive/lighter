@@ -41,9 +41,11 @@ class Graphite(object):
         try:
             logging.debug('Sending Graphite metric to %s:%s' % (ip, port))
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((ip, int(port)))
-            sock.send(data)
-            sock.close()
+            try:
+                sock.connect((ip, int(port)))
+                sock.send(data)
+            finally:
+                sock.close()
         except (socket.error, ValueError) as e:
             logging.warn(str(e))
 

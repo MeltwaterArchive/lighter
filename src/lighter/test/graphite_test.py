@@ -50,3 +50,5 @@ class GraphiteTest(unittest.TestCase):
 
         self.assertEquals(1, mock_sock.send.call_count)
         mock_sock.send.assert_called_with("ci.lighter.default.myproduct.myservice.deployments 1 1477507464\n")
+
+        self.assertEquals(1, mock_sock.close.call_count)
