@@ -1,0 +1,14 @@
+service:
+  id: '/myproduct/myservice'
+  container:
+    docker:
+      image: 'meltwater/myservice:latest'
+
+graphite:
+  address: 'localhost:2003'
+  url: 'http://localhost:80'
+  prefix: 'ci.lighter'
+  tags:
+    - somekey:someval
+    - anotherkey:anotherval
+    - justakey

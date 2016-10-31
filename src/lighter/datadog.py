@@ -17,7 +17,7 @@ class Datadog(object):
         merged_tags = list(tags) + self._tags
         now = int(time.time())
 
-        logging.debug("Sending Datadog deployment metric: %s", message)
+        logging.debug("Sending Datadog deployment event: %s", message)
         self._call('/api/v1/series', {'series': [{
             'metric': 'datadog.events',
             'points': [[now, 1]],
@@ -25,7 +25,6 @@ class Datadog(object):
             'tags': merged_tags + ['status:'+alert_type]
         }]})
 
-        logging.debug("Sending Datadog event: %s", message)
         self._call('/api/v1/events', {
             'title': title,
             'text': message,
