@@ -41,8 +41,9 @@ class GraphiteTest(unittest.TestCase):
             'http://localhost:80/events/', method='POST', data={
                 'what': 'Deployed /myproduct/myservice to the default environment',
                 'data': 'Lighter deployed /myproduct/myservice with image meltwater/myservice:latest to default (localhost:8080)',
-                'tags': ['environment:default', 'service:/myproduct/myservice', 'somekey:someval',
-                         'anotherkey:anotherval', 'justakey', 'source:lighter', 'type:change'],
+                'tags':
+                    'environment:default service:/myproduct/myservice somekey:someval anotherkey:anotherval ' +
+                    'justakey es_ca_pe trimwhitespace source:lighter type:change',
                 'when': 1477507464})
 
         self.assertEquals(1, mock_sock.connect.call_count)

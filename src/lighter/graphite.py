@@ -2,6 +2,7 @@ import logging
 import urllib2
 import socket
 import time
+import re
 import lighter.util as util
 
 class Graphite(object):
@@ -28,9 +29,12 @@ class Graphite(object):
         self._call('/events/', {
             'what': title,
             'data': message,
-            'tags': merged_tags,
+            'tags': ' '.join(self._mangle(tag) for tag in merged_tags),
             'when': now
         })
+
+    def _mangle(self, tag):
+        return re.sub('[\s,]', '_', tag.strip())
 
     def _send(self, address, data):
         if not self._address or not self._url:

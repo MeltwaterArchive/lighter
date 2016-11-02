@@ -12,3 +12,5 @@ graphite:
     - somekey:someval
     - anotherkey:anotherval
     - justakey
+    - ' es,ca pe '
+    -    trimwhitespace   
