@@ -26,6 +26,8 @@ class Graphite(object):
         logging.debug('Sending Graphite deployment event %s', message)
         self._send(self._address, '%s 1 %s\n' % (metricname, now))
 
+        # For info on Graphite tags and filtering see
+        # https://github.com/grafana/grafana/issues/1474#issuecomment-105811191
         self._call('/events/', {
             'what': title,
             'data': message,
