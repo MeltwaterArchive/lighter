@@ -95,11 +95,9 @@ def process_env(filename, verifySecrets, env):
 
     return result
 
-def parse_service(filename, targetdir=None, verifySecrets=False, profiles=None):
-    if profiles is None:
-        profiles = []
-
+def parse_service(filename, targetdir=None, verifySecrets=False, profiles=[]):
     logging.info("Processing %s", filename)
+    # Start from a service section if it exists
     with open(filename, 'r') as fd:
         try:
             document = yaml.load(fd)
@@ -125,7 +123,6 @@ def parse_service(filename, targetdir=None, verifySecrets=False, profiles=None):
     # Replace variables in entire document
     document = util.replace(document, variables, raiseError=False, escapeVar=False)
 
-    # Start from a service section if it exists
     config = document.get('service', {})
 
     # Allow resolving version/uniqueVersion variables from docker registry
@@ -190,12 +187,10 @@ def parse_service(filename, targetdir=None, verifySecrets=False, profiles=None):
 
 def merge_with_profiles(document, profiles):
     for profile in profiles:
-        if os.path.exists(profile):
-            document = merge_with_service(profile, document)
-        else:
-            raise RuntimeError('Could not find profile file: %s' % profile)
+        if not os.path.exists(profile):
+            raise RuntimeError('Could not read profile %s' % profile)
+        document = merge_with_service(profile, document)
 
-            # Start from a service section if it exists
     return document
 
 

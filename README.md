@@ -34,7 +34,6 @@ optional arguments:
   -p PROFILES, --profile PROFILES
                         Extra profile files to be merged with service
                         definitions.
-+ '[' -e /tmp/lighter ']'
 ```
 
 ### Deploy Command
