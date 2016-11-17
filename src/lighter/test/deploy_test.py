@@ -5,12 +5,17 @@ from mock import patch, Mock
 import lighter.main as lighter
 from lighter.util import jsonRequest
 
+PROFILE_2 = 'src/resources/yaml/myprofile2.yml'
+
+PROFILE_1 = 'src/resources/yaml/myprofile1.yml'
+
+
 class DeployTest(unittest.TestCase):
     def setUp(self):
         self._called = False
 
     def testParseService(self):
-        service = lighter.parse_service('src/resources/yaml/staging/myservice.yml')
+        service = lighter.parse_service('src/resources/yaml/staging/myservice.yml', profiles=[PROFILE_1, PROFILE_2])
         self.assertEquals(service.document['hipchat']['token'], 'abc123')
         self.assertEquals(sorted(service.document['hipchat']['rooms']), ['123', '456', '456', '789'])
         self.assertEquals(service.environment, 'staging')
@@ -172,7 +177,7 @@ class DeployTest(unittest.TestCase):
             self.fail('Expected ValueError')
 
     def testParseNoMavenService(self):
-        service = lighter.parse_service('src/resources/yaml/staging/myservice-nomaven.yml')
+        service = lighter.parse_service('src/resources/yaml/staging/myservice-nomaven.yml', profiles=[PROFILE_1, PROFILE_2])
         self.assertEquals(service.document['hipchat']['token'], 'abc123')
         self.assertEquals(service.config['id'], '/myproduct/myservice-nomaven')
         self.assertEquals(service.config['instances'], 1)

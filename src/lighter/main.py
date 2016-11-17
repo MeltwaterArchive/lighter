@@ -95,7 +95,10 @@ def process_env(filename, verifySecrets, env):
 
     return result
 
-def parse_service(filename, targetdir=None, verifySecrets=False):
+def parse_service(filename, targetdir=None, verifySecrets=False, profiles=None):
+    if profiles is None:
+        profiles = []
+
     logging.info("Processing %s", filename)
     with open(filename, 'r') as fd:
         try:
@@ -108,11 +111,12 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
     while '/' in path:
         candidate = os.path.join(path, 'globals.yml')
         if os.path.exists(candidate):
-            with open(candidate, 'r') as fd2:
-                document = util.merge(yaml.load(fd2), document)
+            document = merge_with_service(candidate, document)
         path = path[0:path.rindex('/')]
 
-    # Start from a service section if it exists
+    # Merge profile .yml files into document
+    document = merge_with_profiles(document, profiles)
+
     variables = util.FixedVariables(document.get('variables', {}))
 
     # Environment variables has higher precedence
@@ -183,9 +187,27 @@ def parse_service(filename, targetdir=None, verifySecrets=False):
 
     return Service(filename, document, config)
 
-def parse_services(filenames, targetdir=None, verifySecrets=False):
+
+def merge_with_profiles(document, profiles):
+    for profile in profiles:
+        if os.path.exists(profile):
+            document = merge_with_service(profile, document)
+        else:
+            raise RuntimeError('Could not find profile file: %s' % profile)
+
+            # Start from a service section if it exists
+    return document
+
+
+def merge_with_service(candidate, document):
+    with open(candidate, 'r') as fd2:
+        document = util.merge(yaml.load(fd2), document)
+    return document
+
+
+def parse_services(filenames, targetdir=None, verifySecrets=False, profiles=[]):
     # return [parse_service(filename, targetdir) for filename in filenames]
-    return Parallel(n_jobs=8, backend="threading")(delayed(parse_service)(filename, targetdir, verifySecrets) for filename in filenames)
+    return Parallel(n_jobs=8, backend="threading")(delayed(parse_service)(filename, targetdir, verifySecrets, profiles) for filename in filenames)
 
 def get_marathon_url(url, id, force=False):
     return url.rstrip('/') + '/v2/apps/' + id.strip('/') + (force and '?force=true' or '')
@@ -250,7 +272,7 @@ def notify(targetMarathonUrl, service):
             service.id, service.image, service.environment, parsedMarathonUrl.netloc),
         tags=tags)
 
-def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
+def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None, profiles=[]):
     services = parse_services(filenames, targetdir)
 
     for service in services:
@@ -281,8 +303,8 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None):
         except urllib2.URLError as e:
             raise RuntimeError("Failed to deploy %s (%s)" % (service.filename, e)), None, sys.exc_info()[2]
 
-def verify(filenames, targetdir=None, verifySecrets=False):
-    parse_services(filenames, targetdir, verifySecrets)
+def verify(filenames, targetdir=None, verifySecrets=False, profiles=[]):
+    parse_services(filenames, targetdir, verifySecrets, profiles)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -297,6 +319,7 @@ if __name__ == '__main__':
                         action="store_true", default=False)
     parser.add_argument('-t', '--targetdir', dest='targetdir', help='Directory to output rendered config files',
                         default=None)
+    parser.add_argument('-p', '--profile', dest='profiles', default=[], action='append', help='Extra profile files to be merged with service definitions.')
 
     # Create the parser for the "deploy" command
     deploy_parser = subparsers.add_parser('deploy',
@@ -339,7 +362,7 @@ if __name__ == '__main__':
 
     try:
         if args.command == 'deploy':
-            deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames, targetdir=args.targetdir)
+            deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames, targetdir=args.targetdir, profiles=args.profiles)
         elif args.command == 'verify':
             verify(args.filenames, targetdir=args.targetdir, verifySecrets=args.verifySecrets)
     except RuntimeError as e:
