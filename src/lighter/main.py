@@ -187,15 +187,15 @@ def parse_service(filename, targetdir=None, verifySecrets=False, profiles=[]):
 
 def merge_with_profiles(document, profiles):
     for profile in profiles:
-        if not os.path.exists(profile):
-            raise RuntimeError('Could not read profile %s' % profile)
         document = merge_with_service(profile, document)
-
     return document
 
 
-def merge_with_service(candidate, document):
-    with open(candidate, 'r') as fd2:
+def merge_with_service(override_file, document):
+    if not os.path.exists(override_file):
+        raise RuntimeError('Could not read file %s' % override_file)
+
+    with open(override_file, 'r') as fd2:
         document = util.merge(yaml.load(fd2), document)
     return document
 
