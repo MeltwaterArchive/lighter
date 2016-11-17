@@ -31,6 +31,9 @@ optional arguments:
   -v, --verbose         Increase logging verbosity [default: False]
   -t TARGETDIR, --targetdir TARGETDIR
                         Directory to output rendered config files
+  -p PROFILES, --profile PROFILES
+                        Extra profile file(s) to be merged with service
+                        definitions.
 ```
 
 ### Deploy Command
@@ -58,6 +61,7 @@ Given a directory structure like
 ```
 config-repo/
 |   globals.yml
+|   myprofile.yml 
 └─ production/
 |   |   globals.yml
 |   |   myfrontend.yml
@@ -70,9 +74,9 @@ config-repo/
     |   myfrontend.yml
 ```
 
-Running `lighter deploy staging/myfrontend.yml` will
+Running `lighter deploy -p myprofile1.yml -p myprofile2.yml staging/myfrontend.yml` will
 
-* Merge *myfrontend.yml* with environment defaults from *config-repo/staging/globals.yml* and *config-repo/globals.yml*
+* Merge *myfrontend.yml* with environment defaults from *config-repo/staging/globals.yml*, *config-repo/globals.yml*, *myprofile1.yml* and *myprofile2.yml*
 * Fetch the *json* template for this service and version from the Maven repository
 * Expand the *json* template with variables and overrides from the *yml* files
 * Post the resulting *json* configuration into Marathon

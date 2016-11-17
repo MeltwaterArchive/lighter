@@ -1,13 +1,7 @@
 maven:
   repository: 'file:./src/resources/repository/'
-hipchat:
-  token: 'abc123'
-  rooms:
-    - '123'
 variables:
   rabbitmq.url: amqp://localhost:5672
-newrelic:
-  token: 'i_am_an_api_token'
 docker:
   registries:
     'authregistrywithport:5000':

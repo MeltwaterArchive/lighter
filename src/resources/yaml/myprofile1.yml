@@ -1,0 +1,4 @@
+hipchat:
+  token: 'abc123'
+  rooms:
+    - '123'
