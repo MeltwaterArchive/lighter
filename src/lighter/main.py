@@ -301,6 +301,7 @@ def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None, prof
 def verify(filenames, targetdir=None, verifySecrets=False, profiles=[]):
     parse_services(filenames, targetdir, verifySecrets, profiles)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='lighter',
