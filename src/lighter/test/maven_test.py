@@ -41,7 +41,7 @@ class MavenTest(unittest.TestCase):
 
     def testSelectVersionLatest(self):
         resolver = maven.ArtifactResolver('file:./src/resources/repository/', 'com.meltwater', 'myservice')
-        
+
         def select(expression, versions):
             return resolver.selectVersion(expression, versions)
 
