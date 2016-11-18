@@ -134,7 +134,7 @@ def replace(template, variables, raiseError=True, escapeVar=True):
             remaining = variables.clone()
             replacements = 1
 
-            while replacements > 0:
+            while replacements > 0 and isinstance(result, (str, unicode)):
                 replacements = 0
                 names = re.findall(r"(?<!%)%\{(\s*[\w\.]+\s*)\}", result)
 
@@ -142,15 +142,19 @@ def replace(template, variables, raiseError=True, escapeVar=True):
                     break
                 for name in set([name.strip() for name in names]):
                     try:
-                        value = unicode(remaining.pop(name))
-                        result = re.sub('%{\s*' + re.escape(name) + '\s*}', value, result)
+                        value = remaining.pop(name)
+                        if result == '%%{%s}' % name:
+                            # This preserves the type of the value
+                            result = value
+                        else:
+                            result = re.sub('%{\s*' + re.escape(name) + '\s*}', unicode(value), result)
                         replacements += 1
                     except KeyError as e:
                         if raiseError:
                             raise KeyError(e.message), None, sys.exc_info()[2]
 
             # Replace double %%{foo} with %{foo}
-            if escapeVar:
+            if escapeVar and isinstance(result, (str, unicode)):
                 result = re.sub(r"%%\{(\s*[\w\.]+\s*)\}", "%{\\1}", result)
 
     return result
