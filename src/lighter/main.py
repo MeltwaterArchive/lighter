@@ -268,7 +268,7 @@ def notify(targetMarathonUrl, service):
         tags=tags)
 
 def deploy(marathonurl, filenames, noop=False, force=False, targetdir=None, profiles=[]):
-    services = parse_services(filenames, targetdir)
+    services = parse_services(filenames, targetdir, profiles=profiles)
 
     for service in services:
         try:
@@ -360,7 +360,7 @@ if __name__ == '__main__':
         if args.command == 'deploy':
             deploy(args.marathon, noop=args.noop, force=args.force, filenames=args.filenames, targetdir=args.targetdir, profiles=args.profiles)
         elif args.command == 'verify':
-            verify(args.filenames, targetdir=args.targetdir, verifySecrets=args.verifySecrets)
+            verify(args.filenames, targetdir=args.targetdir, verifySecrets=args.verifySecrets, profiles=args.profiles)
     except RuntimeError as e:
         logging.error(str(e))
         sys.exit(1)
