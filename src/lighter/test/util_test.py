@@ -47,6 +47,11 @@ class UtilTest(unittest.TestCase):
         m = {'a': 'abc1def 1', 'b': ['1 2 3'], 'c': {'d': '2 3'}}
         self.assertEquals(m, util.replace(x, util.FixedVariables({'var': '1', 'var2': 2, 'var3': '3'})))
 
+    def testReplacePreserveType(self):
+        x = {'a': 'abc%{var}def', 'b': '%{var}'}
+        m = {'a': 'abc1def', 'b': 1}
+        self.assertEquals(m, util.replace(x, util.FixedVariables({'var': 1})))
+
     def testReplaceEscape(self):
         x = {'a': 'abc%%{var}def %%{var}def', 'b': 'abc%{var}def %{var}'}
         m = {'a': 'abc%{var}def %{var}def', 'b': 'abc1def 1'}
