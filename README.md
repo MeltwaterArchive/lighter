@@ -364,6 +364,8 @@ the `--canary-group` parameter. This parameter makes Lighter rewrite the app id 
 the metadata labels that Proxymatic use for canaries. The `--canary-cleanup` parameter destroys canary instances when they are removed 
 from configuration. 
 
+Take care that the `--canary-group` parameter is unique to the deployment job and branch that executes the canary deployment. Lighter will clean out canaries with the same group name if they aren't being generated anymore, and if multiple deployment jobs share a group name they'd conflict and destroy each others canaries.
+
 ### Canaries From Files
 This example use a `*-canary-*` filename convention to separate canaries from normal services. In this workflow 
 you would copy the regular service file `myservice.yml`, and make any tentative changes in this new 
