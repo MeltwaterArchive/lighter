@@ -72,3 +72,11 @@ class SecretaryTest(unittest.TestCase):
                 "Only alphanumeric characters and underscores are supported, starting with an alphabetic or underscore character.", e.message)
         else:
             self.fail("Expected exception RuntimeError")
+
+    def testNonStringValue(self):
+        try:
+            secretary.extractEnvelopes({1: 2})
+        except ValueError as e:
+            self.assertEquals("Input must be str or unicode, was dict({1: 2})", str(e))
+        else:
+            self.fail("Expected exception ValueError")

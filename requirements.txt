@@ -7,4 +7,8 @@ pynacl
 pyyaml
 requests
 packaging
+
+# Workaround for setuptools 34.* install problem https://github.com/pypa/setuptools/issues/942
+setuptools==33.1.1
+
 cffi

@@ -268,3 +268,6 @@ def rget(root, *args):
         else:
             node = node.get(arg, default)
     return node
+
+def mangle(key):
+    return re.sub('[^a-zA-Z0-9\\-]+', '_', re.sub('^[^a-zA-Z0-9]+', '', key))

@@ -1,0 +1,12 @@
+maven:
+  groupid: 'com.meltwater'
+  artifactid: 'myservice'
+  version: '[1.0.0,1.1.0)'
+override:
+  cpus: 1.0
+  env:
+    DATABASE: 'database-canary1:3306'
+variables:
+  avar: '123'
+  bvar: '%{avar}'
+  cvar: '%{avar}'

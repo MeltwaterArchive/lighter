@@ -1,6 +1,8 @@
 import unittest
 import os
 import urllib2
+import shutil
+import tempfile
 from mock import patch, Mock
 import lighter.main as lighter
 from lighter.util import jsonRequest
@@ -141,8 +143,10 @@ class DeployTest(unittest.TestCase):
 
     def testDefaultMarathonUrl(self):
         with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper('http://defaultmarathon:2')):
-            lighter.deploy(marathonurl=None, filenames=['src/resources/yaml/integration/myservice.yml'])
+            services = lighter.deploy(marathonurl=None, filenames=['src/resources/yaml/integration/myservice.yml'])
             self.assertTrue(self._called)
+            self.assertEquals(1, len(services))
+            self.assertEquals('/myproduct/myservice', services[0].id)
 
     def testNoMarathonUrlDefined(self):
         with patch('lighter.util.jsonRequest', wraps=self._createJsonRequestWrapper()):
@@ -186,17 +190,17 @@ class DeployTest(unittest.TestCase):
 
     def testPasswordCheckFail(self):
         with self.assertRaises(RuntimeError):
-            lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', verifySecrets=True)
+            lighter.verify_secrets([lighter.parse_service('src/resources/yaml/staging/myservice-password.yml')], enforce=True)
 
     def testPasswordCheckSucceed(self):
-        lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-password.yml', verifySecrets=True)
+        lighter.verify_secrets([lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-password.yml')], enforce=True)
 
     def testPasswordCheckSubstringsSucceed(self):
-        lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-substrings.yml', verifySecrets=True)
+        lighter.verify_secrets([lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-substrings.yml')], enforce=True)
 
     @patch('logging.warn')
     def testPasswordCheckWarning(self, mock_warn):
-        lighter.parse_service('src/resources/yaml/staging/myservice-password.yml', verifySecrets=False)
+        lighter.verify_secrets([lighter.parse_service('src/resources/yaml/staging/myservice-password.yml')], enforce=False)
         self.assertEqual(mock_warn.call_count, 1)
         mock_warn.assert_called_with('Found unencrypted secret in src/resources/yaml/staging/myservice-password.yml: DATABASE_PASSWORD')
 
@@ -208,3 +212,15 @@ class DeployTest(unittest.TestCase):
 
         service3 = lighter.parse_service('src/resources/yaml/staging/myservice-classifier.yml')
         self.assertNotEqual(service1.config['labels']['com.meltwater.lighter.checksum'], service3.config['labels']['com.meltwater.lighter.checksum'])
+
+    def testWriteServices(self):
+        service1 = lighter.parse_service('src/resources/yaml/staging/myservice.yml')
+        service2 = lighter.parse_service('src/resources/yaml/staging/myservice-non-docker.yml')
+
+        targetdir = tempfile.mkdtemp(prefix='lighter-deploy_test')
+        try:
+            lighter.write_services(targetdir, [service1, service2])
+            self.assertTrue(os.path.exists('%s/src/resources/yaml/staging/myservice.yml.json' % targetdir))
+            self.assertTrue(os.path.exists('%s/src/resources/yaml/staging/myservice-non-docker.yml.json' % targetdir))
+        finally:
+            shutil.rmtree(targetdir)

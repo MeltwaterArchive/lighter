@@ -1,0 +1,12 @@
+service:
+  id: '/myproduct/myservice'
+  container:
+    docker:
+      image: 'meltwater/myservice:latest'
+  env:
+    DATABASE: 'database-canary2:3306'
+  ports:
+    - 1234
+  cpus: 1.0
+  mem: 1200
+  instances: 1
