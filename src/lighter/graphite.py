@@ -53,7 +53,7 @@ class Graphite(object):
             finally:
                 sock.close()
         except (socket.error, ValueError) as e:
-            logging.warn(str(e))
+            logging.warn('Graphite._send: ' + str(e))
 
     def _call(self, endpoint, data):
         if not self._address or not self._url:
@@ -65,5 +65,5 @@ class Graphite(object):
             logging.debug('Calling Graphite endpoint %s', endpoint)
             util.jsonRequest(url, data=data, method='POST')
         except urllib2.URLError as e:
-            logging.warn(str(e))
+            logging.warn('Graphite._call: ' + str(e))
             return {}
