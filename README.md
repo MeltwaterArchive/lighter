@@ -59,13 +59,28 @@ optional arguments:
                         False]
 ```
 
+### Verify Command
+```
+usage: lighter verify YMLFILE...
+
+Verify and generate Marathon configuration files
+
+positional arguments:
+  YMLFILE           Service files to expand and deploy
+
+optional arguments:
+  -h, --help        show this help message and exit
+  --verify-secrets  Fail verification if unencrypted secrets are found
+                    [default: False]
+```
+
 ## Configuration
 Given a directory structure like
 
 ```
 config-repo/
 |   globals.yml
-|   myprofile.yml 
+|   myprofile.yml
 └─ production/
 |   |   globals.yml
 |   |   myfrontend.yml
@@ -181,7 +196,7 @@ An YAML and JSON file upwards-recursive deep merge is performed when parsing ser
 * globals.yml files are merged with decreasing precedency upwards in the directory structure
 * myservice-1.0.0-marathon.json if fetched from Maven has the lowest precedence
 
-Lists, dicts and scalar values are deep merged 
+Lists, dicts and scalar values are deep merged
 
  * Dicts are deep merged, the result containing the union of all keys
  * Lists are appended together
@@ -210,9 +225,9 @@ override:
     docker:
       portMappings:
         # Override service ports 1234,1235 with port 4000,4001
-        0: 
+        0:
           servicePort: 4000
-        1: 
+        1:
           servicePort: 4001
 ```
 
@@ -358,18 +373,22 @@ override:
     DATABASE_PASSWORD: "ENC[NACL,NVnSkhxA010D2yOWKRFog0jpUvHQzmkmKKHmqAbHAnz8oGbPEFkDfyKHQHGO7w==]"
 ```
 
+**Note**
+
+Make sure the environment variable name is a valid shell script identifier and supported by [Secretary](https://github.com/meltwater/secretary), only alphanumeric characters and underscores are supported, starting with an alphabetic or underscore character. e.g `DATABASE.PASSWORD` is invalid but `DATABASE_PASSWORD` is valid.
+
 ## Canary Deployments
 Lighter together with [Proxymatic](http://github.com/meltwater/proxymatic) supports [canary deployments](http://martinfowler.com/bliki/CanaryRelease.html) using
-the `--canary-group` parameter. This parameter makes Lighter rewrite the app id and servicePort to avoid conflicts and automatically add 
-the metadata labels that Proxymatic use for canaries. The `--canary-cleanup` parameter destroys canary instances when they are removed 
-from configuration. 
+the `--canary-group` parameter. This parameter makes Lighter rewrite the app id and servicePort to avoid conflicts and automatically add
+the metadata labels that Proxymatic use for canaries. The `--canary-cleanup` parameter destroys canary instances when they are removed
+from configuration.
 
 Take care that the `--canary-group` parameter is unique to the deployment job and branch that executes the canary deployment. Lighter will clean out canaries with the same group name if they aren't being generated anymore, and if multiple deployment jobs share a group name they'd conflict and destroy each others canaries.
 
 ### Canaries From Files
-This example use a `*-canary-*` filename convention to separate canaries from normal services. In this workflow 
-you would copy the regular service file `myservice.yml`, and make any tentative changes in this new 
-`myservice-canary-somechange.yml`. When the canary has served its purpose you'd `git mv` back or `git rm` the 
+This example use a `*-canary-*` filename convention to separate canaries from normal services. In this workflow
+you would copy the regular service file `myservice.yml`, and make any tentative changes in this new
+`myservice-canary-somechange.yml`. When the canary has served its purpose you'd `git mv` back or `git rm` the
 canary file.
 
 
@@ -382,14 +401,14 @@ lighter deploy -f -m "http://marathon-host:8080/" --canary-group=generic --canar
 ```
 
 ### Canaries From Pull Requests
-This usage would run `lighter -t /some/output/dir verify ...` on a PR and again on its base revision. Then `diff -r` the 
+This usage would run `lighter -t /some/output/dir verify ...` on a PR and again on its base revision. Then `diff -r` the
 rendered json files to figure out what services were modifed in the PR. The modified services would be deployed as canaries
 with `lighter deploy --canary-group=mybranchname --canary-cleanup ...` whenever the PR branch is changed. When the PR is closed
 or merged the canaries would be destroyed using `lighter deploy --canary-group=mybranchname --canary-cleanup`
 
 ### Canary Metrics
 Lighter adds a [Docker label](https://docs.docker.com/engine/userguide/labels-custom-metadata/) `com.meltwater.lighter.canary.group`
-which can be used to separate out container metrics from the canaries. 
+which can be used to separate out container metrics from the canaries.
 
 ## Installation
 Place a `lighter` script in the root of your configuration repo. Replace the LIGHTER_VERSION with
@@ -456,8 +475,8 @@ override:
 ```
 
 ### Datadog
-To send [Datadog deployment events](http://docs.datadoghq.com/guides/overview/#events) supply 
-your [Datadog API key](https://app.datadoghq.com/account/settings#api). Lighter will add Marathon 
+To send [Datadog deployment events](http://docs.datadoghq.com/guides/overview/#events) supply
+your [Datadog API key](https://app.datadoghq.com/account/settings#api). Lighter will add Marathon
 appid and canary group as Docker container labels in order for Datadog to tag collected metrics,
 [see: collect_labels_as_tags](https://github.com/DataDog/dd-agent/blob/master/conf.d/docker_daemon.yaml.example).
 

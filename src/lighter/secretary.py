@@ -76,8 +76,9 @@ def apply(document, config):
         # e.g. dots aren't valid in a shell identifier, so `secretary decrypt -e` wouldn't work with them
         if envelopes and not _SHELL_IDENTIFIER_RE.match(key):
             raise RuntimeError(
-                ("The env var '%s' is not a valid shell script identifier and not supported by Secretary. " +
-                 "Only alphanumeric characters and underscores are supported, starting with an alphabetic or underscore character.") % key)
+                ("The env var '%s' has an encrypted value but its name is not a valid shell script identifier and not supported by Secretary. " +
+                 "Only alphanumeric characters and underscores are supported, starting with an alphabetic or underscore character." +
+                 "Please check https://github.com/meltwater/lighter#secrets-management .") % key)
 
     # Avoid adding public keys if no secrets present
     if not found:
