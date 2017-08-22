@@ -68,8 +68,9 @@ class SecretaryTest(unittest.TestCase):
             lighter.parse_service('src/resources/yaml/staging/myservice-encrypted-dots.yml')
         except RuntimeError as e:
             self.assertEquals(
-                "The env var 'database.uri' is not a valid shell script identifier and not supported by Secretary. " +
-                "Only alphanumeric characters and underscores are supported, starting with an alphabetic or underscore character.", e.message)
+                "The env var 'database.uri' has an encrypted value but its name is not a valid shell script identifier and not supported by Secretary. " +
+                "Only alphanumeric characters and underscores are supported, starting with an alphabetic or underscore character." +
+                "Please check https://github.com/meltwater/lighter#secrets-management .", e.message)
         else:
             self.fail("Expected exception RuntimeError")
 
