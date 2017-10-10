@@ -45,6 +45,10 @@ class ImageVariables(object):
                 self._tryRegistryV1('http://%s/v1/repositories/%s/tags/%s') or \
                 self._fail('https://%s/v2/%s/manifests/%s')
 
+        if name == 'labels':
+            return \
+                self._tryRegistryV2Labels('https://%s/v2/%s/manifests/%s')
+
         return self._wrappedResolver.pop(name)
 
     def _tryRegistryV1(self, url):
@@ -72,6 +76,30 @@ class ImageVariables(object):
         """
         Resolves an image id using the Docker Registry V2 API
         """
+
+        # Extract the first compatibility image id if present
+        layerblob = self._tryRegistryV2Response(url)
+        if layerblob:
+            return json.loads(layerblob).get('id')
+
+        return None
+
+    def _tryRegistryV2Labels(self, url):
+        """
+        Resolves an image labels using the Docker Registry V2 API
+        """
+
+        # Extract the first compatibility image labels if present
+        layerblob = self._tryRegistryV2Response(url)
+        if layerblob:
+            return json.loads(layerblob).get('config').get('Labels')
+
+        return None
+
+    def _tryRegistryV2Response(self, url):
+        """
+        Return an image first compatibility history object using the Docker Registry V2 API
+        """
         try:
             expandedurl = self._expandurl(url)
             response = util.jsonRequest(expandedurl, timeout=15)
@@ -84,12 +112,7 @@ class ImageVariables(object):
             return None
 
         # Extract the first compatibility image id if present
-        layerblob = util.rget(response, 'history', 0, 'v1Compatibility')
-        if layerblob:
-            layerinfo = json.loads(layerblob)
-            return layerinfo.get('id')
-
-        return None
+        return util.rget(response, 'history', 0, 'v1Compatibility')
 
     def _fail(self, url):
         raise ValueError("Failed to resolve image version '%s' using URL like %s" % (self._image, self._expandurl(url, obfuscateauth=True)))
