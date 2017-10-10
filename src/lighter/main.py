@@ -35,7 +35,7 @@ def parsebool(value):
 def parseint(value):
     try:
         return int(value)
-    except:
+    except BaseException:
         logging.error("Invalid integer value '%s'", value)
         sys.exit(1)
 
@@ -68,6 +68,20 @@ class Service(object):
     @property
     def checksum(self):
         return self.config['labels']['com.meltwater.lighter.checksum']
+
+    @property
+    def releaseNotes(self):
+        notes = util.rget(self.document, 'hipchat', 'releaseNotes')
+        if notes:
+            return notes
+        docker_label = util.rget(self.document, 'hipchat', 'message.image.label')
+        if not docker_label:
+            return None
+        labels = docker.ImageVariables.create(self.config, self.document, self.image).pop('labels')
+        if labels:
+            return labels.get(docker_label)
+
+        return None
 
 def process_env(filename, env):
     result = copy(env)
@@ -303,12 +317,15 @@ def notify(targetMarathonUrl, service):
     title = "Deployed %s to the %s environment" % (service.id, service.environment)
 
     # Send HipChat notification
+    notify_message = "Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" % (service.id, service.image, service.environment, parsedMarathonUrl.netloc)
+    if service.releaseNotes:
+        notify_message += service.releaseNotes
+
     hipchat = HipChat(
         util.rget(service.document, 'hipchat', 'token'),
         util.rget(service.document, 'hipchat', 'url'),
         util.rget(service.document, 'hipchat', 'rooms'))
-    hipchat.notify("Deployed <b>%s</b> with image <b>%s</b> to <b>%s</b> (%s)" %
-                   (service.id, service.image, service.environment, parsedMarathonUrl.netloc))
+    hipchat.notify(notify_message)
 
     # Send NewRelic deployment notification
     newrelic = NewRelic(util.rget(service.document, 'newrelic', 'token'))

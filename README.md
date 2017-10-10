@@ -457,6 +457,35 @@ hipchat:
     - '123456'
 ```
 
+The default message of the hipchat notification is :
+
+```
+Deployed /my-image-id with image example-registry.io/image:1.0.0 to staging (marathon-url.example.com).
+```
+If you would like to post releases notes in addition to the above message, you have 2 options :
+
+1. You can add the following block to your service config 
+
+```
+hipchat:
+  releaseNotes: "my amazing release notes"
+```
+
+2. You can add the release notes with a label on the docker image itself  and then indicate which label lighter should use to get the release notes :
+
+dockerfile
+```
+FROM registry.io/image:tag
+LABEL com.example.component.release-notes="my amazing release notes"
+```
+
+service config 
+```
+hipchat:
+  message.image.label: "com.example.component.release-notes" # image label to use for hipchat message
+
+```
+
 ### New Relic
 To send [New Relic deployment notifications](https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/deployment-notifications) supply your [New Relic REST API key](https://docs.newrelic.com/docs/apis/rest-api-v2/requirements/api-keys) (different from the license key given to the agent).
 

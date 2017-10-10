@@ -6,3 +6,5 @@ service:
   env:
     SERVICE_VERSION: "%{lighter.version}"
     SERVICE_BUILD: "%{lighter.uniqueVersion}"
+hipchat:
+  message.image.label: "com.example.component.release-notes"
