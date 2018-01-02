@@ -1,6 +1,6 @@
 #!/bin/sh
 # Copied from https://github.com/pyca/cryptography/blob/master/.travis/run.sh
-set -e -x
+set -e
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
     # initialize our pyenv

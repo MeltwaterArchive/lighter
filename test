@@ -1,5 +1,5 @@
-#!/bin/bash
-set -e -x
+#!/bin/sh
+set -e
 . ./common.sh
 
 cd "`dirname $0`"

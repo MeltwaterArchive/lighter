@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -x
+set -e
 . "`dirname $0`/common.sh"
 
 export PYTHONPATH=".:`dirname $0`/src"
