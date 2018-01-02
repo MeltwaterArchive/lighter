@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-. ./common.sh
+. `dirname $0`/common.sh
 
 cd "`dirname $0`"
 export PYTHONPATH=".:`pwd`/src"
