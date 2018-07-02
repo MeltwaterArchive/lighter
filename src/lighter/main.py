@@ -8,10 +8,12 @@ import yaml
 import urllib
 import urllib2
 import json
+import time
 from copy import copy
 from urlparse import urlparse
 from joblib import Parallel, delayed
 from lighter.hipchat import HipChat
+from lighter.slack import Slack
 import lighter.util as util
 import lighter.maven as maven
 import lighter.docker as docker
@@ -326,6 +328,38 @@ def notify(targetMarathonUrl, service):
         util.rget(service.document, 'hipchat', 'url'),
         util.rget(service.document, 'hipchat', 'rooms'))
     hipchat.notify(notify_message)
+
+    # Send Slack notification
+    notify_payload = {
+        "title_link": targetMarathonUrl,
+        "fields": [
+            {
+                "title": "Service",
+                "value": service.id,
+                "short": 'true'
+            },
+            {
+                "title": "Environment",
+                "value": service.environment,
+                "short": 'true'
+            },
+            {
+                "title": "Image",
+                "value": service.image,
+                "short": 'true'
+            }
+        ],
+        "ts": int(time.time())
+    }
+
+    if service.releaseNotes:
+        notify_payload = util.merge({'text': service.releaseNotes}, notify_payload)
+
+    slack = Slack(
+        util.rget(service.document, 'slack', 'token'),
+        util.rget(service.document, 'slack', 'url'),
+        util.rget(service.document, 'slack', 'channels'))
+    slack.notify(notify_payload)
 
     # Send NewRelic deployment notification
     newrelic = NewRelic(util.rget(service.document, 'newrelic', 'token'))

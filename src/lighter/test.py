@@ -3,6 +3,7 @@ import sys
 from lighter.test.canary_test import CanaryTest
 from lighter.test.deploy_test import DeployTest
 from lighter.test.hipchat_test import HipChatTest
+from lighter.test.slack_test import SlackTest
 from lighter.test.maven_test import MavenTest
 from lighter.test.util_test import UtilTest
 from lighter.test.newrelic_test import NewRelicTest
@@ -17,6 +18,7 @@ if __name__ == '__main__':
     suite.addTest(unittest.makeSuite(CanaryTest))
     suite.addTest(unittest.makeSuite(DeployTest))
     suite.addTest(unittest.makeSuite(HipChatTest))
+    suite.addTest(unittest.makeSuite(SlackTest))
     suite.addTest(unittest.makeSuite(MavenTest))
     suite.addTest(unittest.makeSuite(UtilTest))
     suite.addTest(unittest.makeSuite(NewRelicTest))
