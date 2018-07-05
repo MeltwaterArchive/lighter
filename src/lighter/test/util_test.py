@@ -33,7 +33,7 @@ class UtilTest(unittest.TestCase):
         try:
             util.merge(x, y)
             self.fail("Expected exception ValueError")
-        except IndexError, e:
+        except IndexError as e:
             self.assertEquals("The given list override index a.b[4] doesn't exist", e.message)
 
     def testMergeListOverrideDeep(self):
