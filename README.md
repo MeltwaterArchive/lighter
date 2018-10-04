@@ -389,8 +389,7 @@ Take care that the `--canary-group` parameter is unique to the deployment job an
 This example use a `*-canary-*` filename convention to separate canaries from normal services. In this workflow
 you would copy the regular service file `myservice.yml`, and make any tentative changes in this new
 `myservice-canary-somechange.yml`. When the canary has served its purpose you'd `git mv` back or `git rm` the
-canary file.
-
+canary file. You can run multiple independent canaries in parallel, e.g. `myservice-canary-somechange.yml`, `myservice-canary-foo.yml` and `myservice-canary-bar.yml` can co-exist at the same time
 
 ```
 # Deploy regular services
