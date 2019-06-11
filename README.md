@@ -1,3 +1,8 @@
+# DEPRECATED
+This repository is no longer activiely maintained.
+
+---
+
 # ![Lighter](docs/logo.png)
 [![Travis CI](https://img.shields.io/travis/meltwater/lighter/master.svg)](https://travis-ci.org/meltwater/lighter)
 [![Coverage Status](https://codecov.io/github/meltwater/lighter/coverage.svg?branch=master)](https://codecov.io/github/meltwater/lighter?branch=master&view=all)
